@@ -4946,14 +4946,4 @@ Atomikos事务管理器原理分析
         <tag>sharding-jdbc</tag>
       </tags>
   </entry>
-  <entry>
-    <title>RedisTimeoutException问题</title>
-    <url>/2022/06/15/RedisTimeoutException%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
-    <title>2022_0617_canal解析binlog字段update为false</title>
-    <url>/2022/06/15/2022-0617-canal%E8%A7%A3%E6%9E%90binlog%E5%AD%97%E6%AE%B5update%E4%B8%BAfalse/</url>
-    <content><![CDATA[]]></content>
-  </entry>
 </search>

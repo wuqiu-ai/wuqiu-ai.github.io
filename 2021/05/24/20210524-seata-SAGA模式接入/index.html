@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="Saga简介Saga 是一种补偿协议，在 Saga 模式下，分布式事务内有多个参与者，每一个参与者都是一个冲正补偿服务，需要用户根据业务场景实现其正向操作和逆向回滚操作。 分布式事务执行过程中，依次执行各参与者的正向操作，如果所有正向操作均执行成功，那么分布式事务提交。如果任何一个正向操作执行失败，那么分布式事务会退回去执行前面各参与者的逆向回滚操作，回滚已提交的参与者，使分布式事务回到初始状态。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Seata-SAGA模式接入">
-<meta property="og:url" content="http://example.com/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/index.html">
+<meta property="og:url" content="http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="Saga简介Saga 是一种补偿协议，在 Saga 模式下，分布式事务内有多个参与者，每一个参与者都是一个冲正补偿服务，需要用户根据业务场景实现其正向操作和逆向回滚操作。 分布式事务执行过程中，依次执行各参与者的正向操作，如果所有正向操作均执行成功，那么分布式事务提交。如果任何一个正向操作执行失败，那么分布式事务会退回去执行前面各参与者的逆向回滚操作，回滚已提交的参与者，使分布式事务回到初始状态。">
 <meta property="og:locale">
@@ -41,7 +41,7 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/seata/2.jpg">
 
 
-<link rel="canonical" href="http://example.com/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/">
+<link rel="canonical" href="http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/">
 
 
 <script class="page-configurations">
@@ -181,7 +181,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -239,7 +239,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">

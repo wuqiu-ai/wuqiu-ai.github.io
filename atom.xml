@@ -3,11 +3,11 @@
   <title>J~杰&#39;s Blog</title>
   
   <subtitle>人生就一条路，走一步有一步的景观</subtitle>
-  <link href="http://example.com/atom.xml" rel="self"/>
+  <link href="http://ppjys.cn/atom.xml" rel="self"/>
   
-  <link href="http://example.com/"/>
-  <updated>2022-06-15T10:54:41.998Z</updated>
-  <id>http://example.com/</id>
+  <link href="http://ppjys.cn/"/>
+  <updated>2021-08-18T04:48:21.454Z</updated>
+  <id>http://ppjys.cn/</id>
   
   <author>
     <name>J~杰</name>
@@ -17,35 +17,9 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>2022_0617_canal解析binlog字段update为false</title>
-    <link href="http://example.com/2022/06/15/2022-0617-canal%E8%A7%A3%E6%9E%90binlog%E5%AD%97%E6%AE%B5update%E4%B8%BAfalse/"/>
-    <id>http://example.com/2022/06/15/2022-0617-canal%E8%A7%A3%E6%9E%90binlog%E5%AD%97%E6%AE%B5update%E4%B8%BAfalse/</id>
-    <published>2022-06-15T10:54:41.000Z</published>
-    <updated>2022-06-15T10:54:41.998Z</updated>
-    
-    
-    
-    
-    
-  </entry>
-  
-  <entry>
-    <title>RedisTimeoutException问题</title>
-    <link href="http://example.com/2022/06/15/RedisTimeoutException%E9%97%AE%E9%A2%98/"/>
-    <id>http://example.com/2022/06/15/RedisTimeoutException%E9%97%AE%E9%A2%98/</id>
-    <published>2022-06-15T10:52:35.000Z</published>
-    <updated>2022-06-15T10:52:35.784Z</updated>
-    
-    
-    
-    
-    
-  </entry>
-  
-  <entry>
     <title>雪花算法ID到前端之后精度丢失问题</title>
-    <link href="http://example.com/2021/08/18/20210818%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95ID%E5%88%B0%E5%89%8D%E7%AB%AF%E4%B9%8B%E5%90%8E%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/"/>
-    <id>http://example.com/2021/08/18/20210818%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95ID%E5%88%B0%E5%89%8D%E7%AB%AF%E4%B9%8B%E5%90%8E%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/</id>
+    <link href="http://ppjys.cn/2021/08/18/20210818%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95ID%E5%88%B0%E5%89%8D%E7%AB%AF%E4%B9%8B%E5%90%8E%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/"/>
+    <id>http://ppjys.cn/2021/08/18/20210818%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95ID%E5%88%B0%E5%89%8D%E7%AB%AF%E4%B9%8B%E5%90%8E%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/</id>
     <published>2021-08-18T04:32:44.000Z</published>
     <updated>2021-08-18T04:48:21.454Z</updated>
     
@@ -64,14 +38,14 @@
     
     
     
-    <category term="线上问题" scheme="http://example.com/tags/%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98/"/>
+    <category term="线上问题" scheme="http://ppjys.cn/tags/%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98/"/>
     
   </entry>
   
   <entry>
     <title>Jedis和Lettuce性能对比</title>
-    <link href="http://example.com/2021/07/15/20210715Jedis%E5%92%8CLettuce%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/"/>
-    <id>http://example.com/2021/07/15/20210715Jedis%E5%92%8CLettuce%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/</id>
+    <link href="http://ppjys.cn/2021/07/15/20210715Jedis%E5%92%8CLettuce%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/"/>
+    <id>http://ppjys.cn/2021/07/15/20210715Jedis%E5%92%8CLettuce%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/</id>
     <published>2021-07-15T07:32:45.000Z</published>
     <updated>2021-07-15T10:00:37.773Z</updated>
     
@@ -97,14 +71,14 @@
     
     
     
-    <category term="redis,jedis,lettuce" scheme="http://example.com/tags/redis-jedis-lettuce/"/>
+    <category term="redis,jedis,lettuce" scheme="http://ppjys.cn/tags/redis-jedis-lettuce/"/>
     
   </entry>
   
   <entry>
     <title>mysql死锁日志分析</title>
-    <link href="http://example.com/2021/07/09/20210709-mysql%E6%AD%BB%E9%94%81%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/"/>
-    <id>http://example.com/2021/07/09/20210709-mysql%E6%AD%BB%E9%94%81%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/</id>
+    <link href="http://ppjys.cn/2021/07/09/20210709-mysql%E6%AD%BB%E9%94%81%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/"/>
+    <id>http://ppjys.cn/2021/07/09/20210709-mysql%E6%AD%BB%E9%94%81%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/</id>
     <published>2021-07-09T03:39:09.000Z</published>
     <updated>2021-07-09T07:12:49.646Z</updated>
     
@@ -116,14 +90,14 @@
     
     
     
-    <category term="mysql" scheme="http://example.com/tags/mysql/"/>
+    <category term="mysql" scheme="http://ppjys.cn/tags/mysql/"/>
     
   </entry>
   
   <entry>
     <title>Seata-SAGA模式接入</title>
-    <link href="http://example.com/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
-    <id>http://example.com/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
+    <link href="http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
+    <id>http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
     <published>2021-05-24T08:51:56.000Z</published>
     <updated>2021-07-09T03:35:46.430Z</updated>
     
@@ -156,14 +130,14 @@
     
     
     
-    <category term="seata" scheme="http://example.com/tags/seata/"/>
+    <category term="seata" scheme="http://ppjys.cn/tags/seata/"/>
     
   </entry>
   
   <entry>
     <title>Seata-TCC模式接入</title>
-    <link href="http://example.com/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
-    <id>http://example.com/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
+    <link href="http://ppjys.cn/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
+    <id>http://ppjys.cn/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
     <published>2021-05-24T08:51:47.000Z</published>
     <updated>2021-07-09T03:36:11.469Z</updated>
     
@@ -190,14 +164,14 @@
     
     
     
-    <category term="seata" scheme="http://example.com/tags/seata/"/>
+    <category term="seata" scheme="http://ppjys.cn/tags/seata/"/>
     
   </entry>
   
   <entry>
     <title>seata-AT模式接入</title>
-    <link href="http://example.com/2021/05/24/20210524-seata-AT%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
-    <id>http://example.com/2021/05/24/20210524-seata-AT%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
+    <link href="http://ppjys.cn/2021/05/24/20210524-seata-AT%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
+    <id>http://ppjys.cn/2021/05/24/20210524-seata-AT%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
     <published>2021-05-24T08:51:41.000Z</published>
     <updated>2021-07-09T03:37:44.862Z</updated>
     
@@ -215,14 +189,14 @@
     
     
     
-    <category term="seata" scheme="http://example.com/tags/seata/"/>
+    <category term="seata" scheme="http://ppjys.cn/tags/seata/"/>
     
   </entry>
   
   <entry>
     <title>Mysql8.0 jdbc驱动时区问题</title>
-    <link href="http://example.com/2021/03/25/20210325_Mysql8-0-jdbc%E9%A9%B1%E5%8A%A8%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/"/>
-    <id>http://example.com/2021/03/25/20210325_Mysql8-0-jdbc%E9%A9%B1%E5%8A%A8%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/</id>
+    <link href="http://ppjys.cn/2021/03/25/20210325_Mysql8-0-jdbc%E9%A9%B1%E5%8A%A8%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/"/>
+    <id>http://ppjys.cn/2021/03/25/20210325_Mysql8-0-jdbc%E9%A9%B1%E5%8A%A8%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/</id>
     <published>2021-03-25T12:28:50.000Z</published>
     <updated>2021-03-25T05:13:56.931Z</updated>
     
@@ -242,14 +216,14 @@
     
     
     
-    <category term="问题排查 mysql8.0" scheme="http://example.com/tags/%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-mysql8-0/"/>
+    <category term="问题排查 mysql8.0" scheme="http://ppjys.cn/tags/%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5-mysql8-0/"/>
     
   </entry>
   
   <entry>
     <title>mysql的datetime类型设置&#39;0000-00-00&#39; 导致的otter同步失败</title>
-    <link href="http://example.com/2020/12/09/20201209_mysql%E7%9A%84datetime%E7%B1%BB%E5%9E%8B%E8%AE%BE%E7%BD%AE0000-00-00&#39;%20%E5%AF%BC%E8%87%B4%E7%9A%84otter%E5%90%8C%E6%AD%A5%E5%A4%B1%E8%B4%A5/"/>
-    <id>http://example.com/2020/12/09/20201209_mysql%E7%9A%84datetime%E7%B1%BB%E5%9E%8B%E8%AE%BE%E7%BD%AE0000-00-00&#39;%20%E5%AF%BC%E8%87%B4%E7%9A%84otter%E5%90%8C%E6%AD%A5%E5%A4%B1%E8%B4%A5/</id>
+    <link href="http://ppjys.cn/2020/12/09/20201209_mysql%E7%9A%84datetime%E7%B1%BB%E5%9E%8B%E8%AE%BE%E7%BD%AE0000-00-00&#39;%20%E5%AF%BC%E8%87%B4%E7%9A%84otter%E5%90%8C%E6%AD%A5%E5%A4%B1%E8%B4%A5/"/>
+    <id>http://ppjys.cn/2020/12/09/20201209_mysql%E7%9A%84datetime%E7%B1%BB%E5%9E%8B%E8%AE%BE%E7%BD%AE0000-00-00&#39;%20%E5%AF%BC%E8%87%B4%E7%9A%84otter%E5%90%8C%E6%AD%A5%E5%A4%B1%E8%B4%A5/</id>
     <published>2020-12-09T11:45:17.000Z</published>
     <updated>2020-12-09T06:43:26.338Z</updated>
     
@@ -262,17 +236,17 @@
     
     
     
-    <category term="otter" scheme="http://example.com/categories/otter/"/>
+    <category term="otter" scheme="http://ppjys.cn/categories/otter/"/>
     
     
-    <category term="otter" scheme="http://example.com/tags/otter/"/>
+    <category term="otter" scheme="http://ppjys.cn/tags/otter/"/>
     
   </entry>
   
   <entry>
     <title>otter输出Rocket-MQ改造</title>
-    <link href="http://example.com/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/"/>
-    <id>http://example.com/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/</id>
+    <link href="http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/"/>
+    <id>http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/</id>
     <published>2020-11-06T11:45:17.000Z</published>
     <updated>2020-11-11T07:57:07.557Z</updated>
     
@@ -293,17 +267,17 @@
     
     
     
-    <category term="otter" scheme="http://example.com/categories/otter/"/>
+    <category term="otter" scheme="http://ppjys.cn/categories/otter/"/>
     
     
-    <category term="otter" scheme="http://example.com/tags/otter/"/>
+    <category term="otter" scheme="http://ppjys.cn/tags/otter/"/>
     
   </entry>
   
   <entry>
     <title>Leetcode高频题总结</title>
-    <link href="http://example.com/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/"/>
-    <id>http://example.com/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/</id>
+    <link href="http://ppjys.cn/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/"/>
+    <id>http://ppjys.cn/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/</id>
     <published>2020-10-13T04:02:06.000Z</published>
     <updated>2020-10-30T11:44:29.418Z</updated>
     
@@ -316,17 +290,17 @@
     
     
     
-    <category term="面试总结" scheme="http://example.com/categories/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/"/>
+    <category term="面试总结" scheme="http://ppjys.cn/categories/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/"/>
     
     
-    <category term="面试总结" scheme="http://example.com/tags/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/"/>
+    <category term="面试总结" scheme="http://ppjys.cn/tags/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/"/>
     
   </entry>
   
   <entry>
     <title>Otter跨机房迁移采坑记录</title>
-    <link href="http://example.com/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/"/>
-    <id>http://example.com/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/</id>
+    <link href="http://ppjys.cn/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/"/>
+    <id>http://ppjys.cn/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/</id>
     <published>2020-10-11T09:01:35.000Z</published>
     <updated>2020-10-13T04:04:38.149Z</updated>
     
@@ -340,17 +314,17 @@
     
     
     
-    <category term="otter" scheme="http://example.com/categories/otter/"/>
+    <category term="otter" scheme="http://ppjys.cn/categories/otter/"/>
     
     
-    <category term="Otter" scheme="http://example.com/tags/Otter/"/>
+    <category term="Otter" scheme="http://ppjys.cn/tags/Otter/"/>
     
   </entry>
   
   <entry>
     <title>Mysql binlog知识</title>
-    <link href="http://example.com/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/"/>
-    <id>http://example.com/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/</id>
+    <link href="http://ppjys.cn/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/"/>
+    <id>http://ppjys.cn/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/</id>
     <published>2020-09-18T10:39:28.000Z</published>
     <updated>2020-10-13T04:05:16.493Z</updated>
     
@@ -416,17 +390,17 @@
     
     
     
-    <category term="mysql" scheme="http://example.com/categories/mysql/"/>
+    <category term="mysql" scheme="http://ppjys.cn/categories/mysql/"/>
     
     
-    <category term="mysql" scheme="http://example.com/tags/mysql/"/>
+    <category term="mysql" scheme="http://ppjys.cn/tags/mysql/"/>
     
   </entry>
   
   <entry>
     <title>线上故障排查总结</title>
-    <link href="http://example.com/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/"/>
-    <id>http://example.com/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/</id>
+    <link href="http://ppjys.cn/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/"/>
+    <id>http://ppjys.cn/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/</id>
     <published>2020-09-13T02:45:47.000Z</published>
     <updated>2020-10-13T04:05:28.562Z</updated>
     
@@ -455,17 +429,17 @@
     
     
     
-    <category term="性能调优" scheme="http://example.com/categories/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/"/>
+    <category term="性能调优" scheme="http://ppjys.cn/categories/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/"/>
     
     
-    <category term="性能调优" scheme="http://example.com/tags/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/"/>
+    <category term="性能调优" scheme="http://ppjys.cn/tags/%E6%80%A7%E8%83%BD%E8%B0%83%E4%BC%98/"/>
     
   </entry>
   
   <entry>
     <title>Mysql5.7 XA事物的改进</title>
-    <link href="http://example.com/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/"/>
-    <id>http://example.com/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/</id>
+    <link href="http://ppjys.cn/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/"/>
+    <id>http://ppjys.cn/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/</id>
     <published>2020-09-05T06:38:45.000Z</published>
     <updated>2020-10-13T04:05:38.859Z</updated>
     
@@ -478,17 +452,17 @@
     
     
     
-    <category term="mysql" scheme="http://example.com/categories/mysql/"/>
+    <category term="mysql" scheme="http://ppjys.cn/categories/mysql/"/>
     
     
-    <category term="XA事物" scheme="http://example.com/tags/XA%E4%BA%8B%E7%89%A9/"/>
+    <category term="XA事物" scheme="http://ppjys.cn/tags/XA%E4%BA%8B%E7%89%A9/"/>
     
   </entry>
   
   <entry>
     <title>Lettuce超时问题</title>
-    <link href="http://example.com/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/"/>
-    <id>http://example.com/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/</id>
+    <link href="http://ppjys.cn/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/"/>
+    <id>http://ppjys.cn/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/</id>
     <published>2020-09-04T12:11:45.000Z</published>
     <updated>2020-10-13T04:05:48.653Z</updated>
     
@@ -499,17 +473,17 @@
     
     
     
-    <category term="redis" scheme="http://example.com/categories/redis/"/>
+    <category term="redis" scheme="http://ppjys.cn/categories/redis/"/>
     
     
-    <category term="快速排查线上问题" scheme="http://example.com/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E6%9F%A5%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98/"/>
+    <category term="快速排查线上问题" scheme="http://ppjys.cn/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E6%9F%A5%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98/"/>
     
   </entry>
   
   <entry>
     <title>Redis开发规范</title>
-    <link href="http://example.com/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/"/>
-    <id>http://example.com/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/</id>
+    <link href="http://ppjys.cn/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/"/>
+    <id>http://ppjys.cn/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/</id>
     <published>2020-09-02T14:05:27.000Z</published>
     <updated>2020-10-13T04:04:51.111Z</updated>
     
@@ -581,17 +555,17 @@
     
     
     
-    <category term="redis" scheme="http://example.com/categories/redis/"/>
+    <category term="redis" scheme="http://ppjys.cn/categories/redis/"/>
     
     
-    <category term="Redis" scheme="http://example.com/tags/Redis/"/>
+    <category term="Redis" scheme="http://ppjys.cn/tags/Redis/"/>
     
   </entry>
   
   <entry>
     <title>Redis性能优化</title>
-    <link href="http://example.com/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/"/>
-    <id>http://example.com/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</id>
+    <link href="http://ppjys.cn/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/"/>
+    <id>http://ppjys.cn/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</id>
     <published>2020-09-01T06:35:12.000Z</published>
     <updated>2020-10-13T04:05:59.407Z</updated>
     
@@ -621,17 +595,17 @@
     
     
     
-    <category term="redis" scheme="http://example.com/categories/redis/"/>
+    <category term="redis" scheme="http://ppjys.cn/categories/redis/"/>
     
     
-    <category term="Redis" scheme="http://example.com/tags/Redis/"/>
+    <category term="Redis" scheme="http://ppjys.cn/tags/Redis/"/>
     
   </entry>
   
   <entry>
     <title>常用算法总结</title>
-    <link href="http://example.com/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/"/>
-    <id>http://example.com/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/</id>
+    <link href="http://ppjys.cn/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/"/>
+    <id>http://ppjys.cn/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/</id>
     <published>2020-08-31T07:42:04.000Z</published>
     <updated>2020-10-13T04:04:09.277Z</updated>
     
@@ -655,10 +629,90 @@
     
     
     
-    <category term="面试总结" scheme="http://example.com/categories/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/"/>
+    <category term="面试总结" scheme="http://ppjys.cn/categories/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/"/>
     
     
-    <category term="数据结构与算法" scheme="http://example.com/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/"/>
+    <category term="数据结构与算法" scheme="http://ppjys.cn/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>计算机网络知识</title>
+    <link href="http://ppjys.cn/2020/08/30/20200830%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86/"/>
+    <id>http://ppjys.cn/2020/08/30/20200830%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86/</id>
+    <published>2020-08-30T09:24:43.000Z</published>
+    <updated>2020-10-13T04:04:20.555Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;知识图谱&quot;&gt;&lt;a href=&quot;#知识图谱&quot; class=&quot;headerlink&quot; title=&quot;知识图谱&quot;&gt;&lt;/a&gt;知识图谱&lt;/h2&gt;&lt;p&gt;&lt;img src=&quot;/images/network1.png&quot;&gt;&lt;/p&gt;
+&lt;h2 id=&quot;面试题&quot;&gt;&lt;a href=&quot;#面试</summary>
+      
+    
+    
+    
+    <category term="面试总结" scheme="http://ppjys.cn/categories/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/"/>
+    
+    
+    <category term="面试总结" scheme="http://ppjys.cn/tags/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>JVM学习笔记</title>
+    <link href="http://ppjys.cn/2020/06/20/20200620_JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
+    <id>http://ppjys.cn/2020/06/20/20200620_JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
+    <published>2020-06-20T14:30:00.000Z</published>
+    <updated>2020-08-26T00:07:15.720Z</updated>
+    
+    
+    <summary type="html">&lt;h3 id=&quot;JVM内存结构&quot;&gt;&lt;a href=&quot;#JVM内存结构&quot; class=&quot;headerlink&quot; title=&quot;JVM内存结构&quot;&gt;&lt;/a&gt;JVM内存结构&lt;/h3&gt;&lt;p&gt;根据《Java虚拟机规范(Java SE 7版)》规定，Java虚拟机内存结构可划分为以下区域：&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/jvm1.png&quot;&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;程序计数器&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;程序计数器是一块较小的内存空间，可看作是当前线程所执行的字节码的行号指示器。在虚拟机概念模型里，字节码解释器工作时就是通过改变该计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖该计数器来完成。&lt;/li&gt;
+&lt;li&gt;JVM中多线程是通过线程轮流切换并分配处理器执行时间的方式来实现的。即在任何时刻，CPU只会执行一条线程中的指令，因此，为了线程切换后能恢复到正确的执行位置，每条线程都需要有一个独立的程序计数器，各线程之间计数器互不影响，独立存储，该内存为线程私有。&lt;/li&gt;
+&lt;li&gt;如果线程正在执行一个Java方法，则PC记录的是正在执行的虚拟机字节码指令的地址，如果正在执行的是Native方法，则PC值为Undefined，该内存区域是唯一一个没用OOM的区域。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;虚拟机栈&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Java虚拟机栈也是线程私有的，它的生命周期与线程相同。虚拟机栈描述的是Java方法执行的内存模型：每个方法在执行的时候会创建一个栈帧，用来存储局部变量表、操作数栈、动态链接、方法出口等信息。每个方法从调用至执行完成的过程对应着一个栈帧在虚拟机栈中入栈到出栈的过程.&lt;/li&gt;
+&lt;li&gt;局部变量表：存放编译期可知的各种基本数据类型(如Boolean、byte、char、short、int、float、long、double)、对象引用类型（如：引用指针、句柄等）。局部变量表所需内存空间在编译期间完成分配，即进入一个方法时，这个方法需要在帧中分配多大的局部变量空间是确定的，在方法运行期间不会改变局部变量表的大小。&lt;/li&gt;
+&lt;li&gt;异常情况：&lt;ul&gt;
+&lt;li&gt;StackOverflowError异常：线程请求的栈深度大于虚拟机所允许的深度时，会抛出栈上溢异常&lt;/li&gt;
+&lt;li&gt;OutOfMemoryError异常：虚拟机栈动态扩展时无法申请到足够的内存，会抛出内存溢出异常&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;本地方法栈&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;发挥的作用与虚拟机栈类似，区别在于虚拟机栈为虚拟机执行Java方法（字节码）服务，而本地方法栈则是为虚拟机使用到的Native方法服务，如Java访问C语言的方法、汇编程序等。&lt;/li&gt;
+&lt;li&gt;异常情况：与虚拟机栈一样。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;堆&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;堆是Java所管理的内存中最大的一块，是被所有线程共享的一块内存区域，在虚拟机启动时创建，用于存放对象实例，也是垃圾收集器管理的主要区域。&lt;/li&gt;
+&lt;li&gt;根据GC分代收集算法，堆可细分为：新生代和老年代；新生代又分为Eden区、Survivor区（from,to）从内存分配的角度看，线程共享的Java堆可划分出多个线程私有的分配缓冲区（TLAB：Thread Local Allocation Buffer)&lt;/li&gt;
+&lt;li&gt;堆内存仅要逻辑上连续即可，物理上不连续也可以，如果在堆中没有内存完成实例分配。并且堆也无法再扩展时，则会抛出OOM异常&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;方法区&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;与堆一样，方法区是各线程共享的，用于存储已被虚拟机 加载的类信息、常量、静态变量、即时编译器编译后的代码等数据&lt;/li&gt;
+&lt;li&gt;对于开发者来说，该区又称为“永久代”Permanent Generation，当方法区无法满足内存分配时，将抛出OOM异常&lt;/li&gt;
+&lt;/ul&gt;</summary>
+    
+    
+    
+    <category term="jvm" scheme="http://ppjys.cn/categories/jvm/"/>
+    
+    
+    <category term="jvm java基础" scheme="http://ppjys.cn/tags/jvm-java%E5%9F%BA%E7%A1%80/"/>
     
   </entry>
   

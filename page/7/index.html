@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="人生就一条路，走一步有一步的景观">
 <meta property="og:type" content="website">
 <meta property="og:title" content="J~杰&#39;s Blog">
-<meta property="og:url" content="http://example.com/page/7/index.html">
+<meta property="og:url" content="http://ppjys.cn/page/7/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="人生就一条路，走一步有一步的景观">
 <meta property="og:locale">
@@ -35,7 +35,7 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/page/7/">
+<link rel="canonical" href="http://ppjys.cn/page/7/">
 
 
 <script class="page-configurations">
@@ -174,7 +174,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -231,210 +231,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/04/20/druid%E6%95%B0%E6%8D%AE%E6%BA%90%E6%97%A0%E5%8F%AF%E7%94%A8%E8%BF%9E%E6%8E%A5%E9%97%AE%E9%A2%98/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="J~杰">
-      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="J~杰's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/04/20/druid%E6%95%B0%E6%8D%AE%E6%BA%90%E6%97%A0%E5%8F%AF%E7%94%A8%E8%BF%9E%E6%8E%A5%E9%97%AE%E9%A2%98/" class="post-title-link" itemprop="url">druid数据源无可用连接问题</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2018-04-20 15:07:35" itemprop="dateCreated datePublished" datetime="2018-04-20T15:07:35+08:00">2018-04-20</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2018-07-03 21:24:35" itemprop="dateModified" datetime="2018-07-03T21:24:35+08:00">2018-07-03</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3/" itemprop="url" rel="index"><span itemprop="name">问题及解决</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>在工程中使用了druid连接池，运行一段时间后系统出现异常,但是使用客户端能正常连接，连接数被未被占满,报错如下：</p>
-<blockquote>
-<p>Caused by: org.springframework.jdbc.CannotGetJdbcConnectionException: Could not get JDBC Connection; nested exception is com.alibaba.druid.pool.GetConnectionTimeoutException: wait millis 60009, active 50                  at org.springframework.jdbc.datasource.DataSourceUtils.getConnection(DataSourceUtils.java:80)                  at org.springframework.jdbc.support.JdbcUtils.extractDatabaseMetaData(JdbcUtils.java:280)                  … 64 more  </p>
-</blockquote>
-<h2 id="原因及解决方案"><a href="#原因及解决方案" class="headerlink" title="原因及解决方案"></a>原因及解决方案</h2><p>应该是程序中有地方连接未关闭造成的。那如何来定呢？使用druid连接池的超时回收机制，在配置中增加以下内容：</p>
-<pre><code>&lt;!– 超过时间限制是否回收 –&gt;  
-&lt;property name=“removeAbandoned” value=“true” /&gt;  
-&lt;!– 超时时间；单位为秒。180秒=3分钟 –&gt;  
-&lt;property name=“removeAbandonedTimeout” value=“180” /&gt;  
-&lt;!– 关闭abanded连接时输出错误日志 –&gt;  
-&lt;property name=“logAbandoned” value=“true” /&gt;   
-</code></pre>
-<p>但是加了logAbandoned配置之后，可能经常会强制释放连接报错，错误如下：</p>
-<blockquote>
-<p>[com.alibaba.druid.pool.DruidDataSource] – &lt;abandon connection, open stackTrace          at java.lang.Thread.getStackTrace(Thread.java:1567)          at com.alibaba.druid.pool.DruidDataSource.getConnectionDirect(DruidDataSource.java:995)          at com.alibaba.druid.filter.FilterChainImpl.dataSource_connect(FilterChainImpl.java:4544) </p>
-</blockquote>
-<pre><code>备注：该堆栈是之前使用该连接是new出来的，故可以凭此确认此链接使用没有很好的回收。 
-但理论上使用了mybatis，mybatis会负责好连接池申请回放回
-</code></pre>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/04/19/%E8%A7%A3%E5%86%B3OutOfMemoryError-unable-to-create-new-native-thread%E9%97%AE%E9%A2%98/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="J~杰">
-      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="J~杰's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/04/19/%E8%A7%A3%E5%86%B3OutOfMemoryError-unable-to-create-new-native-thread%E9%97%AE%E9%A2%98/" class="post-title-link" itemprop="url">解决OutOfMemoryError: unable to create new native thread问题</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2018-04-19 14:07:35" itemprop="dateCreated datePublished" datetime="2018-04-19T14:07:35+08:00">2018-04-19</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2018-07-03 23:21:00" itemprop="dateModified" datetime="2018-07-03T23:21:00+08:00">2018-07-03</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E9%97%AE%E9%A2%98%E5%8F%8A%E8%A7%A3%E5%86%B3/" itemprop="url" rel="index"><span itemprop="name">问题及解决</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>java.lang.OutOfMemoryError共有8种类型，其中java.lang.OutOfMemoryError: unable to create new native thread是很常见的一种，这类错误通常发生在应用试图创建新线程时。最近测试环境经常出现错误如下：</p>
-<blockquote>
-<p>Caused by: java.lang.OutOfMemoryError: unable to create new native thread<br>    at java.lang.Thread.start0(Native Method)<br>    at java.lang.Thread.start(Thread.java:714)<br>    at java.util.concurrent.ThreadPoolExecutor.addWorker(ThreadPoolExecutor.java:950)<br>    at java.util.concurrent.ThreadPoolExecutor.execute(ThreadPoolExecutor.java:1368)<br>    at com.alibaba.dubbo.remoting.transport.dispatcher.all.AllChannelHandler.caught(AllChannelHandler.java:65)</p>
-</blockquote>
-<h2 id="可能原因"><a href="#可能原因" class="headerlink" title="可能原因"></a>可能原因</h2><ol>
-<li>系统内存耗尽，无法为新线程分配内存</li>
-<li>创建线程数超过了操作系统的限制</li>
-</ol>
-<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><ol>
-<li>排查应用是否创建了过多的线程<blockquote>
-<p>通过jstack确定应用创建了多少线程？超量创建的线程的堆栈信息是怎样的？谁创建了这些线程？一旦明确了这些问题，便很容易解决。步骤如下：</p>
-<blockquote>
-<p>该进程内最耗费CPU的线程pid top -Hp pid</p>
-<p>将pid装换成十六进制 printf “%x\n” 21742</p>
-<p>最后用jstack查找线程堆栈信息 jstack 21711 | grep 54ee</p>
-</blockquote>
-</blockquote>
-</li>
-</ol>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/04/19/%E8%A7%A3%E5%86%B3OutOfMemoryError-unable-to-create-new-native-thread%E9%97%AE%E9%A2%98/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/04/12/hello-hexo/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/04/12/hello-hexo/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -488,7 +285,7 @@
     
     <div class="post-body" itemprop="articleBody">
           <blockquote>
-<p>以前一直用wordpress维护博客，最近看到hexo博客的样例，觉得挺炫的，今天就准备将<a target="_blank" rel="noopener" href="http://ppjys.cn/">wordpress版本</a>的博客迁移到hexo，然后重新梳理以前的博文。</p>
+<p>以前一直用wordpress维护博客，最近看到hexo博客的样例，觉得挺炫的，今天就准备将<a href="http://ppjys.cn/">wordpress版本</a>的博客迁移到hexo，然后重新梳理以前的博文。</p>
 </blockquote>
 <h2 id="Hexo-Quick-Start"><a href="#Hexo-Quick-Start" class="headerlink" title="Hexo Quick Start"></a>Hexo Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
 

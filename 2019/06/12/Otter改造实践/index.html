@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="otter简介Otter的业务域是支持异构数据库实时同步，数据记录变更订阅服务。Otter需要保障数据库的事务一致性，包括DDL（表结构变更）也可以进行同步或过滤。而DBA天生就在这个坑里，绝对不能让主备不一致、或事务不完整，哪怕只是一条数据。而且DBA迫切希望以后不用通知下游了，让DRC自动适配主备切换或拆库。 定位：基于数据库增量日志解析，准实时同步到本机房或异地机房的mysql&#x2F;oracle">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Otter改造实践">
-<meta property="og:url" content="http://example.com/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:url" content="http://ppjys.cn/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="otter简介Otter的业务域是支持异构数据库实时同步，数据记录变更订阅服务。Otter需要保障数据库的事务一致性，包括DDL（表结构变更）也可以进行同步或过滤。而DBA天生就在这个坑里，绝对不能让主备不一致、或事务不完整，哪怕只是一条数据。而且DBA迫切希望以后不用通知下游了，让DRC自动适配主备切换或拆库。 定位：基于数据库增量日志解析，准实时同步到本机房或异地机房的mysql&#x2F;oracle">
 <meta property="og:locale">
@@ -44,7 +44,7 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/1.png">
 
 
-<link rel="canonical" href="http://example.com/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/">
+<link rel="canonical" href="http://ppjys.cn/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/">
 
 
 <script class="page-configurations">
@@ -184,7 +184,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -242,7 +242,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">

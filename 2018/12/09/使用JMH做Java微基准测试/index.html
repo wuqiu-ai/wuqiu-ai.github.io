@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="背景在使用Java编程过程中，我们对于一些代码调用的细节有多种编写方式，但是不确定它们性能时，往往采用重复多次计数的方式来解决。但是随着JVM不断的进化，随着代码执行次数的增加，JVM会不断的进行编译优化，使得重复多少次才能够得到一个稳定的测试结果变得让人疑惑，这时候有经验的同学就会在测试执行前先循环上万次并注释为预热。 没错！这样做确实可以获得一个偏向正确的测试结果，但是我们试想如果每到需要斟酌">
 <meta property="og:type" content="article">
 <meta property="og:title" content="使用JMH做Java微基准测试">
-<meta property="og:url" content="http://example.com/2018/12/09/%E4%BD%BF%E7%94%A8JMH%E5%81%9AJava%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/index.html">
+<meta property="og:url" content="http://ppjys.cn/2018/12/09/%E4%BD%BF%E7%94%A8JMH%E5%81%9AJava%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="背景在使用Java编程过程中，我们对于一些代码调用的细节有多种编写方式，但是不确定它们性能时，往往采用重复多次计数的方式来解决。但是随着JVM不断的进化，随着代码执行次数的增加，JVM会不断的进行编译优化，使得重复多少次才能够得到一个稳定的测试结果变得让人疑惑，这时候有经验的同学就会在测试执行前先循环上万次并注释为预热。 没错！这样做确实可以获得一个偏向正确的测试结果，但是我们试想如果每到需要斟酌">
 <meta property="og:locale">
@@ -37,7 +37,7 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/2018/12/09/%E4%BD%BF%E7%94%A8JMH%E5%81%9AJava%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">
+<link rel="canonical" href="http://ppjys.cn/2018/12/09/%E4%BD%BF%E7%94%A8JMH%E5%81%9AJava%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">
 
 
 <script class="page-configurations">
@@ -177,7 +177,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -235,7 +235,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/12/09/%E4%BD%BF%E7%94%A8JMH%E5%81%9AJava%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/12/09/%E4%BD%BF%E7%94%A8JMH%E5%81%9AJava%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">

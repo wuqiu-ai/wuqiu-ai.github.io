@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="大家在初次使用spring-cloud的gateway的时候，肯定会被里面各种的Timeout搞得晕头转向。hytrix有设置，ribbon也有。我们一开始也是乱设一桶，Github上各种项目里也没几个设置正确的。对Timeout的研究源于一次log中的warning  o.s.c.n.z.f.r.s.AbstractRibbonCommand    : The Hystrix timeout o">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spring-cloud服务网关中的Timeout设置">
-<meta property="og:url" content="http://example.com/2018/08/24/spring-cloud%E6%9C%8D%E5%8A%A1%E7%BD%91%E5%85%B3%E4%B8%AD%E7%9A%84Timeout%E8%AE%BE%E7%BD%AE/index.html">
+<meta property="og:url" content="http://ppjys.cn/2018/08/24/spring-cloud%E6%9C%8D%E5%8A%A1%E7%BD%91%E5%85%B3%E4%B8%AD%E7%9A%84Timeout%E8%AE%BE%E7%BD%AE/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="大家在初次使用spring-cloud的gateway的时候，肯定会被里面各种的Timeout搞得晕头转向。hytrix有设置，ribbon也有。我们一开始也是乱设一桶，Github上各种项目里也没几个设置正确的。对Timeout的研究源于一次log中的warning  o.s.c.n.z.f.r.s.AbstractRibbonCommand    : The Hystrix timeout o">
 <meta property="og:locale">
@@ -37,7 +37,7 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/2018/08/24/spring-cloud%E6%9C%8D%E5%8A%A1%E7%BD%91%E5%85%B3%E4%B8%AD%E7%9A%84Timeout%E8%AE%BE%E7%BD%AE/">
+<link rel="canonical" href="http://ppjys.cn/2018/08/24/spring-cloud%E6%9C%8D%E5%8A%A1%E7%BD%91%E5%85%B3%E4%B8%AD%E7%9A%84Timeout%E8%AE%BE%E7%BD%AE/">
 
 
 <script class="page-configurations">
@@ -177,7 +177,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -235,7 +235,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/08/24/spring-cloud%E6%9C%8D%E5%8A%A1%E7%BD%91%E5%85%B3%E4%B8%AD%E7%9A%84Timeout%E8%AE%BE%E7%BD%AE/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/08/24/spring-cloud%E6%9C%8D%E5%8A%A1%E7%BD%91%E5%85%B3%E4%B8%AD%E7%9A%84Timeout%E8%AE%BE%E7%BD%AE/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">

@@ -21,29 +21,29 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="背景最近业务团队需要实时同步Mysql—&gt;ES数据的需求，本来想基于canal-adapter直接开发业务，后来觉得业务方可能有对binlog的订阅共性，最终我们决定还是在otter上做改造，支持Rocket-Mq输出。 整理的需求点如下：  支持输出平台RocketMQ服务&#x2F;云上RocketMQ服务；  支持业务方指定某些表，某些表可以指定事件（Insert、Update、Delete事件">
 <meta property="og:type" content="article">
 <meta property="og:title" content="otter输出Rocket-MQ改造">
-<meta property="og:url" content="http://example.com/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/index.html">
+<meta property="og:url" content="http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="背景最近业务团队需要实时同步Mysql—&gt;ES数据的需求，本来想基于canal-adapter直接开发业务，后来觉得业务方可能有对binlog的订阅共性，最终我们决定还是在otter上做改造，支持Rocket-Mq输出。 整理的需求点如下：  支持输出平台RocketMQ服务&#x2F;云上RocketMQ服务；  支持业务方指定某些表，某些表可以指定事件（Insert、Update、Delete事件">
 <meta property="og:locale">
-<meta property="og:image" content="http://example.com/images/otter-rocket-mq.png">
-<meta property="og:image" content="http://example.com/images/otter-rocketmq1.png">
-<meta property="og:image" content="http://example.com/images/otter-rocketmq2.png">
-<meta property="og:image" content="http://example.com/images/otter-rocketmq3.png">
-<meta property="og:image" content="http://example.com/images/otter-rocketmq4.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocket-mq.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocketmq1.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocketmq2.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocketmq3.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocketmq4.png">
 <meta property="article:published_time" content="2020-11-06T11:45:17.000Z">
 <meta property="article:modified_time" content="2020-11-11T07:57:07.557Z">
 <meta property="article:author" content="J~杰">
 <meta property="article:tag" content="otter">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/images/otter-rocket-mq.png">
+<meta name="twitter:image" content="http://ppjys.cn/images/otter-rocket-mq.png">
 
 
-<link rel="canonical" href="http://example.com/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/">
+<link rel="canonical" href="http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/">
 
 
 <script class="page-configurations">
@@ -183,7 +183,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -241,7 +241,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">

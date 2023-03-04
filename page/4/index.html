@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="人生就一条路，走一步有一步的景观">
 <meta property="og:type" content="website">
 <meta property="og:title" content="J~杰&#39;s Blog">
-<meta property="og:url" content="http://example.com/page/4/index.html">
+<meta property="og:url" content="http://ppjys.cn/page/4/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="人生就一条路，走一步有一步的景观">
 <meta property="og:locale">
@@ -35,7 +35,7 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/page/4/">
+<link rel="canonical" href="http://ppjys.cn/page/4/">
 
 
 <script class="page-configurations">
@@ -174,7 +174,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -231,207 +231,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/12/20/Hystrix%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="J~杰">
-      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="J~杰's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/12/20/Hystrix%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="post-title-link" itemprop="url">Hystrix参数详解</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-      
-
-      <time title="Created: 2018-12-20 23:26:27 / Modified: 23:35:37" itemprop="dateCreated datePublished" datetime="2018-12-20T23:26:27+08:00">2018-12-20</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" itemprop="url" rel="index"><span itemprop="name">微服务</span></a>
-        </span>
-          , 
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%BE%AE%E6%9C%8D%E5%8A%A1/%E9%99%90%E6%B5%81%E7%86%94%E6%96%AD%E5%99%A8/" itemprop="url" rel="index"><span itemprop="name">限流熔断器</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h3 id="Execution相关的属性的配置："><a href="#Execution相关的属性的配置：" class="headerlink" title="Execution相关的属性的配置："></a>Execution相关的属性的配置：</h3><ul>
-<li>hystrix.command.default.execution.isolation.strategy 隔离策略，默认是Thread, 可选Thread｜Semaphore<ul>
-<li>thread 通过线程数量来限制并发请求数，可以提供额外的保护，但有一定的延迟。一般用于网络调用  </li>
-<li>semaphore 通过semaphore count来限制并发请求数，适用于无网络的高并发请求</li>
-</ul>
-</li>
-<li>hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds 命令执行超时时间，默认1000ms</li>
-<li>hystrix.command.default.execution.timeout.enabled 执行是否启用超时，默认启用true</li>
-<li>hystrix.command.default.execution.isolation.thread.interruptOnTimeout 发生超时是是否中断，默认true</li>
-<li>hystrix.command.default.execution.isolation.semaphore.maxConcurrentRequests 最大并发请求数，默认10，该参数当使用ExecutionIsolationStrategy.SEMAPHORE策略时才有效。如果达到最大并发请求数，请求会被拒绝。理论上选择semaphore size的原则和选择thread size一致，但选用semaphore时每次执行的单元要比较小且执行速度快（ms级别），否则的话应该用thread。semaphore应该占整个容器（tomcat）的线程池的一小部分。</li>
-</ul>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/12/20/Hystrix%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/12/11/%E5%B9%B6%E5%8F%91%E5%8C%85Callable%E3%80%81Future%E5%92%8CFutureTask%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="J~杰">
-      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="J~杰's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/12/11/%E5%B9%B6%E5%8F%91%E5%8C%85Callable%E3%80%81Future%E5%92%8CFutureTask%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">并发包Callable、Future和FutureTask源码分析</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-      
-
-      <time title="Created: 2018-12-11 23:24:30 / Modified: 23:25:57" itemprop="dateCreated datePublished" datetime="2018-12-11T23:24:30+08:00">2018-12-11</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/juc/" itemprop="url" rel="index"><span itemprop="name">juc</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>线程任务执行如果需要获取执行结果，就必须通过共享变量或者使用线程通信的方式来达到效果，这样使用起来就比较麻烦。</p>
-<p>而自从Java 1.5开始，就提供了Callable和Future，通过它们可以在任务执行完毕之后得到任务执行结果。</p>
-<p>今天我们就来讨论一下Callable、Future和FutureTask三个类的使用方法。</p>
-<h4 id="Callable与Runnable"><a href="#Callable与Runnable" class="headerlink" title="Callable与Runnable"></a>Callable与Runnable</h4><p>先说一下java.lang.Runnable吧，它是一个接口，在它里面只声明了一个run()方法：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">@FunctionalInterface</span><br><span class="line">public interface Runnable &#123;</span><br><span class="line">    &#x2F;**</span><br><span class="line">     * When an object implementing interface &lt;code&gt;Runnable&lt;&#x2F;code&gt; is used</span><br><span class="line">     * to create a thread, starting the thread causes the object&#39;s</span><br><span class="line">     * &lt;code&gt;run&lt;&#x2F;code&gt; method to be called in that separately executing</span><br><span class="line">     * thread.</span><br><span class="line">     * &lt;p&gt;</span><br><span class="line">     * The general contract of the method &lt;code&gt;run&lt;&#x2F;code&gt; is that it may</span><br><span class="line">     * take any action whatsoever.</span><br><span class="line">     *</span><br><span class="line">     * @see     java.lang.Thread#run()</span><br><span class="line">     *&#x2F;</span><br><span class="line">    public abstract void run();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>由于run()方法返回值为void类型，所以在执行完任务之后无法返回任何结果。</p>
-<p>Callable位于java.util.concurrent包下，它也是一个接口，在它里面也只声明了一个方法，只不过这个方法叫做call()：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@FunctionalInterface</span><br><span class="line">public interface Callable&lt;V&gt; &#123;</span><br><span class="line">    &#x2F;**</span><br><span class="line">     * Computes a result, or throws an exception if unable to do so.</span><br><span class="line">     *</span><br><span class="line">     * @return computed result</span><br><span class="line">     * @throws Exception if unable to compute a result</span><br><span class="line">     *&#x2F;</span><br><span class="line">    V call() throws Exception;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>可以看到，这是一个泛型接口，call()函数返回的类型就是传递进来的V类型。</p>
-<p>那么怎么使用Callable呢？一般情况下是配合ExecutorService来使用的，在ExecutorService接口中声明了若干个submit方法的重载版本：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;T&gt; Future&lt;T&gt; submit(Callable&lt;T&gt; task);</span><br><span class="line">&lt;T&gt; Future&lt;T&gt; submit(Runnable task, T result);</span><br><span class="line">Future&lt;?&gt; submit(Runnable task);</span><br></pre></td></tr></table></figure>
-
-<h4 id="Future"><a href="#Future" class="headerlink" title="Future"></a>Future</h4><p>Future就是对于具体的Runnable或者Callable任务的执行结果进行取消、查询是否完成、获取结果。必要时可以通过get方法获取执行结果，该方法会阻塞直到任务返回结果。</p>
-<p>Future类位于java.util.concurrent包下，它是一个接口：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">public interface Future&lt;V&gt; &#123;</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * cancel方法用来取消任务，如果取消任务成功则返回true，如果取消任务失败则返回false。</span><br><span class="line">     * 参数mayInterruptIfRunning表示是否允许取消正在执行却没有执行完毕的任务，</span><br><span class="line">     * 如果设置true，则表示可以取消正在执行过程中的任务。</span><br><span class="line">     * 如果任务已经完成，则无论mayInterruptIfRunning为true还是false，此方法肯定返回false，</span><br><span class="line">     * 即如果取消已经完成的任务会返回false；如果任务正在执行，若mayInterruptIfRunning设置为true，</span><br><span class="line">     * 则返回true，若mayInterruptIfRunning设置为false，则返回false；</span><br><span class="line">     * 如果任务还没有执行，则无论mayInterruptIfRunning为true还是false，肯定返回true。</span><br><span class="line">     * @param mayInterruptIfRunning</span><br><span class="line">     * @return</span><br><span class="line">     *&#x2F;</span><br><span class="line">    boolean cancel(boolean mayInterruptIfRunning);</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 表示任务是否被取消成功，如果在任务正常完成前被取消成功，则返回 true。</span><br><span class="line">     * @return</span><br><span class="line">     *&#x2F;</span><br><span class="line">    boolean isCancelled();</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 表示任务是否已经完成，若任务完成，则返回true；</span><br><span class="line">     * @return</span><br><span class="line">     *&#x2F;</span><br><span class="line">    boolean isDone();</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 用来获取执行结果，这个方法会产生阻塞，会一直等到任务执行完毕才返回；</span><br><span class="line">     * @return</span><br><span class="line">     * @throws InterruptedException</span><br><span class="line">     * @throws ExecutionException</span><br><span class="line">     *&#x2F;</span><br><span class="line">    V get() throws InterruptedException, ExecutionException;</span><br><span class="line"></span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 用来获取执行结果，如果在指定时间内，还没获取到结果，就直接返回null。</span><br><span class="line">     *</span><br><span class="line">     * @param timeout</span><br><span class="line">     * @param unit</span><br><span class="line">     * @return</span><br><span class="line">     * @throws InterruptedException</span><br><span class="line">     * @throws ExecutionException</span><br><span class="line">     * @throws TimeoutException</span><br><span class="line">     *&#x2F;</span><br><span class="line">    V get(long timeout, TimeUnit unit)</span><br><span class="line">        throws InterruptedException, ExecutionException, TimeoutException;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="RunnableFuture"><a href="#RunnableFuture" class="headerlink" title="RunnableFuture"></a>RunnableFuture</h4><p>RunnableFuture作为 Runnable 的 Future。成功执行 run 方法可以完成 Future 并允许访问其结果</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * 作为 Runnable 的 Future。成功执行 run 方法可以完成 Future 并允许访问其结果。 </span><br><span class="line"> * A &#123;@link Future&#125; that is &#123;@link Runnable&#125;. Successful execution of</span><br><span class="line"> * the &#123;@code run&#125; method causes completion of the &#123;@code Future&#125;</span><br><span class="line"> * and allows access to its results.</span><br><span class="line"> * @see FutureTask</span><br><span class="line"> * @see Executor</span><br><span class="line"> * @since 1.6</span><br><span class="line"> * @author Doug Lea</span><br><span class="line"> * @param &lt;V&gt; The result type returned by this Future&#39;s &#123;@code get&#125; method</span><br><span class="line"> *&#x2F;</span><br><span class="line">public interface RunnableFuture&lt;V&gt; extends Runnable, Future&lt;V&gt; &#123;</span><br><span class="line">    &#x2F;**</span><br><span class="line">     * Sets this Future to the result of its computation</span><br><span class="line">     * unless it has been cancelled.</span><br><span class="line">     *&#x2F;</span><br><span class="line">    void run();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="FutureTask"><a href="#FutureTask" class="headerlink" title="FutureTask"></a>FutureTask</h4><p>我们先来看一下FutureTask的实现：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class FutureTask&lt;V&gt; implements RunnableFuture&lt;V&gt;</span><br></pre></td></tr></table></figure>
-<p>FutureTask类实现了RunnableFuture接口，我们看一下RunnableFuture接口的实现：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public interface RunnableFuture&lt;V&gt; extends Runnable, Future&lt;V&gt; &#123;</span><br><span class="line">    void run();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p> 可以看出RunnableFuture继承了Runnable接口和Future接口，而FutureTask实现了RunnableFuture接口。所以它既可以作为Runnable被线程执行，又可以作为Future得到Callable的返回值。<br>FutureTask提供了2个构造器：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public FutureTask(Callable&lt;V&gt; callable) &#123;</span><br><span class="line">&#125;</span><br><span class="line">public FutureTask(Runnable runnable, V result) &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/12/11/%E5%B9%B6%E5%8F%91%E5%8C%85Callable%E3%80%81Future%E5%92%8CFutureTask%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/12/09/%E4%BD%BF%E7%94%A8JMH%E5%81%9AJava%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/12/09/%E4%BD%BF%E7%94%A8JMH%E5%81%9AJava%E5%BE%AE%E5%9F%BA%E5%87%86%E6%B5%8B%E8%AF%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -520,7 +320,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/12/04/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0ScheduledThreadPoolExecutor%E5%88%86%E6%9E%902/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/12/04/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0ScheduledThreadPoolExecutor%E5%88%86%E6%9E%902/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -618,7 +418,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/27/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0ScheduledThreadPoolExecutor%E5%88%86%E6%9E%901/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/27/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0ScheduledThreadPoolExecutor%E5%88%86%E6%9E%901/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -717,7 +517,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/23/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0Executors%E5%88%86%E6%9E%90/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/23/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0Executors%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -806,7 +606,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%9C%A8Sharding-Sphere%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%9C%A8Sharding-Sphere%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -914,7 +714,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/22/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0AbstractExecutorService%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/22/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0AbstractExecutorService%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -998,7 +798,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/20/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/20/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0ThreadPoolExecutor%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -1072,7 +872,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/17/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6Semaphore%E5%88%86%E6%9E%90/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/17/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6Semaphore%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -1133,6 +933,175 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2018/11/17/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6Semaphore%E5%88%86%E6%9E%90/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/14/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6CyclicBarrier%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2018/11/14/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6CyclicBarrier%E5%88%86%E6%9E%90/" class="post-title-link" itemprop="url">Java线程同步组件CyclicBarrier分析</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2018-11-14 23:49:35 / Modified: 23:52:33" itemprop="dateCreated datePublished" datetime="2018-11-14T23:49:35+08:00">2018-11-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/juc/" itemprop="url" rel="index"><span itemprop="name">juc</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>与 CountDownLatch 的实现方式不同，CyclicBarrier 并没有直接通过 AQS 实现同步功能，而是在重入锁 ReentrantLock 的基础上实现的。在 CyclicBarrier 中，线程访问 await 方法需先获取锁才能访问。在最后一个线程访问 await 方法前，其他线程进入 await 方法中后，会调用 Condition 的 await 方法进入等待状态。在最后一个线程进入 CyclicBarrier await 方法后，该线程将会调用 Condition 的 signalAll 方法唤醒所有处于等待状态中的线程。同时，最后一个进入 await 的线程还会重置 CyclicBarrier 的状态，使其可以重复使用。</p>
+<p>在创建 CyclicBarrier 对象时，需要转入一个值，用于初始化 CyclicBarrier 的成员变量 parties，该成员变量表示屏障拦截的线程数。当到达屏障的线程数小于 parties 时，这些线程都会被阻塞住。当最后一个线程到达屏障后，此前被阻塞的线程才会被唤醒。</p>
+<h3 id="Demo例子"><a href="#Demo例子" class="headerlink" title="Demo例子"></a>Demo例子</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.fly.learn.reentrantlock;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.slf4j.Logger;</span><br><span class="line"><span class="keyword">import</span> org.slf4j.LoggerFactory;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.BrokenBarrierException;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CyclicBarrier;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span>: peijiepang</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/11/14</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span>:</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CyclicBarrierTest</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> Logger LOGGER = LoggerFactory.getLogger(CyclicBarrierTest.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> BrokenBarrierException, InterruptedException </span>&#123;</span><br><span class="line">        CyclicBarrier cb = <span class="keyword">new</span> CyclicBarrier(<span class="number">3</span>, <span class="keyword">new</span> Thread(<span class="string">&quot;barrierAction&quot;</span>) &#123;</span><br><span class="line">            <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">                LOGGER.info(Thread.currentThread().getName() + <span class="string">&quot; barrier action&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        MyThread t1 = <span class="keyword">new</span> MyThread(<span class="string">&quot;t1&quot;</span>, cb);</span><br><span class="line">        MyThread t2 = <span class="keyword">new</span> MyThread(<span class="string">&quot;t2&quot;</span>, cb);</span><br><span class="line">        t1.start();</span><br><span class="line">        t2.start();</span><br><span class="line">        LOGGER.info(Thread.currentThread().getName() + <span class="string">&quot; going to await&quot;</span>);</span><br><span class="line">        cb.await();</span><br><span class="line">        LOGGER.info(Thread.currentThread().getName() + <span class="string">&quot; continue&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyThread</span> <span class="keyword">extends</span> <span class="title">Thread</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> Logger LOGGER = LoggerFactory.getLogger(MyThread.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> CyclicBarrier cb;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyThread</span><span class="params">(String name, CyclicBarrier cb)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(name);</span><br><span class="line">        <span class="keyword">this</span>.cb = cb;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        LOGGER.info(Thread.currentThread().getName() + <span class="string">&quot; going to await&quot;</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            cb.await();</span><br><span class="line">            LOGGER.info(Thread.currentThread().getName() + <span class="string">&quot; continue&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2018</span>-<span class="number">11</span>-<span class="number">14</span> <span class="number">23</span>:<span class="number">14</span>:<span class="number">23.641</span> [main] INFO  c.f.l.r.CyclicBarrierTest - main going to await</span><br><span class="line"><span class="number">2018</span>-<span class="number">11</span>-<span class="number">14</span> <span class="number">23</span>:<span class="number">14</span>:<span class="number">23.641</span> [t2] INFO  com.fly.learn.reentrantlock.MyThread - t2 going to await</span><br><span class="line"><span class="number">2018</span>-<span class="number">11</span>-<span class="number">14</span> <span class="number">23</span>:<span class="number">14</span>:<span class="number">23.640</span> [t1] INFO  com.fly.learn.reentrantlock.MyThread - t1 going to await</span><br><span class="line"><span class="number">2018</span>-<span class="number">11</span>-<span class="number">14</span> <span class="number">23</span>:<span class="number">14</span>:<span class="number">23.648</span> [t1] INFO  c.f.l.r.CyclicBarrierTest - t1 barrier action</span><br><span class="line"><span class="number">2018</span>-<span class="number">11</span>-<span class="number">14</span> <span class="number">23</span>:<span class="number">14</span>:<span class="number">23.648</span> [t1] INFO  com.fly.learn.reentrantlock.MyThread - t1 <span class="keyword">continue</span></span><br><span class="line"><span class="number">2018</span>-<span class="number">11</span>-<span class="number">14</span> <span class="number">23</span>:<span class="number">14</span>:<span class="number">23.649</span> [t2] INFO  com.fly.learn.reentrantlock.MyThread - t2 <span class="keyword">continue</span></span><br><span class="line"><span class="number">2018</span>-<span class="number">11</span>-<span class="number">14</span> <span class="number">23</span>:<span class="number">14</span>:<span class="number">23.650</span> [main] INFO  c.f.l.r.CyclicBarrierTest - main <span class="keyword">continue</span></span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/11/14/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6CyclicBarrier%E5%88%86%E6%9E%90/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/12/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6CountDownLatch/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2018/11/12/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6CountDownLatch/" class="post-title-link" itemprop="url">Java 线程同步组件 CountDownLatch</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2018-11-12 22:27:35 / Modified: 22:39:22" itemprop="dateCreated datePublished" datetime="2018-11-12T22:27:35+08:00">2018-11-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/juc/" itemprop="url" rel="index"><span itemprop="name">juc</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>CountDownLatch 允许一个或一组线程等待其他线程完成后再恢复运行。线程可通过调用await方法进入等待状态，在其他线程调用countDown方法将计数器减为0后，处于等待状态的线程即可恢复运行。</p>
+<p>CountDownLatch 的同步功能是基于 AQS 实现的，CountDownLatch 使用 AQS 中的 state 成员变量作为计数器。在 state 不为0的情况下，凡是调用 await 方法的线程将会被阻塞，并被放入 AQS 所维护的同步队列中进行等待。大致示意图如下：<br><img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/aqs/2.png" height=200px/><br>每个阻塞的线程都会被封装成节点对象，节点之间通过 prev 和 next 指针形成同步队列。初始情况下，队列的头结点是一个虚拟节点。该节点仅是一个占位符，没什么特别的意义。每当有一个线程调用 countDown 方法，就将计数器 state–。当 state 被减至0时，队列中的节点就会按照 FIFO 顺序被唤醒，被阻塞的线程即可恢复运行。</p>
+<p>CountDownLatch 本身的原理并不难理解，不过如果大家想深入理解 CountDownLatch 的实现细节，那么需要先去学习一下 AQS 的相关原理。CountDownLatch 是基于 AQS 实现的，所以理解 AQS 是学习 CountDownLatch 的前置条件，可以读这篇文章 <a target="_blank" rel="noopener" href="http://www.ppjys.cn/2018/11/10/AbstractQueuedSynchronizer%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">AbstractQueuedSynchronizer源码分析</a>。</p>
+<h3 id="Demo例子"><a href="#Demo例子" class="headerlink" title="Demo例子"></a>Demo例子</h3><p>该例子前几天写在这篇文章 <a target="_blank" rel="noopener" href="http://localhost:4000/2018/11/07/ReentrantLock%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">ReentrantLock源码分析</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * reentrantloct 测试</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span>: peijiepang</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2018/11/7</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span>:</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReentrantLockTest</span> <span class="keyword">extends</span> <span class="title">Thread</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> Logger LOGGER = LoggerFactory.getLogger(ReentrantLockTest.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ReentrantLock reentrantLock = <span class="keyword">new</span> ReentrantLock();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> CountDownLatch countDownLatch = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> j = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ReentrantLockTest</span><span class="params">(String threadName,CountDownLatch countDownLatch)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(threadName);</span><br><span class="line">        <span class="keyword">this</span>.countDownLatch = countDownLatch;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">1000</span>;i++)&#123;</span><br><span class="line">            <span class="comment">//可限时加锁</span></span><br><span class="line">            <span class="comment">//reentrantLock.tryLock(1000,TimeUnit.MILLISECONDS);</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">//可响应线程中断请求</span></span><br><span class="line">            <span class="comment">//reentrantLock.lockInterruptibly();</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">//可指定公平锁</span></span><br><span class="line">            <span class="comment">//ReentrantLock fairLock = new ReentrantLock(true);</span></span><br><span class="line"></span><br><span class="line">            reentrantLock.lock();</span><br><span class="line">            <span class="keyword">try</span>&#123;</span><br><span class="line">                LOGGER.info(<span class="string">&quot;&#123;&#125;:&#123;&#125;&quot;</span>,Thread.currentThread().getName(),i);</span><br><span class="line">                j++;</span><br><span class="line">            &#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">                reentrantLock.unlock();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        countDownLatch.countDown();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        CountDownLatch countDownLatch = <span class="keyword">new</span> CountDownLatch(<span class="number">2</span>);</span><br><span class="line">        ReentrantLockTest reentrantLockTest1 = <span class="keyword">new</span> ReentrantLockTest(<span class="string">&quot;thread1&quot;</span>,countDownLatch);</span><br><span class="line">        ReentrantLockTest reentrantLockTest2 = <span class="keyword">new</span> ReentrantLockTest(<span class="string">&quot;thread2&quot;</span>,countDownLatch);</span><br><span class="line">        reentrantLockTest1.start();</span><br><span class="line">        reentrantLockTest2.start();</span><br><span class="line">        countDownLatch.await();</span><br><span class="line">        LOGGER.info(<span class="string">&quot;---------j:&#123;&#125;&quot;</span>,j);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/11/12/Java%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5%E7%BB%84%E4%BB%B6CountDownLatch/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>

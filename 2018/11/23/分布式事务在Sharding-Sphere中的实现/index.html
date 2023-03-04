@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="本文根据dbaplus社群第156期线上分享整理而成.地址：https:&#x2F;&#x2F;m.qlchat.com&#x2F;topic&#x2F;details?topicId&#x3D;2000001669563722&amp;tracePage&#x3D;liveCenter 讲解人：赵俊 京东金融高级Java开发工程师 分布式事务的使用场景ACID Atomicity：原子性   事务作为整体来执行，要么全部执行，要么全不执行。   Cons">
 <meta property="og:type" content="article">
 <meta property="og:title" content="分布式事务在Sharding-Sphere中的实现">
-<meta property="og:url" content="http://example.com/2018/11/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%9C%A8Sharding-Sphere%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:url" content="http://ppjys.cn/2018/11/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%9C%A8Sharding-Sphere%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="本文根据dbaplus社群第156期线上分享整理而成.地址：https:&#x2F;&#x2F;m.qlchat.com&#x2F;topic&#x2F;details?topicId&#x3D;2000001669563722&amp;tracePage&#x3D;liveCenter 讲解人：赵俊 京东金融高级Java开发工程师 分布式事务的使用场景ACID Atomicity：原子性   事务作为整体来执行，要么全部执行，要么全不执行。   Cons">
 <meta property="og:locale">
@@ -51,7 +51,7 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/sharding/1.png">
 
 
-<link rel="canonical" href="http://example.com/2018/11/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%9C%A8Sharding-Sphere%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+<link rel="canonical" href="http://ppjys.cn/2018/11/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%9C%A8Sharding-Sphere%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/">
 
 
 <script class="page-configurations">
@@ -191,7 +191,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -249,7 +249,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%9C%A8Sharding-Sphere%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/23/%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1%E5%9C%A8Sharding-Sphere%E4%B8%AD%E7%9A%84%E5%AE%9E%E7%8E%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">

@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="数据迁移方案数据迁移核心思路抽象起来其实很简单，但如何稳定平滑迁移数据，我们会遇到不少问题，如：  数据如何迁移？ 如何校验数据迁移过程中的正确性？如果发现数据不一致，如何修复？ 我们的业务改造有问题如何回滚？  数据同步中间件选型开源数据同步中间件主要包括canal、otter、maxwell、kettle等，下面进行简单比对说明。  canal：canal是阿里巴巴旗下的一款开源项目，纯Jav">
 <meta property="og:type" content="article">
 <meta property="og:title" content="数据平滑迁移方案">
-<meta property="og:url" content="http://example.com/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:url" content="http://ppjys.cn/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="数据迁移方案数据迁移核心思路抽象起来其实很简单，但如何稳定平滑迁移数据，我们会遇到不少问题，如：  数据如何迁移？ 如何校验数据迁移过程中的正确性？如果发现数据不一致，如何修复？ 我们的业务改造有问题如何回滚？  数据同步中间件选型开源数据同步中间件主要包括canal、otter、maxwell、kettle等，下面进行简单比对说明。  canal：canal是阿里巴巴旗下的一款开源项目，纯Jav">
 <meta property="og:locale">
@@ -42,7 +42,7 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/1.png">
 
 
-<link rel="canonical" href="http://example.com/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/">
+<link rel="canonical" href="http://ppjys.cn/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/">
 
 
 <script class="page-configurations">
@@ -182,7 +182,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -240,7 +240,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">

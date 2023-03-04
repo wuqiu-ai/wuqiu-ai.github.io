@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="人生就一条路，走一步有一步的景观">
 <meta property="og:type" content="website">
 <meta property="og:title" content="J~杰&#39;s Blog">
-<meta property="og:url" content="http://example.com/page/2/index.html">
+<meta property="og:url" content="http://ppjys.cn/page/2/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="人生就一条路，走一步有一步的景观">
 <meta property="og:locale">
@@ -35,7 +35,7 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/page/2/">
+<link rel="canonical" href="http://ppjys.cn/page/2/">
 
 
 <script class="page-configurations">
@@ -174,7 +174,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -231,192 +231,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="J~杰">
-      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="J~杰's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/" class="post-title-link" itemprop="url">otter输出Rocket-MQ改造</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2020-11-06 19:45:17" itemprop="dateCreated datePublished" datetime="2020-11-06T19:45:17+08:00">2020-11-06</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2020-11-11 15:57:07" itemprop="dateModified" datetime="2020-11-11T15:57:07+08:00">2020-11-11</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/otter/" itemprop="url" rel="index"><span itemprop="name">otter</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近业务团队需要实时同步Mysql—&gt;ES数据的需求，本来想基于canal-adapter直接开发业务，后来觉得业务方可能有对binlog的订阅共性，最终我们决定还是在otter上做改造，支持Rocket-Mq输出。</p>
-<p>整理的需求点如下：</p>
-<ul>
-<li><p>支持输出平台RocketMQ服务/云上RocketMQ服务；</p>
-</li>
-<li><p>支持业务方指定某些表，某些表可以指定事件（Insert、Update、Delete事件）；</p>
-</li>
-<li><p>直接全量数据迁移至RocketMQ Topic；</p>
-</li>
-<li><p>支持跨机房传输到异地RocketMQ；</p>
-</li>
-</ul>
-<h2 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h2><p><img src="/images/otter-rocket-mq.png"></p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="J~杰">
-      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="J~杰's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/" class="post-title-link" itemprop="url">Leetcode高频题总结</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2020-10-13 12:02:06" itemprop="dateCreated datePublished" datetime="2020-10-13T12:02:06+08:00">2020-10-13</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2020-10-30 19:44:29" itemprop="dateModified" datetime="2020-10-30T19:44:29+08:00">2020-10-30</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">面试总结</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="数组-amp-链表"><a href="#数组-amp-链表" class="headerlink" title="数组&amp;链表"></a>数组&amp;链表</h2><ul>
-<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/108">反转一个单链表</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/109">两两交换链表中的节点</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/111">环形链表</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/112">环形链表 II</a></li>
-<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/117">K 个一组翻转链表</a></li>
-</ul>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -534,7 +349,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -678,7 +493,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -785,7 +600,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -876,7 +691,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -965,7 +780,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -1115,7 +930,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -1223,7 +1038,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
@@ -1295,6 +1110,228 @@
           <!--noindex-->
             <div class="post-button">
               <a class="btn" href="/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/08/30/20200830%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2020/08/30/20200830%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86/" class="post-title-link" itemprop="url">计算机网络知识</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-08-30 17:24:43" itemprop="dateCreated datePublished" datetime="2020-08-30T17:24:43+08:00">2020-08-30</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2020-10-13 12:04:20" itemprop="dateModified" datetime="2020-10-13T12:04:20+08:00">2020-10-13</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E9%9D%A2%E8%AF%95%E6%80%BB%E7%BB%93/" itemprop="url" rel="index"><span itemprop="name">面试总结</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="知识图谱"><a href="#知识图谱" class="headerlink" title="知识图谱"></a>知识图谱</h2><p><img src="/images/network1.png"></p>
+<h2 id="面试题"><a href="#面试题" class="headerlink" title="面试题"></a>面试题</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/2">网络模型是什么？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/3">说说TCP协议的三次握手？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/4">说说TCP协议的四次挥手？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/5">为什么需要三次握手才能建立连接？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/6">SYN洪水攻击防护？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/7">建立连接后，Client出现故障怎么办？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/8">为什么会有TIME_WAIT状态？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/9">为什么需要四次挥手才能断开连接？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/10">服务器出现大量CLOST_WAIT状态的原因？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/11">UDP和TCP的区别？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/12">说说TCP协议的滑动窗口？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/14">浏览器中输入url，按下回车经过的过程？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/15">Get和Post的区别？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/16">Cookies和Session的区别？</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/ppj19891020/daily-interviews/issues/17">http和http的区别？</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/06/20/20200620_JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2020/06/20/20200620_JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" class="post-title-link" itemprop="url">JVM学习笔记</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-06-20 22:30:00" itemprop="dateCreated datePublished" datetime="2020-06-20T22:30:00+08:00">2020-06-20</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2020-08-26 08:07:15" itemprop="dateModified" datetime="2020-08-26T08:07:15+08:00">2020-08-26</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">jvm</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h3 id="JVM内存结构"><a href="#JVM内存结构" class="headerlink" title="JVM内存结构"></a>JVM内存结构</h3><p>根据《Java虚拟机规范(Java SE 7版)》规定，Java虚拟机内存结构可划分为以下区域：</p>
+<p><img src="/images/jvm1.png"></p>
+<ul>
+<li><p><strong>程序计数器</strong>：</p>
+<ul>
+<li>程序计数器是一块较小的内存空间，可看作是当前线程所执行的字节码的行号指示器。在虚拟机概念模型里，字节码解释器工作时就是通过改变该计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖该计数器来完成。</li>
+<li>JVM中多线程是通过线程轮流切换并分配处理器执行时间的方式来实现的。即在任何时刻，CPU只会执行一条线程中的指令，因此，为了线程切换后能恢复到正确的执行位置，每条线程都需要有一个独立的程序计数器，各线程之间计数器互不影响，独立存储，该内存为线程私有。</li>
+<li>如果线程正在执行一个Java方法，则PC记录的是正在执行的虚拟机字节码指令的地址，如果正在执行的是Native方法，则PC值为Undefined，该内存区域是唯一一个没用OOM的区域。</li>
+</ul>
+</li>
+<li><p><strong>虚拟机栈</strong>：</p>
+<ul>
+<li>Java虚拟机栈也是线程私有的，它的生命周期与线程相同。虚拟机栈描述的是Java方法执行的内存模型：每个方法在执行的时候会创建一个栈帧，用来存储局部变量表、操作数栈、动态链接、方法出口等信息。每个方法从调用至执行完成的过程对应着一个栈帧在虚拟机栈中入栈到出栈的过程.</li>
+<li>局部变量表：存放编译期可知的各种基本数据类型(如Boolean、byte、char、short、int、float、long、double)、对象引用类型（如：引用指针、句柄等）。局部变量表所需内存空间在编译期间完成分配，即进入一个方法时，这个方法需要在帧中分配多大的局部变量空间是确定的，在方法运行期间不会改变局部变量表的大小。</li>
+<li>异常情况：<ul>
+<li>StackOverflowError异常：线程请求的栈深度大于虚拟机所允许的深度时，会抛出栈上溢异常</li>
+<li>OutOfMemoryError异常：虚拟机栈动态扩展时无法申请到足够的内存，会抛出内存溢出异常</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>本地方法栈</strong>：</p>
+<ul>
+<li>发挥的作用与虚拟机栈类似，区别在于虚拟机栈为虚拟机执行Java方法（字节码）服务，而本地方法栈则是为虚拟机使用到的Native方法服务，如Java访问C语言的方法、汇编程序等。</li>
+<li>异常情况：与虚拟机栈一样。</li>
+</ul>
+</li>
+<li><p><strong>堆</strong>：</p>
+<ul>
+<li>堆是Java所管理的内存中最大的一块，是被所有线程共享的一块内存区域，在虚拟机启动时创建，用于存放对象实例，也是垃圾收集器管理的主要区域。</li>
+<li>根据GC分代收集算法，堆可细分为：新生代和老年代；新生代又分为Eden区、Survivor区（from,to）从内存分配的角度看，线程共享的Java堆可划分出多个线程私有的分配缓冲区（TLAB：Thread Local Allocation Buffer)</li>
+<li>堆内存仅要逻辑上连续即可，物理上不连续也可以，如果在堆中没有内存完成实例分配。并且堆也无法再扩展时，则会抛出OOM异常</li>
+</ul>
+</li>
+<li><p><strong>方法区</strong>：</p>
+<ul>
+<li>与堆一样，方法区是各线程共享的，用于存储已被虚拟机 加载的类信息、常量、静态变量、即时编译器编译后的代码等数据</li>
+<li>对于开发者来说，该区又称为“永久代”Permanent Generation，当方法区无法满足内存分配时，将抛出OOM异常</li>
+</ul>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/06/20/20200620_JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/#more" rel="contents">
                 Read more &raquo;
               </a>
             </div>

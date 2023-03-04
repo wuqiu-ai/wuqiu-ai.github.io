@@ -21,12 +21,12 @@
 
 <script class="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
 <meta name="description" content="ReentrantLock 定义ReentrantLock 是 JUC 中提供的可中断, 可重入获取, 支持超时, 支持尝试获取锁它主要有一下特点:  可重入, 一个线程获取独占锁后, 可多次获取, 多次释放(synchronized也一样, 只是synchronized内的代码执行异常后会自动释放到monitor上的锁) 支持中断(synchronized不支持) 支持超时机制, 支持尝试获取l">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ReentrantLock源码分析">
-<meta property="og:url" content="http://example.com/2018/11/07/ReentrantLock%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
+<meta property="og:url" content="http://ppjys.cn/2018/11/07/ReentrantLock%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/index.html">
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="ReentrantLock 定义ReentrantLock 是 JUC 中提供的可中断, 可重入获取, 支持超时, 支持尝试获取锁它主要有一下特点:  可重入, 一个线程获取独占锁后, 可多次获取, 多次释放(synchronized也一样, 只是synchronized内的代码执行异常后会自动释放到monitor上的锁) 支持中断(synchronized不支持) 支持超时机制, 支持尝试获取l">
 <meta property="og:locale">
@@ -39,7 +39,7 @@
 <meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/reentrantlock/1.png">
 
 
-<link rel="canonical" href="http://example.com/2018/11/07/ReentrantLock%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+<link rel="canonical" href="http://ppjys.cn/2018/11/07/ReentrantLock%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
 
 
 <script class="page-configurations">
@@ -179,7 +179,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-count">61</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -237,7 +237,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2018/11/07/ReentrantLock%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/11/07/ReentrantLock%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.jpeg">
