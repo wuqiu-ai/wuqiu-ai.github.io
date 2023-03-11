@@ -23,6 +23,12 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
   </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
 <meta name="description" content="问题描述最近我们生产上的消息推送服务不断的爆出内存增长过大导致操作系统kill该进程，并且随着业务量的增长出现的频次越来越高，由去年12月底的半个月出现一次，到现在的一天出现一次。 该服务的业务逻辑就是消息推送，业务方推送消息，服务方通过rocketmq做削峰处理（之前使用kafka来左右消息队列没出现过问题），其中主要通道是个推和apns（使用pushy框架）通道，业务方的全局推送大概在5000">
 <meta property="og:type" content="article">
 <meta property="og:title" content="线上服务堆外内存OOM问题">
