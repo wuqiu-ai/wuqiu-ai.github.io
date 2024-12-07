@@ -6,7 +6,7 @@
   <link href="http://ppjys.cn/atom.xml" rel="self"/>
   
   <link href="http://ppjys.cn/"/>
-  <updated>2024-12-07T05:57:23.558Z</updated>
+  <updated>2024-12-07T06:25:26.664Z</updated>
   <id>http://ppjys.cn/</id>
   
   <author>
@@ -21,13 +21,14 @@
     <link href="http://ppjys.cn/2024/12/17/%E5%9F%BA%E4%BA%8Esermant%E7%9A%84%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98%E4%B9%8B%E5%85%A8%E9%93%BE%E8%B7%AF%E7%81%B0%E5%BA%A6/"/>
     <id>http://ppjys.cn/2024/12/17/%E5%9F%BA%E4%BA%8Esermant%E7%9A%84%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98%E4%B9%8B%E5%85%A8%E9%93%BE%E8%B7%AF%E7%81%B0%E5%BA%A6/</id>
     <published>2024-12-17T06:07:35.000Z</published>
-    <updated>2024-12-07T05:57:23.558Z</updated>
+    <updated>2024-12-07T06:25:26.664Z</updated>
     
     
-      
-      
-    <summary type="html">&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;在中间件统一监控和微服务治理的推进过程中，我们一直面临着一个显著的挑战：由于历史原因，公司内部应用数量庞大，推动业务侧通过 SDK 改造并发</summary>
-      
+    <summary type="html">&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;在中间件统一监控和微服务治理的推进过程中，我们一直面临着一个显著的挑战：由于历史原因，公司内部应用数量庞大，推动业务侧通过 SDK 改造并发布新版本的成本极高，升级的阻力也较大。为了解决这一痛点，我们开始探索通过 Agent 技术统一实现公共的监控和服务治理。&lt;/p&gt;
+&lt;h3 id=&quot;为什么选择-Sermant&quot;&gt;&lt;a href=&quot;#为什么选择-Sermant&quot; class=&quot;headerlink&quot; title=&quot;为什么选择 Sermant&quot;&gt;&lt;/a&gt;为什么选择 Sermant&lt;/h3&gt;&lt;p&gt;Sermant 是一种基于 Java 字节码增强技术的无代理服务网格。其核心原理是通过 JavaAgent 将 Sermant 挂载至目标进程中，借助插件化机制支持多种扩展功能。这种设计不仅降低了业务接入门槛，还显著减少了改造成本。&lt;/p&gt;
+&lt;p&gt;从 Sermant 1.0 版本发布开始，我们便启动了相关的探索和实践。在多次版本迭代中，我们发现 Sermant 的功能和稳定性持续优化，能够很好地满足我们的业务需求。目前，我们的系统已全面升级至 Sermant 1.3.1 版本。&lt;/p&gt;
+&lt;p&gt;目前在我司基本已全量应用接入使用，共200多个服务，1000多台pod。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://cdn.webuy.ai/base-service-webserver/60-205-193-87/assets/img/2024/11/27/a98b920f-43eb-416c-921e-6502980471bf__246KB____size1915x903.png&quot; alt=&quot;生产实例接入&quot;&gt;&lt;/p&gt;</summary>
     
     
     
