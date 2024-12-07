@@ -36,14 +36,14 @@
 <meta property="og:site_name" content="J~杰&#39;s Blog">
 <meta property="og:description" content="背景在中间件统一监控和微服务治理的推进过程中，我们一直面临着一个显著的挑战：由于历史原因，公司内部应用数量庞大，推动业务侧通过 SDK 改造并发布新版本的成本极高，升级的阻力也较大。为了解决这一痛点，我们开始探索通过 Agent 技术统一实现公共的监控和服务治理。 为什么选择 SermantSermant 是一种基于 Java 字节码增强技术的无代理服务网格。其核心原理是通过 JavaAgent">
 <meta property="og:locale">
-<meta property="og:image" content="https://cdn.webuy.ai/base-service-webserver/60-205-193-87/assets/img/2024/11/27/a98b920f-43eb-416c-921e-6502980471bf__246KB____size1915x903.png">
-<meta property="og:image" content="https://cdn.webuy.ai/base-service-webserver/118-178-15-64/assets/img/2024/12/02/a08e3843-8930-4134-a1d8-8a6f61a555a9__681KB____size1494x1378.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wuqiu-ai/picgo-images/master/20241207175419.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/wuqiu-ai/picgo-images/master/20241207174413.png">
 <meta property="article:published_time" content="2024-12-08T10:27:35.000Z">
-<meta property="article:modified_time" content="2024-12-07T08:46:53.479Z">
+<meta property="article:modified_time" content="2024-12-07T09:54:36.805Z">
 <meta property="article:author" content="J~杰">
 <meta property="article:tag" content="全链路灰度">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://cdn.webuy.ai/base-service-webserver/60-205-193-87/assets/img/2024/11/27/a98b920f-43eb-416c-921e-6502980471bf__246KB____size1915x903.png">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/wuqiu-ai/picgo-images/master/20241207175419.png">
 
 
 <link rel="canonical" href="http://ppjys.cn/2024/12/08/%E5%9F%BA%E4%BA%8Esermant%E7%9A%84%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98%E4%B9%8B%E5%85%A8%E9%93%BE%E8%B7%AF%E7%81%B0%E5%BA%A6/">
@@ -275,7 +275,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2024-12-07 16:46:53" itemprop="dateModified" datetime="2024-12-07T16:46:53+08:00">2024-12-07</time>
+        <time title="Modified: 2024-12-07 17:54:36" itemprop="dateModified" datetime="2024-12-07T17:54:36+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -301,7 +301,7 @@
 <h3 id="为什么选择-Sermant"><a href="#为什么选择-Sermant" class="headerlink" title="为什么选择 Sermant"></a>为什么选择 Sermant</h3><p>Sermant 是一种基于 Java 字节码增强技术的无代理服务网格。其核心原理是通过 JavaAgent 将 Sermant 挂载至目标进程中，借助插件化机制支持多种扩展功能。这种设计不仅降低了业务接入门槛，还显著减少了改造成本。</p>
 <p>从 Sermant 1.0 版本发布开始，我们便启动了相关的探索和实践。在多次版本迭代中，我们发现 Sermant 的功能和稳定性持续优化，能够很好地满足我们的业务需求。目前，我们的系统已全面升级至 Sermant 1.3.1 版本。</p>
 <p>目前在我司基本已全量应用接入使用，共200多个服务，1000多台pod。</p>
-<p><img src="https://cdn.webuy.ai/base-service-webserver/60-205-193-87/assets/img/2024/11/27/a98b920f-43eb-416c-921e-6502980471bf__246KB____size1915x903.png" alt="生产实例接入"></p>
+<p><img src="https://raw.githubusercontent.com/wuqiu-ai/picgo-images/master/20241207175419.png"></p>
 <span id="more"></span>
 
 <h2 id="痛点场景"><a href="#痛点场景" class="headerlink" title="痛点场景"></a>痛点场景</h2><p>我们基于 Sermant 技术体系进行了深度探索，并通过自研插件，实现了在监控、全链路灰度及服务治理等多个场景的突破性进展。</p>
@@ -334,7 +334,7 @@
 <li><strong>动态调整能力</strong>：支持实时监控与调整，快速响应异常情况并进行流量回收或修复。</li>
 </ol>
 <h3 id="全链路灰度的具体实现"><a href="#全链路灰度的具体实现" class="headerlink" title="全链路灰度的具体实现"></a>全链路灰度的具体实现</h3><p>流程概览如下图所示：</p>
-<p><img src="https://cdn.webuy.ai/base-service-webserver/118-178-15-64/assets/img/2024/12/02/a08e3843-8930-4134-a1d8-8a6f61a555a9__681KB____size1494x1378.png" alt="生产实例接入"></p>
+<p><img src="https://raw.githubusercontent.com/wuqiu-ai/picgo-images/master/20241207174413.png"></p>
 <h4 id="1-网关流量入口：基于用户染色"><a href="#1-网关流量入口：基于用户染色" class="headerlink" title="1. 网关流量入口：基于用户染色"></a><strong>1. 网关流量入口：基于用户染色</strong></h4><p>灰度发布的第一步是将目标流量正确标记。我们通过在网关层实现以下功能，确保灰度入口的准确性：</p>
 <ul>
 <li><strong>用户特征标记</strong>：根据业务需求，通过用户业务线、用户 ID、地域（IP）等信息对流量进行染色（打灰度标签）。</li>
