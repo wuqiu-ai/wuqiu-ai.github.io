@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="1. 缩短键值对的存储长度键值对的长度是和性能成反比的，比如我们来做一组写入数据的性能测试，执行结果如下：  从以上数据可以看出，在 key 不变的情况下，value 值越大操作效率越慢，因为 Redis 对于同一种数据类型会使用不同的内部编码进行存储，比如字符串的内部编码就有三种：int（整数编码）、raw（优化内存分配的字符串编码）、embstr（动态字符串编码），这是因为 Redis 的作者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis性能优化">
+<meta property="og:url" content="http://ppjys.cn/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="1. 缩短键值对的存储长度键值对的长度是和性能成反比的，比如我们来做一组写入数据的性能测试，执行结果如下：  从以上数据可以看出，在 key 不变的情况下，value 值越大操作效率越慢，因为 Redis 对于同一种数据类型会使用不同的内部编码进行存储，比如字符串的内部编码就有三种：int（整数编码）、raw（优化内存分配的字符串编码）、embstr（动态字符串编码），这是因为 Redis 的作者">
+<meta property="og:locale">
+<meta property="og:image" content="https://user-images.githubusercontent.com/1940588/77920861-931b6980-72d1-11ea-8291-82dbb1d9afc3.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/1940588/77921151-f6a59700-72d1-11ea-8aa5-f912cedce6be.png">
+<meta property="og:image" content="https://user-images.githubusercontent.com/1940588/77921520-729fdf00-72d2-11ea-9373-4fd4a78a7cec.png">
+<meta property="article:published_time" content="2020-09-01T06:35:12.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.608Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://user-images.githubusercontent.com/1940588/77920861-931b6980-72d1-11ea-8291-82dbb1d9afc3.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Redis性能优化 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E7%BC%A9%E7%9F%AD%E9%94%AE%E5%80%BC%E5%AF%B9%E7%9A%84%E5%AD%98%E5%82%A8%E9%95%BF%E5%BA%A6"><span class="nav-number">1.</span> <span class="nav-text">1. 缩短键值对的存储长度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8-lazy-free-%E7%89%B9%E6%80%A7"><span class="nav-number">2.</span> <span class="nav-text">2. 使用 lazy free 特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E8%AE%BE%E7%BD%AE%E9%94%AE%E5%80%BC%E7%9A%84%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4"><span class="nav-number">3.</span> <span class="nav-text">3.设置键值的过期时间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E7%A6%81%E7%94%A8%E9%95%BF%E8%80%97%E6%97%B6%E7%9A%84%E6%9F%A5%E8%AF%A2%E5%91%BD%E4%BB%A4"><span class="nav-number">4.</span> <span class="nav-text">4.禁用长耗时的查询命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%BD%BF%E7%94%A8-slowlog-%E4%BC%98%E5%8C%96%E8%80%97%E6%97%B6%E5%91%BD%E4%BB%A4"><span class="nav-number">5.</span> <span class="nav-text">5.使用 slowlog 优化耗时命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%BD%BF%E7%94%A8-Pipeline-%E6%89%B9%E9%87%8F%E6%93%8D%E4%BD%9C%E6%95%B0%E6%8D%AE"><span class="nav-number">6.</span> <span class="nav-text">6.使用 Pipeline 批量操作数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E9%81%BF%E5%85%8D%E5%A4%A7%E9%87%8F%E6%95%B0%E6%8D%AE%E5%90%8C%E6%97%B6%E5%A4%B1%E6%95%88"><span class="nav-number">7.</span> <span class="nav-text">7.避免大量数据同时失效</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BD%BF%E7%94%A8%E4%BC%98%E5%8C%96"><span class="nav-number">8.</span> <span class="nav-text">8.客户端使用优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E9%99%90%E5%88%B6-Redis-%E5%86%85%E5%AD%98%E5%A4%A7%E5%B0%8F"><span class="nav-number">9.</span> <span class="nav-text">9.限制 Redis 内存大小</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E4%BD%BF%E7%94%A8%E7%89%A9%E7%90%86%E6%9C%BA%E8%80%8C%E9%9D%9E%E8%99%9A%E6%8B%9F%E6%9C%BA"><span class="nav-number">10.</span> <span class="nav-text">10.使用物理机而非虚拟机</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E6%A3%80%E6%9F%A5%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96%E7%AD%96%E7%95%A5"><span class="nav-number">11.</span> <span class="nav-text">11.检查数据持久化策略</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E7%A6%81%E7%94%A8-THP-%E7%89%B9%E6%80%A7"><span class="nav-number">12.</span> <span class="nav-text">12.禁用 THP 特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">13.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Redis性能优化
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-09-01 14:35:12" itemprop="dateCreated datePublished" datetime="2020-09-01T14:35:12+08:00">2020-09-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="1-缩短键值对的存储长度"><a href="#1-缩短键值对的存储长度" class="headerlink" title="1. 缩短键值对的存储长度"></a>1. 缩短键值对的存储长度</h2><p>键值对的长度是和性能成反比的，比如我们来做一组写入数据的性能测试，执行结果如下：</p>
+<p><a target="_blank" rel="noopener" href="https://user-images.githubusercontent.com/1940588/77920861-931b6980-72d1-11ea-8291-82dbb1d9afc3.png"><img src="https://user-images.githubusercontent.com/1940588/77920861-931b6980-72d1-11ea-8291-82dbb1d9afc3.png" alt="image"></a></p>
+<p>从以上数据可以看出，在 key 不变的情况下，value 值越大操作效率越慢，因为 Redis 对于同一种数据类型会使用不同的内部编码进行存储，比如字符串的内部编码就有三种：int（整数编码）、raw（优化内存分配的字符串编码）、embstr（动态字符串编码），这是因为 Redis 的作者是想通过不同编码实现效率和空间的平衡，然而数据量越大使用的内部编码就越复杂，而越是复杂的内部编码存储的性能就越低。</p>
+<p>这还只是写入时的速度，当键值对内容较大时，还会带来另外几个问题：</p>
+<ul>
+<li>内容越大需要的持久化时间就越长，需要挂起的时间越长，Redis 的性能就会越低；</li>
+<li>内容越大在网络上传输的内容就越多，需要的时间就越长，整体的运行速度就越低；</li>
+<li>内容越大占用的内存就越多，就会更频繁的触发内存淘汰机制，从而给 Redis 带来了更多的运行负担。</li>
+</ul>
+<p>因此在保证完整语义的同时，我们要尽量的缩短键值对的存储长度，必要时要对数据进行序列化和压缩再存储，以 Java 为例，序列化我们可以使用 protostuff 或 kryo，压缩我们可以使用 snappy。</p>
+<h2 id="2-使用-lazy-free-特性"><a href="#2-使用-lazy-free-特性" class="headerlink" title="2. 使用 lazy free 特性"></a>2. 使用 lazy free 特性</h2><p>lazy free 特性是 Redis 4.0 新增的一个非常使用的功能，它可以理解为惰性删除或延迟删除。意思是在删除的时候提供异步延时释放键值的功能，把键值释放操作放在 BIO(Background I/O) 单独的子线程处理中，以减少删除删除对 Redis 主线程的阻塞，可以有效地避免删除 big key 时带来的性能和可用性问题。</p>
+<p>lazy free 对应了 4 种场景，默认都是关闭的：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">lazyfree-lazy-eviction no</span><br><span class="line">lazyfree-lazy-expire no</span><br><span class="line">lazyfree-lazy-server-del no</span><br><span class="line">slave-lazy-flush no</span><br></pre></td></tr></table></figure>
+
+<p>它们代表的含义如下：</p>
+<ul>
+<li>lazyfree-lazy-eviction：表示当 Redis 运行内存超过 maxmeory 时，是否开启 lazy free 机制删除；</li>
+<li>lazyfree-lazy-expire：表示设置了过期时间的键值，当过期之后是否开启 lazy free 机制删除；</li>
+<li>lazyfree-lazy-server-del：有些指令在处理已存在的键时，会带有一个隐式的 del 键的操作，比如 rename 命令，当目标键已存在，Redis 会先删除目标键，如果这些目标键是一个 big key，就会造成阻塞删除的问题，此配置表示在这种场景中是否开启 lazy free 机制删除；</li>
+<li>slave-lazy-flush：针对 slave(从节点) 进行全量数据同步，slave 在加载 master 的 RDB 文件前，会运行 flushall 来清理自己的数据，它表示此时是否开启 lazy free 机制删除。</li>
+</ul>
+<p>建议开启其中的 lazyfree-lazy-eviction、lazyfree-lazy-expire、lazyfree-lazy-server-del 等配置，这样就可以有效的提高主线程的执行效率。</p>
+<span id="more"></span>
+
+
+
+<h2 id="3-设置键值的过期时间"><a href="#3-设置键值的过期时间" class="headerlink" title="3.设置键值的过期时间"></a>3.设置键值的过期时间</h2><p>我们应该根据实际的业务情况，对键值设置合理的过期时间，这样 Redis 会帮你自动清除过期的键值对，以节约对内存的占用，以避免键值过多的堆积，频繁的触发内存淘汰策略。</p>
+<h2 id="4-禁用长耗时的查询命令"><a href="#4-禁用长耗时的查询命令" class="headerlink" title="4.禁用长耗时的查询命令"></a>4.禁用长耗时的查询命令</h2><p>Redis 绝大多数读写命令的时间复杂度都在 O(1) 到 O(N) 之间，在官方文档对每命令都有时间复杂度说明，地址：<a target="_blank" rel="noopener" href="https://redis.io/commands%EF%BC%8C%E5%A6%82%E4%B8%8B%E5%9B%BE%E6%89%80%E7%A4%BA%EF%BC%9A">https://redis.io/commands，如下图所示：</a></p>
+<p><a target="_blank" rel="noopener" href="https://user-images.githubusercontent.com/1940588/77921151-f6a59700-72d1-11ea-8aa5-f912cedce6be.png"><img src="https://user-images.githubusercontent.com/1940588/77921151-f6a59700-72d1-11ea-8aa5-f912cedce6be.png" alt="image"></a></p>
+<p>其中 O(1) 表示可以安全使用的，而 O(N) 就应该当心了，N 表示不确定，数据越大查询的速度可能会越慢。因为 Redis 只用一个线程来做数据查询，如果这些指令耗时很长，就会阻塞 Redis，造成大量延时。</p>
+<p>要避免 O(N) 命令对 Redis 造成的影响，可以从以下几个方面入手改造：</p>
+<ul>
+<li>决定禁止使用 keys 命令；</li>
+<li>避免一次查询所有的成员，要使用 scan 命令进行分批的，游标式的遍历；</li>
+<li>通过机制严格控制 Hash、Set、Sorted Set 等结构的数据大小；</li>
+<li>将排序、并集、交集等操作放在客户端执行，以减少 Redis 服务器运行压力；</li>
+<li>删除 (del) 一个大数据的时候，可能会需要很长时间，所以建议用异步删除的方式 unlink，它会启动一个新的线程来删除目标数据，而不阻塞 Redis 的主线程。</li>
+</ul>
+<h2 id="5-使用-slowlog-优化耗时命令"><a href="#5-使用-slowlog-优化耗时命令" class="headerlink" title="5.使用 slowlog 优化耗时命令"></a>5.使用 slowlog 优化耗时命令</h2><p>我们可以使用 <code>slowlog</code> 功能找出最耗时的 Redis 命令进行相关的优化，以提升 Redis 的运行速度，慢查询有两个重要的配置项：</p>
+<ul>
+<li><code>slowlog-log-slower-than</code> ：用于设置慢查询的评定时间，也就是说超过此配置项的命令，将会被当成慢操作记录在慢查询日志中，它执行单位是微秒 (1 秒等于 1000000 微秒)；</li>
+<li><code>slowlog-max-len</code> ：用来配置慢查询日志的最大记录数。</li>
+</ul>
+<p>我们可以根据实际的业务情况进行相应的配置，其中慢日志是按照插入的顺序倒序存入慢查询日志中，我们可以使用 <code>slowlog get n</code> 来获取相关的慢查询日志，再找到这些慢查询对应的业务进行相关的优化。</p>
+<h2 id="6-使用-Pipeline-批量操作数据"><a href="#6-使用-Pipeline-批量操作数据" class="headerlink" title="6.使用 Pipeline 批量操作数据"></a>6.使用 Pipeline 批量操作数据</h2><p>Pipeline (管道技术) 是客户端提供的一种批处理技术，用于一次处理多个 Redis 命令，从而提高整个交互的性能。</p>
+<p>我们使用 Java 代码来测试一下 Pipeline 和普通操作的性能对比，Pipeline 的测试代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">publicclass PipelineExample &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Jedis jedis &#x3D; new Jedis(&quot;127.0.0.1&quot;, 6379);</span><br><span class="line">        &#x2F;&#x2F; 记录执行开始时间</span><br><span class="line">        long beginTime &#x3D; System.currentTimeMillis();</span><br><span class="line">        &#x2F;&#x2F; 获取 Pipeline 对象</span><br><span class="line">        Pipeline pipe &#x3D; jedis.pipelined();</span><br><span class="line">        &#x2F;&#x2F; 设置多个 Redis 命令</span><br><span class="line">        for (int i &#x3D; 0; i &lt; 100; i++) &#123;</span><br><span class="line">            pipe.set(&quot;key&quot; + i, &quot;val&quot; + i);</span><br><span class="line">            pipe.del(&quot;key&quot;+i);</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F; 执行命令</span><br><span class="line">        pipe.sync();</span><br><span class="line">        &#x2F;&#x2F; 记录执行结束时间</span><br><span class="line">        long endTime &#x3D; System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;执行耗时：&quot; + (endTime - beginTime) + &quot;毫秒&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上程序执行结果为：</p>
+<blockquote>
+<p>执行耗时：297毫秒</p>
+</blockquote>
+<p>普通的操作代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">publicclass PipelineExample &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        Jedis jedis &#x3D; new Jedis(&quot;127.0.0.1&quot;, 6379);</span><br><span class="line">        &#x2F;&#x2F; 记录执行开始时间</span><br><span class="line">        long beginTime &#x3D; System.currentTimeMillis();</span><br><span class="line">        for (int i &#x3D; 0; i &lt; 100; i++) &#123;</span><br><span class="line">            jedis.set(&quot;key&quot; + i, &quot;val&quot; + i);</span><br><span class="line">            jedis.del(&quot;key&quot;+i);</span><br><span class="line">        &#125;</span><br><span class="line">        &#x2F;&#x2F; 记录执行结束时间</span><br><span class="line">        long endTime &#x3D; System.currentTimeMillis();</span><br><span class="line">        System.out.println(&quot;执行耗时：&quot; + (endTime - beginTime) + &quot;毫秒&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上程序执行结果为：</p>
+<blockquote>
+<p>执行耗时：17276毫秒</p>
+</blockquote>
+<p>从以上的结果可以看出，管道的执行时间是 297 毫秒，而普通命令执行时间是 17276 毫秒，管道技术要比普通的执行大约快了 58 倍。</p>
+<h2 id="7-避免大量数据同时失效"><a href="#7-避免大量数据同时失效" class="headerlink" title="7.避免大量数据同时失效"></a>7.避免大量数据同时失效</h2><p>Redis 过期键值删除使用的是贪心策略，它每秒会进行 10 次过期扫描，此配置可在 redis.conf 进行配置，默认值是 <code>hz 10</code>，Redis 会随机抽取 20 个值，删除这 20 个键中过期的键，如果过期 key 的比例超过 25% ，重复执行此流程，如下图所示：</p>
+<p><a target="_blank" rel="noopener" href="https://user-images.githubusercontent.com/1940588/77921520-729fdf00-72d2-11ea-9373-4fd4a78a7cec.png"><img src="https://user-images.githubusercontent.com/1940588/77921520-729fdf00-72d2-11ea-9373-4fd4a78a7cec.png" alt="image"></a></p>
+<p>如果在大型系统中有大量缓存在同一时间同时过期，那么会导致 Redis 循环多次持续扫描删除过期字典，直到过期字典中过期键值被删除的比较稀疏为止，而在整个执行过程会导致 Redis 的读写出现明显的卡顿，卡顿的另一种原因是内存管理器需要频繁回收内存页，因此也会消耗一定的 CPU。</p>
+<p>为了避免这种卡顿现象的产生，我们需要预防大量的缓存在同一时刻一起过期，就简单的解决方案就是在过期时间的基础上添加一个指定范围的随机数。</p>
+<h2 id="8-客户端使用优化"><a href="#8-客户端使用优化" class="headerlink" title="8.客户端使用优化"></a>8.客户端使用优化</h2><p>在客户端的使用上我们除了要尽量使用 Pipeline 的技术外，还需要注意要尽量使用 Redis 连接池，而不是频繁创建销毁 Redis 连接，这样就可以减少网络传输次数和减少了非必要调用指令。</p>
+<h2 id="9-限制-Redis-内存大小"><a href="#9-限制-Redis-内存大小" class="headerlink" title="9.限制 Redis 内存大小"></a>9.限制 Redis 内存大小</h2><p>在 64 位操作系统中 Redis 的内存大小是没有限制的，也就是配置项 maxmemory 是被注释掉的，这样就会导致在物理内存不足时，使用 swap 空间既交换空间，而当操心系统将 Redis 所用的内存分页移至 swap 空间时，将会阻塞 Redis 进程，导致 Redis 出现延迟，从而影响 Redis 的整体性能。因此我们需要限制 Redis 的内存大小为一个固定的值，当 Redis 的运行到达此值时会触发内存淘汰策略，内存淘汰策略在 Redis 4.0 之后有 8 种：</p>
+<ol>
+<li>noeviction：不淘汰任何数据，当内存不足时，新增操作会报错，Redis 默认内存淘汰策略；</li>
+<li>allkeys-lru：淘汰整个键值中最久未使用的键值；</li>
+<li>allkeys-random：随机淘汰任意键值;</li>
+<li>volatile-lru：淘汰所有设置了过期时间的键值中最久未使用的键值；</li>
+<li>volatile-random：随机淘汰设置了过期时间的任意键值；</li>
+<li>volatile-ttl：优先淘汰更早过期的键值。</li>
+</ol>
+<p>在 Redis 4.0 版本中又新增了 2 种淘汰策略：</p>
+<ol>
+<li>volatile-lfu：淘汰所有设置了过期时间的键值中，最少使用的键值；</li>
+<li>allkeys-lfu：淘汰整个键值中最少使用的键值。</li>
+</ol>
+<p>其中 allkeys-xxx 表示从所有的键值中淘汰数据，而 volatile-xxx 表示从设置了过期键的键值中淘汰数据。</p>
+<p>我们可以根据实际的业务情况进行设置，默认的淘汰策略不淘汰任何数据，在新增时会报错。</p>
+<h2 id="10-使用物理机而非虚拟机"><a href="#10-使用物理机而非虚拟机" class="headerlink" title="10.使用物理机而非虚拟机"></a>10.使用物理机而非虚拟机</h2><p>在虚拟机中运行 Redis 服务器，因为和物理机共享一个物理网口，并且一台物理机可能有多个虚拟机在运行，因此在内存占用上和网络延迟方面都会有很糟糕的表现，我们可以通过 <code>./redis-cli --intrinsic-latency 100</code> 命令查看延迟时间，如果对 Redis 的性能有较高要求的话，应尽可能在物理机上直接部署 Redis 服务器。</p>
+<h2 id="11-检查数据持久化策略"><a href="#11-检查数据持久化策略" class="headerlink" title="11.检查数据持久化策略"></a>11.检查数据持久化策略</h2><p>Redis 的持久化策略是将内存数据复制到硬盘上，这样才可以进行容灾恢复或者数据迁移，但维护此持久化的功能，需要很大的性能开销。<br>在 Redis 4.0 之后，Redis 有 3 种持久化的方式：</p>
+<ul>
+<li>RDB（Redis DataBase，快照方式）将某一个时刻的内存数据，以二进制的方式写入磁盘；</li>
+<li>AOF（Append Only File，文件追加方式），记录所有的操作命令，并以文本的形式追加到文件中；</li>
+<li>混合持久化方式，Redis 4.0 之后新增的方式，混合持久化是结合了 RDB 和 AOF 的优点，在写入的时候，先把当前的数据以 RDB 的形式写入文件的开头，再将后续的操作命令以 AOF 的格式存入文件，这样既能保证 Redis 重启时的速度，又能减低数据丢失的风险。</li>
+</ul>
+<p>RDB 和 AOF 持久化各有利弊，RDB 可能会导致一定时间内的数据丢失，而 AOF 由于文件较大则会影响 Redis 的启动速度，为了能同时拥有 RDB 和 AOF 的优点，Redis 4.0 之后新增了混合持久化的方式，因此我们在必须要进行持久化操作时，应该选择混合持久化的方式。</p>
+<h2 id="12-禁用-THP-特性"><a href="#12-禁用-THP-特性" class="headerlink" title="12.禁用 THP 特性"></a>12.禁用 THP 特性</h2><p>Linux kernel 在 2.6.38 内核增加了 Transparent Huge Pages (THP) 特性 ，支持大内存页 2MB 分配，默认开启。</p>
+<p>当开启了 THP 时，fork 的速度会变慢，fork 之后每个内存页从原来 4KB 变为 2MB，会大幅增加重写期间父进程内存消耗。同时每次写命令引起的复制内存页单位放大了 512 倍，会拖慢写操作的执行时间，导致大量写操作慢查询。例如简单的 incr 命令也会出现在慢查询中，因此 Redis 建议将此特性进行禁用，禁用方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo never &gt; &#x2F;sys&#x2F;kernel&#x2F;mm&#x2F;transparent_hugepage&#x2F;enabled</span><br></pre></td></tr></table></figure>
+
+<p>为了使机器重启后 THP 配置依然生效，可以在 <code>/etc/rc.local</code> 中追加 <code>echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled</code>。</p>
+<p>13.使用分布式架构来增加读写速度Redis 分布式架构有三个重要的手段：主从同步哨兵模式Redis Cluster 集群使用主从同步功能我们可以把写入放到主库上执行，把读功能转移到从服务上，因此就可以在单位时间内处理更多的请求，从而提升的 Redis 整体的运行速度。而哨兵模式是对于主从功能的升级，但当主节点奔溃之后，无需人工干预就能自动恢复 Redis 的正常使用。Redis Cluster 是 Redis 3.0 正式推出的，Redis 集群是通过将数据库分散存储到多个节点上来平衡各个节点的负载压力。Redis Cluster 采用虚拟哈希槽分区，所有的键根据哈希函数映射到 0 ~ 16383 整数槽内，计算公式：slot = CRC16(key) &amp; 16383，每一个节点负责维护一部分槽以及槽所映射的键值数据。这样 Redis 就可以把读写压力从一台服务器，分散给多台服务器了，因此性能会有很大的提升。在这三个功能中，我们只需要使用一个就行了，毫无疑问 Redis Cluster 应该是首选的实现方案，它可以把读写压力自动的分担给更多的服务器，并且拥有自动容灾的能力。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/JVTtowoqsIixiaK8WL7wgQ">大厂Redis 性能优化的 13 条军规</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Redis/" rel="tag"># Redis</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/" rel="prev" title="常用算法总结">
+                  <i class="fa fa-chevron-left"></i> 常用算法总结
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/" rel="next" title="Redis开发规范">
+                  Redis开发规范 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

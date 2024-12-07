@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="问题描述最近业务团队预发使用平台redis框架包(redis客户端使用lettuce，超时时间配置为5s)的时候经常出现命令超时问题。 报错日志,issue地址 123456789101112131415161718192021222324252627282930313233Sep  2 17:04:07 live-uat dxy-live-extensions-uat[117]: 2020-09">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lettuce超时问题">
+<meta property="og:url" content="http://ppjys.cn/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="问题描述最近业务团队预发使用平台redis框架包(redis客户端使用lettuce，超时时间配置为5s)的时候经常出现命令超时问题。 报错日志,issue地址 123456789101112131415161718192021222324252627282930313233Sep  2 17:04:07 live-uat dxy-live-extensions-uat[117]: 2020-09">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-09-04T12:11:45.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.608Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="快速排查线上问题">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Lettuce超时问题 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">问题描述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%92%E6%9F%A5%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">排查问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">3.</span> <span class="nav-text">解决方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Leetuce%E6%B3%A8%E6%84%8F%E7%82%B9"><span class="nav-number">4.</span> <span class="nav-text">Leetuce注意点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Redis%E9%98%BB%E5%A1%9E%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">Redis阻塞问题总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Lettuce超时问题
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-09-04 20:11:45" itemprop="dateCreated datePublished" datetime="2020-09-04T20:11:45+08:00">2020-09-04</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/redis/" itemprop="url" rel="index"><span itemprop="name">redis</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>最近业务团队预发使用平台redis框架包(redis客户端使用lettuce，超时时间配置为5s)的时候经常出现命令超时问题。</p>
+<p>报错日志,<a target="_blank" rel="noopener" href="https://github.com/lettuce-io/lettuce-core/issues/1407">issue地址</a></p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-tag">2020-09-02</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span><span class="selector-class">.029</span> <span class="selector-tag">dxy-live-extensions</span> <span class="selector-attr">[lettuce-epollEventLoop-5-1]</span> <span class="selector-tag">ERROR</span> <span class="selector-tag">c</span><span class="selector-class">.d</span><span class="selector-class">.redis</span><span class="selector-class">.lock</span><span class="selector-class">.RedisDistributedLock</span> <span class="selector-tag">-</span> <span class="selector-tag">set</span> <span class="selector-tag">redis</span> <span class="selector-tag">occured</span> <span class="selector-tag">an</span> <span class="selector-tag">exception</span>:<span class="selector-tag">Redis</span> <span class="selector-tag">command</span> <span class="selector-tag">timed</span> <span class="selector-tag">out</span>; <span class="selector-tag">nested</span> <span class="selector-tag">exception</span> <span class="selector-tag">is</span> <span class="selector-tag">io</span><span class="selector-class">.lettuce</span><span class="selector-class">.core</span><span class="selector-class">.RedisCommandTimeoutException</span>: <span class="selector-tag">Command</span> <span class="selector-tag">timed</span> <span class="selector-tag">out</span></span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.dao</span><span class="selector-class">.QueryTimeoutException</span>: <span class="selector-tag">Redis</span> <span class="selector-tag">command</span> <span class="selector-tag">timed</span> <span class="selector-tag">out</span>; <span class="selector-tag">nested</span> <span class="selector-tag">exception</span> <span class="selector-tag">is</span> <span class="selector-tag">io</span><span class="selector-class">.lettuce</span><span class="selector-class">.core</span><span class="selector-class">.RedisCommandTimeoutException</span>: <span class="selector-tag">Command</span> <span class="selector-tag">timed</span> <span class="selector-tag">out</span></span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.connection</span><span class="selector-class">.lettuce</span><span class="selector-class">.LettuceExceptionConverter</span><span class="selector-class">.convert</span>(LettuceExceptionConverter.<span class="attribute">java</span>:<span class="number">70</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.connection</span><span class="selector-class">.lettuce</span><span class="selector-class">.LettuceExceptionConverter</span><span class="selector-class">.convert</span>(LettuceExceptionConverter.<span class="attribute">java</span>:<span class="number">41</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.PassThroughExceptionTranslationStrategy</span><span class="selector-class">.translate</span>(PassThroughExceptionTranslationStrategy.<span class="attribute">java</span>:<span class="number">44</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.FallbackExceptionTranslationStrategy</span><span class="selector-class">.translate</span>(FallbackExceptionTranslationStrategy.<span class="attribute">java</span>:<span class="number">42</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.connection</span><span class="selector-class">.lettuce</span><span class="selector-class">.LettuceConnection</span><span class="selector-class">.convertLettuceAccessException</span>(LettuceConnection.<span class="attribute">java</span>:<span class="number">257</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.connection</span><span class="selector-class">.lettuce</span><span class="selector-class">.LettuceScriptingCommands</span><span class="selector-class">.convertLettuceAccessException</span>(LettuceScriptingCommands.<span class="attribute">java</span>:<span class="number">236</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.connection</span><span class="selector-class">.lettuce</span><span class="selector-class">.LettuceScriptingCommands</span><span class="selector-class">.evalSha</span>(LettuceScriptingCommands.<span class="attribute">java</span>:<span class="number">195</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.connection</span><span class="selector-class">.DefaultedRedisConnection</span><span class="selector-class">.evalSha</span>(DefaultedRedisConnection.<span class="attribute">java</span>:<span class="number">1240</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">sun</span><span class="selector-class">.reflect</span><span class="selector-class">.NativeMethodAccessorImpl</span><span class="selector-class">.invoke0</span>(Native Method)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">sun</span><span class="selector-class">.reflect</span><span class="selector-class">.NativeMethodAccessorImpl</span><span class="selector-class">.invoke</span>(NativeMethodAccessorImpl.<span class="attribute">java</span>:<span class="number">62</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">sun</span><span class="selector-class">.reflect</span><span class="selector-class">.DelegatingMethodAccessorImpl</span><span class="selector-class">.invoke</span>(DelegatingMethodAccessorImpl.<span class="attribute">java</span>:<span class="number">43</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">java</span><span class="selector-class">.lang</span><span class="selector-class">.reflect</span><span class="selector-class">.Method</span><span class="selector-class">.invoke</span>(Method.<span class="attribute">java</span>:<span class="number">498</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.core</span><span class="selector-class">.CloseSuppressingInvocationHandler</span><span class="selector-class">.invoke</span>(CloseSuppressingInvocationHandler.<span class="attribute">java</span>:<span class="number">61</span>)</span><br><span class="line">Sep  2 17:04:07 live-uat dxy-live-extensions-uat[117]: #011at com.sun.proxy.$Proxy169.evalSha(Unknown Source)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.core</span><span class="selector-class">.script</span><span class="selector-class">.DefaultScriptExecutor</span><span class="selector-class">.eval</span>(DefaultScriptExecutor.<span class="attribute">java</span>:<span class="number">77</span>)</span><br><span class="line">Sep  2 17:04:07 live-uat dxy-live-extensions-uat[117]: #011at org.springframework.data.redis.core.script.DefaultScriptExecutor.lambda$execute$0(DefaultScriptExecutor.java:68)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.core</span><span class="selector-class">.RedisTemplate</span><span class="selector-class">.execute</span>(RedisTemplate.<span class="attribute">java</span>:<span class="number">224</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.core</span><span class="selector-class">.RedisTemplate</span><span class="selector-class">.execute</span>(RedisTemplate.<span class="attribute">java</span>:<span class="number">184</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.core</span><span class="selector-class">.RedisTemplate</span><span class="selector-class">.execute</span>(RedisTemplate.<span class="attribute">java</span>:<span class="number">171</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.core</span><span class="selector-class">.script</span><span class="selector-class">.DefaultScriptExecutor</span><span class="selector-class">.execute</span>(DefaultScriptExecutor.<span class="attribute">java</span>:<span class="number">58</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.core</span><span class="selector-class">.script</span><span class="selector-class">.DefaultScriptExecutor</span><span class="selector-class">.execute</span>(DefaultScriptExecutor.<span class="attribute">java</span>:<span class="number">52</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.core</span><span class="selector-class">.RedisTemplate</span><span class="selector-class">.execute</span>(RedisTemplate.<span class="attribute">java</span>:<span class="number">346</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">com</span><span class="selector-class">.dxy</span><span class="selector-class">.redis</span><span class="selector-class">.lock</span><span class="selector-class">.RedisDistributedLock</span><span class="selector-class">.redisLock</span>(RedisDistributedLock.<span class="attribute">java</span>:<span class="number">121</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">com</span><span class="selector-class">.dxy</span><span class="selector-class">.redis</span><span class="selector-class">.lock</span><span class="selector-class">.RedisDistributedLock</span><span class="selector-class">.doLock</span>(RedisDistributedLock.<span class="attribute">java</span>:<span class="number">92</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">com</span><span class="selector-class">.dxy</span><span class="selector-class">.redis</span><span class="selector-class">.lock</span><span class="selector-class">.AbstractDistributedLock</span><span class="selector-class">.lock</span>(AbstractDistributedLock.<span class="attribute">java</span>:<span class="number">46</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">com</span><span class="selector-class">.dxy</span><span class="selector-class">.redis</span><span class="selector-class">.util</span><span class="selector-class">.RedisLockUtils</span><span class="selector-class">.tryLock</span>(RedisLockUtils.<span class="attribute">java</span>:<span class="number">64</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">com</span><span class="selector-class">.dxy</span><span class="selector-class">.listener</span><span class="selector-class">.AbstractMessageListener</span><span class="selector-class">.tryLock</span>(AbstractMessageListener.<span class="attribute">java</span>:<span class="number">21</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">com</span><span class="selector-class">.dxy</span><span class="selector-class">.listener</span><span class="selector-class">.LiveInfoChangeMessageListener</span><span class="selector-class">.onMessage</span>(LiveInfoChangeMessageListener.<span class="attribute">java</span>:<span class="number">34</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.connection</span><span class="selector-class">.lettuce</span><span class="selector-class">.LettuceMessageListener</span><span class="selector-class">.message</span>(LettuceMessageListener.<span class="attribute">java</span>:<span class="number">43</span>)</span><br><span class="line"><span class="selector-tag">Sep</span>  <span class="selector-tag">2</span> <span class="selector-tag">17</span>:<span class="selector-tag">04</span>:<span class="selector-tag">07</span> <span class="selector-tag">live-uat</span> <span class="selector-tag">dxy-live-extensions-uat</span><span class="selector-attr">[117]</span>: <span class="selector-id">#011at</span> <span class="selector-tag">org</span><span class="selector-class">.springframework</span><span class="selector-class">.data</span><span class="selector-class">.redis</span><span class="selector-class">.connection</span><span class="selector-class">.lettuce</span><span class="selector-class">.LettuceMessageListener</span><span class="selector-class">.message</span>(LettuceMessageListener.<span class="attribute">java</span>:<span class="number">29</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h2 id="排查问题"><a href="#排查问题" class="headerlink" title="排查问题"></a>排查问题</h2><ol>
+<li><p>查看redis服务器慢命令，慢命令设置为3s，但是<strong>最终还是没有慢命令日志</strong>；</p>
+<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 查看客户端连接数</span><br><span class="line">client listsinfo clientsinfo stats</span><br><span class="line"># 查看最大客户端连接数</span><br><span class="line">config get maxclients</span><br><span class="line"># 命令执行超过3秒记录慢日志</span><br><span class="line">CONFIG SET slowlog-log-slower-than 3000000</span><br><span class="line"># 只保留最近1000条慢日志</span><br><span class="line">CONFIG SET slowlog-max-len 1000</span><br><span class="line"># 查看慢日志</span><br><span class="line">showlog get</span><br></pre></td></tr></table></figure></blockquote>
+</li>
+<li><p>升级lettuce包，官方推荐使用5.3+稳定版本，但是<strong>升级完成之后，还是没有效果</strong>；</p>
+</li>
+<li><p>排查业务代码使用了哪些场景，发现业务团队使用了大量的sub订阅，使用方式直接去redisconnectionfactory获取连接，然后直接订阅。由于lettcue我们默认是使用共享连接配置（即与server端连接采用多路复用连接机制，默认只有一个客户端连接）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// redis 订阅</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HostChangeMessageListener</span> <span class="keyword">extends</span> <span class="title">AbstractMessageListener</span> <span class="keyword">implements</span> <span class="title">MessageListener</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Resource</span></span><br><span class="line">    <span class="keyword">private</span> IMCacheService cacheService;</span><br><span class="line">    <span class="meta">@Resource</span></span><br><span class="line">    <span class="keyword">private</span> IMMessageService imMessageService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onMessage</span><span class="params">(Message message, <span class="keyword">byte</span>[] pattern)</span> </span>&#123;</span><br><span class="line">        String content = <span class="keyword">new</span> String(message.getBody());</span><br><span class="line">        <span class="comment">// redis分布式锁实现</span></span><br><span class="line">        <span class="keyword">if</span> (tryLock(message)) &#123;</span><br><span class="line">          <span class="comment">//.....</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// .....</span></span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><p>查看lettuce的<a target="_blank" rel="noopener" href="https://lettuce.io/core/release/reference/index.html#faq.timeout">命令超时文档</a></p>
+<blockquote>
+<p><code>RedisCommandTimeoutException</code> with a stack trace like:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">io.lettuce.core.RedisCommandTimeoutException: Command timed out after 1 minute(s)</span><br><span class="line">at io.lettuce.core.ExceptionFactory.createTimeoutException(ExceptionFactory.java:51)</span><br><span class="line">at io.lettuce.core.LettuceFutures.awaitOrCancel(LettuceFutures.java:114)</span><br><span class="line">at io.lettuce.core.FutureSyncInvocationHandler.handleInvocation(FutureSyncInvocationHandler.java:69)</span><br><span class="line">at io.lettuce.core.internal.AbstractInvocationHandler.invoke(AbstractInvocationHandler.java:80)</span><br><span class="line">at com.sun.proxy.$Proxy94.set(Unknown Source)</span><br></pre></td></tr></table></figure>
+
+<p><strong>Diagnosis:</strong></p>
+<ol>
+<li>Check the debug log (log level <code>DEBUG</code> or <code>TRACE</code> for the logger <code>io.lettuce.core.protocol</code>)</li>
+<li>Take a Thread dump to investigate Thread activity</li>
+</ol>
+<p><strong>Cause:</strong></p>
+<p>Command timeouts are caused by the fact that a command was not completed within the configured timeout. Timeouts may be caused for various reasons:</p>
+<ol>
+<li>Redis server has crashed/network partition happened and your Redis service didn’t recover within the configured timeout</li>
+<li>Command was not finished in time. This can happen if your Redis server is overloaded or if the connection is blocked by a command (e.g. <code>BLPOP 0</code>, long-running Lua script). See also <a target="_blank" rel="noopener" href="https://lettuce.io/core/release/reference/index.html#faq.timeout.blpop"><code>blpop(Duration.ZERO, …)</code> gives <code>RedisCommandTimeoutException</code></a>.</li>
+<li>Configured timeout does not match Redis’s performance.</li>
+<li>If you block the <code>EventLoop</code> (e.g. calling blocking methods in a <code>RedisFuture</code> callback or in a Reactive pipeline)</li>
+</ol>
+<p><strong>Action:</strong></p>
+<p>Check for the causes above. If the configured timeout does not match your Redis latency characteristics, consider increasing the timeout. Never block the <code>EventLoop</code> from your code.</p>
+</blockquote>
+</li>
+</ol>
+</li>
+</ol>
+<h2 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h2><p> 采用spring redis监听器方式，避免多个客户端连接订阅导致其他命令超时。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 消息适配器</span></span><br><span class="line"><span class="comment">   * 绑定消息监听者和接收监听的方法,必须要注入这个监听器，不然会报错</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span> MessageListenerAdapter</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> MessageListenerAdapter <span class="title">liveInfoChangeMessageListenerAdapter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> MessageListenerAdapter(liveInfoChangeMessageListener, <span class="string">&quot;onMessage&quot;</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 定义消息监听者容器</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> connectionFactory 连接工厂</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span> RedisMessageListenerContainer</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> RedisMessageListenerContainer <span class="title">container</span><span class="params">(RedisConnectionFactory connectionFactory)</span> </span>&#123;</span><br><span class="line">      RedisMessageListenerContainer listenerContainer = <span class="keyword">new</span> RedisMessageListenerContainer();</span><br><span class="line">      listenerContainer.setConnectionFactory(connectionFactory);</span><br><span class="line">      listenerContainer.addMessageListenerliveInfoChangeMessageListenerAdapter(), <span class="keyword">new</span> PatternTopic(<span class="string">&quot;IM_LIVE_ENTRY_INFO_CHANGE&quot;</span>));</span><br><span class="line">      <span class="keyword">return</span> listenerContainer;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="Leetuce注意点"><a href="#Leetuce注意点" class="headerlink" title="Leetuce注意点"></a>Leetuce注意点</h2><p>针对需要阻塞的命令最好针对命令配置超时时间，如下：</p>
+<p>There are various options:</p>
+<ol>
+<li>Configure a higher default timeout.</li>
+<li>Consider a timeout that meets the default timeout when calling blocking commands.</li>
+<li>Configure <code>TimeoutOptions</code> with a custom <code>TimeoutSource</code></li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">TimeoutOptions timeoutOptions &#x3D; TimeoutOptions.builder().timeoutSource(new TimeoutSource() &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public long getTimeout(RedisCommand&lt;?, ?, ?&gt; command) &#123;</span><br><span class="line"></span><br><span class="line">        if (command.getType() &#x3D;&#x3D; CommandType.BLPOP) &#123;</span><br><span class="line">            return TimeUnit.MILLISECONDS.toNanos(CommandArgsAccessor.getFirstInteger(command.getArgs()));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        &#x2F;&#x2F; -1 indicates fallback to the default timeout</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).build();</span><br></pre></td></tr></table></figure>
+
+<p>Note that commands that timed out may block the connection until either the timeout exceeds or Redis sends a response.</p>
+<h2 id="Redis阻塞问题总结"><a href="#Redis阻塞问题总结" class="headerlink" title="Redis阻塞问题总结"></a>Redis阻塞问题总结</h2><ol>
+<li><p>Redis数据结构或API使用不合理，导致可能存在大对象且大对象使用复杂度高的命令；</p>
+<ul>
+<li>对一个有千万个元素的hash执行hgetall操作, 或del操作.类似的这种操作都会造成Redis阻塞</li>
+<li>对于这种大对象可以采用redis-cli -h {host} -p {port} bigkeys 来查看。但是该命令只能查询某类型中的其<br>中最大的一个key。如果你想查询多个。可以采用修改redis-cli源代码的方式（Redis的源代码是C）。如果不想修 改源代码的话也可以使用scan来完成。</li>
+<li>对于Scan命令需要注意。该命令只能扫描单台Redis上的数据。如果你是一个集群，需要每台机器执行一遍。但是如果你使用开源的客户端的话（比如：Java的Lettuce客户端）就已经帮你把scan命令实现为可以扫描整个集群了。</li>
+<li>然后对大对象进行拆分。具体拆分要视业务而定了。</li>
+</ul>
+</li>
+<li><p>Redis的cpu使用率接近100%</p>
+<ul>
+<li><p>从机同步主机数据。从机接受到rdb文件后从磁盘加载数据</p>
+</li>
+<li><p>主从持久化数据。</p>
+</li>
+<li><p>将cpu使用率达到100%，有可能是真实业务访问量确实很大。单台Redis达到每秒处理6万+的请求。这个时候就只能做水平扩展了</p>
+</li>
+<li><p>如果Redis每秒操作数只有几百，或者几千，且cpu还是很高的话就有可能使用了高算法复杂度的命令。例如hgetall。还有一种可能是内存的过度优化导致。这种情况目前暂时没有遇到，但也纳入考虑范围。</p>
+</li>
+</ul>
+</li>
+<li><p>CPU竞争</p>
+<ul>
+<li><p>Redis是一个CPU密集型的应用，不适合和其他CPU密集的服务部署在一起。</p>
+</li>
+<li><p>在生产环境中，我们一台服务器的配置是32核逻辑cpu, 256GB内存。每台机器如果只部署一台Redis比较浪费。所以可能会一台机器部署多个Redis。通常会将Redis进程绑定到CPU上。但是在生成RDB文件或者AOF持久话时，就会产生子进程。这样子进程与父进程会产生CPU竞争。所以当开启持久化或者主节点。不建议绑定CPU</p>
+</li>
+</ul>
+</li>
+<li><p>内存交换</p>
+<ul>
+<li>Redis是一个内存型数据库，所有数据全部放在内存中。所以强烈建议不开启内存交换</li>
+</ul>
+</li>
+<li><p>网络问题</p>
+<ul>
+<li>主从同步网络延迟较大的话，导致从机经常断线重连。如果断线时间久了。导致从机再次连接上主机时会全量同步，这时主机，从机都会收到影响</li>
+</ul>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E6%9F%A5%E7%BA%BF%E4%B8%8A%E9%97%AE%E9%A2%98/" rel="tag"># 快速排查线上问题</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/" rel="prev" title="Redis开发规范">
+                  <i class="fa fa-chevron-left"></i> Redis开发规范
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/" rel="next" title="Mysql5.7 XA事物的改进">
+                  Mysql5.7 XA事物的改进 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

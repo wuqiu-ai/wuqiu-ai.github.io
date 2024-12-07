@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="环境准备 JDK 下载，至少JDK1.7版本及以上http:&#x2F;&#x2F;www.oracle.com&#x2F;technetwork&#x2F;java&#x2F;javase&#x2F;downloads&#x2F;jdk7-downloads-1880260.html MySQL 下载http:&#x2F;&#x2F;dev.mysql.com&#x2F;downloads&#x2F;mysql&#x2F;5.5.html#downloads 注:MyCAT 支持多种数据库接入，如:MySQL、S">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mycat运维部署文档">
+<meta property="og:url" content="http://ppjys.cn/2018/05/01/Mycat%E8%BF%90%E7%BB%B4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="环境准备 JDK 下载，至少JDK1.7版本及以上http:&#x2F;&#x2F;www.oracle.com&#x2F;technetwork&#x2F;java&#x2F;javase&#x2F;downloads&#x2F;jdk7-downloads-1880260.html MySQL 下载http:&#x2F;&#x2F;dev.mysql.com&#x2F;downloads&#x2F;mysql&#x2F;5.5.html#downloads 注:MyCAT 支持多种数据库接入，如:MySQL、S">
+<meta property="og:locale">
+<meta property="og:image" content="http://valleylord.github.io/images/201604-mycat-web-install/mycat-web1.png">
+<meta property="og:image" content="http://valleylord.github.io/images/201603-mycat-haproxy/mycat-haproxy-architect.png">
+<meta property="article:published_time" content="2018-05-01T02:07:35.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.612Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="mycat">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://valleylord.github.io/images/201604-mycat-web-install/mycat-web1.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2018/05/01/Mycat%E8%BF%90%E7%BB%B4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Mycat运维部署文档 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E4%B8%8E%E9%83%A8%E7%BD%B2"><span class="nav-number">2.</span> <span class="nav-text">安装与部署</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql%E8%AE%BE%E7%BD%AE"><span class="nav-number">2.1.</span> <span class="nav-text">mysql设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">2.2.</span> <span class="nav-text">环境变量设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jdk%E8%AE%BE%E7%BD%AE"><span class="nav-number">2.3.</span> <span class="nav-text">jdk设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E8%AE%BE%E7%BD%AE"><span class="nav-number">2.4.</span> <span class="nav-text">内存设置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Zookeeper%E9%85%8D%E7%BD%AE"><span class="nav-number">2.5.</span> <span class="nav-text">Zookeeper配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8MycatServer"><span class="nav-number">2.6.</span> <span class="nav-text">启动MycatServer</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB"><span class="nav-number">3.</span> <span class="nav-text">数据迁移</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#mysql%E9%85%8D%E7%BD%AE%E8%B0%83%E6%95%B4%EF%BC%8C%E7%BC%96%E8%BE%91-etc-my-cnf%E6%B7%BB%E5%8A%A0"><span class="nav-number">3.1.</span> <span class="nav-text">mysql配置调整，编辑&#x2F;etc&#x2F;my.cnf添加</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%87%BA%E6%95%B0%E6%8D%AE"><span class="nav-number">3.2.</span> <span class="nav-text">导出数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE"><span class="nav-number">3.3.</span> <span class="nav-text">导入数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81%E8%BF%81%E7%A7%BB%E6%95%B0%E6%8D%AE%E5%AE%8C%E6%95%B4%E6%80%A7"><span class="nav-number">3.4.</span> <span class="nav-text">验证迁移数据完整性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mycat-web%E7%9B%91%E6%8E%A7"><span class="nav-number">4.</span> <span class="nav-text">Mycat-web监控</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">4.1.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8"><span class="nav-number">4.2.</span> <span class="nav-text">启动</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%91%E6%8E%A7%E5%B9%B3%E5%8F%B0"><span class="nav-number">4.3.</span> <span class="nav-text">监控平台</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">4.4.</span> <span class="nav-text">注意事项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Keepalive-Haproxy%E9%AB%98%E5%8F%AF%E7%94%A8%E9%85%8D%E7%BD%AE"><span class="nav-number">5.</span> <span class="nav-text">Keepalive+Haproxy高可用配置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">6.</span> <span class="nav-text">问题</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/05/01/Mycat%E8%BF%90%E7%BB%B4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Mycat运维部署文档
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-05-01 10:07:35" itemprop="dateCreated datePublished" datetime="2018-05-01T10:07:35+08:00">2018-05-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mycat/" itemprop="url" rel="index"><span itemprop="name">mycat</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><ul>
+<li>JDK 下载，至少JDK1.7版本及以上<br><a target="_blank" rel="noopener" href="http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html">http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html</a></li>
+<li>MySQL 下载<br><a target="_blank" rel="noopener" href="http://dev.mysql.com/downloads/mysql/5.5.html#downloads">http://dev.mysql.com/downloads/mysql/5.5.html#downloads</a><blockquote>
+<p>注:MyCAT 支持多种数据库接入，如:MySQL、SQLServer、Oracle、MongoDB 等，推荐使用MySQL 做集群。</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="安装与部署"><a href="#安装与部署" class="headerlink" title="安装与部署"></a>安装与部署</h2><p>平台组有提供编译好的安装包，支持 windows、Linux、Mac、Solaris 等系统上安装与运行。<br>解压安装包建议放在 /usr/local/Mycat 目录下，创建mycat用户，改变目录权限为mycat</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ tar zxf Mycat-server-1.6-RELEASE-20161028204710-linux.tar.gz</span><br><span class="line">$ useradd mycat</span><br><span class="line">$ chown -R mycat.mycat &#x2F;usr&#x2F;local&#x2F;mycat</span><br></pre></td></tr></table></figure>
+<h3 id="mysql设置"><a href="#mysql设置" class="headerlink" title="mysql设置"></a>mysql设置</h3><p>通过部署发现在Mycat中部署逻辑表表名大小写混合时，在Mycat连接后出现全变小，所以需要修改mysql不忽略表名大小写，需要手动到/etc/my.cnf 下配置 </p>
+<blockquote>
+<p>lower_case_table_names=1</p>
+</blockquote>
+<h3 id="环境变量设置"><a href="#环境变量设置" class="headerlink" title="环境变量设置"></a>环境变量设置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ vim &#x2F;etc&#x2F;profile</span><br><span class="line">MYCAT_HOME&#x3D;&#x2F;usr&#x2F;local&#x2F;mycat</span><br><span class="line">source &#x2F;etc&#x2F;profile</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h3 id="jdk设置"><a href="#jdk设置" class="headerlink" title="jdk设置"></a>jdk设置</h3><p>启动前，需修改java的命令配置，打开conf/wrapper.conf文件，修改wrapper.java.command项，如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"># Java Application</span><br><span class="line">wrapper.java.command&#x3D;&#x2F;opt&#x2F;java8&#x2F;bin&#x2F;java</span><br><span class="line">wrapper.working.dir&#x3D;..</span><br></pre></td></tr></table></figure>
+
+<h3 id="内存设置"><a href="#内存设置" class="headerlink" title="内存设置"></a>内存设置</h3><p>启动前，一般需要修改JVM配置参数，打开conf/wrapper.conf文件，如下行的内容为2G和2048，可根据本机配置情况修改为512M或其它值。 以下配置跟jvm参数完全一致，可以根据自己的jvm参数调整</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># Java Additional Parameters</span><br><span class="line">wrapper.java.additional.1&#x3D;</span><br><span class="line">wrapper.java.additional.1&#x3D;-DMYCAT_HOME&#x3D;.</span><br><span class="line">wrapper.java.additional.2&#x3D;-server</span><br><span class="line">wrapper.java.additional.3&#x3D;-XX:MaxPermSize&#x3D;512M #JVM最大允许分配的非堆内存</span><br><span class="line">wrapper.java.additional.4&#x3D;-XX:+AggressiveOpts</span><br><span class="line">wrapper.java.additional.5&#x3D;-XX:MaxDirectMemorySize&#x3D;100m</span><br><span class="line">wrapper.java.additional.6&#x3D;-Dcom.sun.management.jmxremote</span><br><span class="line">wrapper.java.additional.7&#x3D;-Dcom.sun.management.jmxremote.port&#x3D;1984</span><br><span class="line">wrapper.java.additional.8&#x3D;-Dcom.sun.management.jmxremote.authenticate&#x3D;false</span><br><span class="line">wrapper.java.additional.9&#x3D;-Dcom.sun.management.jmxremote.ssl&#x3D;false</span><br><span class="line">wrapper.java.additional.10&#x3D;-Xmx2048m #VM最大允许分配的堆内存</span><br><span class="line">wrapper.java.additional.11&#x3D;-Xms2048m #JVM初始分配的堆内存</span><br><span class="line">wrapper.java.additional.12&#x3D;-XX:+UseParNewGC #设置新生代使用并发收集器</span><br><span class="line">wrapper.java.additional.13&#x3D;-XX:+UseConcMarkSweepGC #设置JVM堆的老年代使用CMS并发收集器</span><br><span class="line">wrapper.java.additional.14&#x3D;-XX:+UseCMSCompactAtFullCollection #打开对老年代的压缩</span><br><span class="line">wrapper.java.additional.15&#x3D;-XX:CMSFullGCsBeforeCompaction&#x3D;5 #设置5才CMSGC后对堆空间进行压缩、整理</span><br></pre></td></tr></table></figure>
+
+<h3 id="Zookeeper配置"><a href="#Zookeeper配置" class="headerlink" title="Zookeeper配置"></a>Zookeeper配置</h3><p>由于mycat多实例运行，需要统一的配置中心，官方建议将配置文件基于zk部署。</p>
+<ol>
+<li>修改conf下的myid.properities<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">vim myid.properties</span><br><span class="line"></span><br><span class="line">loadZk&#x3D;true</span><br><span class="line"># zk集群地址，多个用&quot;,&quot;隔开</span><br><span class="line">zkURL&#x3D;127.0.0.1:2181</span><br><span class="line"># zk集群内Mycat集群ID</span><br><span class="line">clusterId&#x3D;dxy-ucloud-mycat-cluster</span><br><span class="line"># Mycat集群内本实例ID，禁止重复</span><br><span class="line">myid&#x3D;ucloud_mycat_01</span><br><span class="line"># Mycat集群内节点个数</span><br><span class="line">clusterSize&#x3D;2</span><br><span class="line">clusterNodes&#x3D;ucloud_mycat_01,ucloud_mycat_02</span><br><span class="line">#server  booster  ;   booster install on db same server,will reset all minCon to 1</span><br><span class="line">type&#x3D;server</span><br><span class="line">boosterDataHosts&#x3D;dataHost1</span><br></pre></td></tr></table></figure></li>
+<li>初始化zk数据。<strong>注意：zk配置文件统一需要在zkconf目录下</strong><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sh $mycat_home&#x2F;bin&#x2F;init_zk_data.sh</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="启动MycatServer"><a href="#启动MycatServer" class="headerlink" title="启动MycatServer"></a>启动MycatServer</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;usr&#x2F;local&#x2F;mycat&#x2F;bin&#x2F;mycat start</span><br></pre></td></tr></table></figure>
+<p>注:mycat 支持的命令{ console | start | stop | restart | status | dump }</p>
+<h2 id="数据迁移"><a href="#数据迁移" class="headerlink" title="数据迁移"></a>数据迁移</h2><h3 id="mysql配置调整，编辑-etc-my-cnf添加"><a href="#mysql配置调整，编辑-etc-my-cnf添加" class="headerlink" title="mysql配置调整，编辑/etc/my.cnf添加"></a>mysql配置调整，编辑/etc/my.cnf添加</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[mysqldump]</span><br><span class="line">max_allowed_packet      &#x3D; 16M</span><br><span class="line">#default-character-set   &#x3D; utf8mb4</span><br></pre></td></tr></table></figure>
+<p>mysqldump导入报ERROR 1153 (08S01) at line 1133809: Got a packet bigger than ‘max_allowed_packet’ bytes错误，因为MySQL允许的默认大小为1MB。</p>
+<h3 id="导出数据"><a href="#导出数据" class="headerlink" title="导出数据"></a>导出数据</h3><p>注意，Mycat在执行INSERT语句时需要完整INSERT语句(用列名)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysqldump -uroot -p -c --skip-add-locks --skip-extended-insert --no-autocommit databaseName &gt; databaseName.sql</span><br><span class="line"># -c                     参数不可少，-c, 全称为–complete-insert 表示使用完整的 insert 语句(用列名字)。</span><br><span class="line"># --skip-add-locks       表示导数据时不加锁，如果加锁涉及多分片时容易导致死锁。</span><br><span class="line"># --skip-extended-insert 将每行数据输出为一个单独的insert语句</span><br><span class="line"># --no-autocommit        参数在每个表格所有的插入语句的前后分别增加SET autocommit &#x3D; 0和COMMIT语句。相比没有这个参数，插入速度能差出至少200倍，分别是10000QPS和50QPS</span><br></pre></td></tr></table></figure>
+<h3 id="导入数据"><a href="#导入数据" class="headerlink" title="导入数据"></a>导入数据</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql -uroot -ptest -h192.168.99.216 -P8006 TESTDB #连接Mycat</span><br><span class="line">source &#x2F;databaseName.sql #导入数据</span><br></pre></td></tr></table></figure>
+<p>成功后可以在分片已经存入数据。错误日志在 logs/mycat.log文件中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">连接Mycat select * from table 时，Mycat默认limit 100此配置可从schema.xml文件中修改sqlMaxLimit&#x3D;&quot;100&quot;定义</span><br></pre></td></tr></table></figure>
+<h3 id="验证迁移数据完整性"><a href="#验证迁移数据完整性" class="headerlink" title="验证迁移数据完整性"></a>验证迁移数据完整性</h3><p>查询所有表的主键</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT k.column_name,k.table_name FROM information_schema.table_constraints t JOIN information_schema.key_column_usage k USING (constraint_name,table_schema,table_name) WHERE t.constraint_type&#x3D;&#39;PRIMARY KEY&#39;   AND t.table_schema&#x3D;&#39;数据库&#39;;</span><br></pre></td></tr></table></figure>
+<p>查询所有表的记录数(行数)</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select table_name,table_rows from information_schema.tables  where TABLE_SCHEMA &#x3D; &#39;数据库&#39;  order by table_rows desc;</span><br><span class="line">#对于InnoDB表，table_rows行计数仅是大概估计值。</span><br></pre></td></tr></table></figure>
+
+<h2 id="Mycat-web监控"><a href="#Mycat-web监控" class="headerlink" title="Mycat-web监控"></a>Mycat-web监控</h2><p>Mycat-web 是对mycat-server提供监控服务。功能不局限于对mycat-server使用。他基于jmx对所有JVM监控。通过JDBC连接对Mycat、Mysql 监控。基于snmp协议，监控远程服务器(目前仅限于linux系统)的cpu、内存、网络、磁盘。Mycat-web 最近改名 Mycat-eye。</p>
+<p>Mycat-eye 运行过程中需要依赖 zookeeper，因此需要先安装 zookeeper。</p>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">tar -xvf Mycat-web-1.0-SNAPSHOT-20160331220346-linux.tar.gz -C &#x2F;usr&#x2F;local&#x2F; </span><br><span class="line">修改zookeeper地址： </span><br><span class="line">cd &#x2F;usr&#x2F;local&#x2F;mycat-web&#x2F;mycat-web&#x2F;WEB-INF&#x2F;classes </span><br><span class="line">vim mycat.properties </span><br><span class="line">zookeeper&#x3D;127.0.0.1:2181</span><br></pre></td></tr></table></figure>
+<h3 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h3><p>先启动zookeeper,在启动mycat-web</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@oracle_standby mycat-web]# netstat -ntpl |grep 8082 </span><br><span class="line">tcp 0 0 :::8082 :::* LISTEN 18288&#x2F;java </span><br><span class="line">[root@oracle_standby mycat-web]# </span><br><span class="line">[root@oracle_standby mycat-web]# netstat -ntpl |grep 2181 </span><br><span class="line">tcp 0 0 :::2181 :::* LISTEN 18251&#x2F;java</span><br></pre></td></tr></table></figure>
+
+<h3 id="监控平台"><a href="#监控平台" class="headerlink" title="监控平台"></a>监控平台</h3><p><a target="_blank" rel="noopener" href="http://127.0.0.1:8082/mycat/">http://127.0.0.1:8082/mycat/</a></p>
+<img width="500px" src="http://valleylord.github.io/images/201604-mycat-web-install/mycat-web1.png">
+
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>部署完成，web监控中始终没有数据。是没有开启mycat server.xml中的useSqlStat属性。开启之后，可以监控sql.</li>
+<li>监控sql 反应很慢，一般执行sql2分钟之后，监控页面才有反应。</li>
+</ul>
+<h2 id="Keepalive-Haproxy高可用配置"><a href="#Keepalive-Haproxy高可用配置" class="headerlink" title="Keepalive+Haproxy高可用配置"></a>Keepalive+Haproxy高可用配置</h2><p>Mycat 作为一个代理层中间件，Mycat 系统的高可用涉及到 Mycat 本身的高可用以及后端 MySQL 的高可用，在 大多数情况下，建议采用标准的 MySQL 主从复制高可用性配置并交付给 Mycat 来完成后端 MySQL 节点的主从 自动切换。<br>一种常见的做法是使用 MyCAT + Haproxy + Keepalived，这中做法在 mysql 集群中已经很常见了。对于 MyCAT 集群,其大致架构图如下</p>
+<img width=500px; src="http://valleylord.github.io/images/201603-mycat-haproxy/mycat-haproxy-architect.png">
+
+<p>配置详情请参考 <a target="_blank" rel="noopener" href="https://note.youdao.com/">Mycat部署文档之Keepalived</a> 、 <a target="_blank" rel="noopener" href="https://note.youdao.com/">Mycat部署文档之Haproxy</a></p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ol>
+<li>由于公司生产环境存在多个机房，是否存在跨机房调用？<em><strong>答：确实存在多个机房，但是不存在跨机房调用。</strong></em></li>
+<li>目前mycat官方版本提供的schema.xml和rule.xml配置文件不能import多个文件，是否存在业务团队由于配置出错导致整体服务不可用问题？<em><strong>答：中间件团队将会对配置文件进行改造，支持include语法。</strong></em></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mycat/" rel="tag"># mycat</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/04/26/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94/" rel="prev" title="分库分表方案对比">
+                  <i class="fa fa-chevron-left"></i> 分库分表方案对比
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BKeepalived/" rel="next" title="Mycat部署文档之Keepalived">
+                  Mycat部署文档之Keepalived <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

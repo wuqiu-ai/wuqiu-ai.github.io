@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="JVM内存结构根据《Java虚拟机规范(Java SE 7版)》规定，Java虚拟机内存结构可划分为以下区域：   程序计数器：  程序计数器是一块较小的内存空间，可看作是当前线程所执行的字节码的行号指示器。在虚拟机概念模型里，字节码解释器工作时就是通过改变该计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖该计数器来完成。 JVM中多线程是通过线">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM学习笔记">
+<meta property="og:url" content="http://ppjys.cn/2020/06/20/20200620_JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="JVM内存结构根据《Java虚拟机规范(Java SE 7版)》规定，Java虚拟机内存结构可划分为以下区域：   程序计数器：  程序计数器是一块较小的内存空间，可看作是当前线程所执行的字节码的行号指示器。在虚拟机概念模型里，字节码解释器工作时就是通过改变该计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖该计数器来完成。 JVM中多线程是通过线">
+<meta property="og:locale">
+<meta property="og:image" content="http://ppjys.cn/images/jvm1.png">
+<meta property="og:image" content="http://ppjys.cn/images/jvm2.png">
+<meta property="og:image" content="http://ppjys.cn/images/jvm3.png">
+<meta property="og:image" content="http://ppjys.cn/images/jvm4.png">
+<meta property="article:published_time" content="2020-06-20T14:30:00.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.607Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="jvm java基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://ppjys.cn/images/jvm1.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2020/06/20/20200620_JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>JVM学习笔记 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">JVM内存结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A0%86%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">堆内存结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java%E5%AF%B9%E8%B1%A1%E5%86%85%E5%AD%98%E5%88%86%E9%85%8D%E4%B8%8E%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">Java对象内存分配与逃逸分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%E3%80%81Java%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%86%E9%85%8D%EF%BC%9A"><span class="nav-number">3.1.</span> <span class="nav-text">1、Java对象的分配：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%E3%80%81%E9%80%83%E9%80%B8%E5%88%86%E6%9E%90"><span class="nav-number">3.2.</span> <span class="nav-text">2、逃逸分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3%E3%80%81%E6%B5%8B%E8%AF%95%E5%AE%9E%E4%BE%8B"><span class="nav-number">3.3.</span> <span class="nav-text">3、测试实例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95"><span class="nav-number">4.</span> <span class="nav-text">垃圾回收算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF%E5%8F%AF%E5%9B%9E%E6%94%B6%E5%AF%B9%E8%B1%A1-%E5%9E%83%E5%9C%BE-%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">1、什么是可回收对象(垃圾)？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%E3%80%81GC%E6%98%AF%E5%A6%82%E4%BD%95%E7%A1%AE%E5%AE%9A%E5%9E%83%E5%9C%BE%E7%9A%84%EF%BC%9F"><span class="nav-number">4.2.</span> <span class="nav-text">2、GC是如何确定垃圾的？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3%E3%80%81GC%E7%AE%97%E6%B3%95"><span class="nav-number">4.3.</span> <span class="nav-text">3、GC算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4%E3%80%81%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8"><span class="nav-number">4.4.</span> <span class="nav-text">4、垃圾收集器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OOM%E6%B5%8B%E8%AF%95%E5%AE%9E%E4%BE%8B%E4%B8%8E%E5%86%85%E5%AD%98%E6%9F%A5%E7%9C%8B%E5%B7%A5%E5%85%B7%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">OOM测试实例与内存查看工具的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1%E3%80%81OOM%E6%B5%8B%E8%AF%95%E5%AE%9E%E4%BE%8B"><span class="nav-number">5.1.</span> <span class="nav-text">1、OOM测试实例</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2%E3%80%81StackOverflow%E6%A0%88%E6%BA%A2%E5%87%BA"><span class="nav-number">5.2.</span> <span class="nav-text">2、StackOverflow栈溢出</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JVM%E5%8F%82%E6%95%B0"><span class="nav-number">6.</span> <span class="nav-text">JVM参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tomcat%E5%8F%82%E6%95%B0%E9%85%8D%E7%BD%AE"><span class="nav-number">7.</span> <span class="nav-text">tomcat参数配置</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/06/20/20200620_JVM%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JVM学习笔记
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-06-20 22:30:00" itemprop="dateCreated datePublished" datetime="2020-06-20T22:30:00+08:00">2020-06-20</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/jvm/" itemprop="url" rel="index"><span itemprop="name">jvm</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="JVM内存结构"><a href="#JVM内存结构" class="headerlink" title="JVM内存结构"></a>JVM内存结构</h3><p>根据《Java虚拟机规范(Java SE 7版)》规定，Java虚拟机内存结构可划分为以下区域：</p>
+<p><img src="/images/jvm1.png"></p>
+<ul>
+<li><p><strong>程序计数器</strong>：</p>
+<ul>
+<li>程序计数器是一块较小的内存空间，可看作是当前线程所执行的字节码的行号指示器。在虚拟机概念模型里，字节码解释器工作时就是通过改变该计数器的值来选取下一条需要执行的字节码指令，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖该计数器来完成。</li>
+<li>JVM中多线程是通过线程轮流切换并分配处理器执行时间的方式来实现的。即在任何时刻，CPU只会执行一条线程中的指令，因此，为了线程切换后能恢复到正确的执行位置，每条线程都需要有一个独立的程序计数器，各线程之间计数器互不影响，独立存储，该内存为线程私有。</li>
+<li>如果线程正在执行一个Java方法，则PC记录的是正在执行的虚拟机字节码指令的地址，如果正在执行的是Native方法，则PC值为Undefined，该内存区域是唯一一个没用OOM的区域。</li>
+</ul>
+</li>
+<li><p><strong>虚拟机栈</strong>：</p>
+<ul>
+<li>Java虚拟机栈也是线程私有的，它的生命周期与线程相同。虚拟机栈描述的是Java方法执行的内存模型：每个方法在执行的时候会创建一个栈帧，用来存储局部变量表、操作数栈、动态链接、方法出口等信息。每个方法从调用至执行完成的过程对应着一个栈帧在虚拟机栈中入栈到出栈的过程.</li>
+<li>局部变量表：存放编译期可知的各种基本数据类型(如Boolean、byte、char、short、int、float、long、double)、对象引用类型（如：引用指针、句柄等）。局部变量表所需内存空间在编译期间完成分配，即进入一个方法时，这个方法需要在帧中分配多大的局部变量空间是确定的，在方法运行期间不会改变局部变量表的大小。</li>
+<li>异常情况：<ul>
+<li>StackOverflowError异常：线程请求的栈深度大于虚拟机所允许的深度时，会抛出栈上溢异常</li>
+<li>OutOfMemoryError异常：虚拟机栈动态扩展时无法申请到足够的内存，会抛出内存溢出异常</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>本地方法栈</strong>：</p>
+<ul>
+<li>发挥的作用与虚拟机栈类似，区别在于虚拟机栈为虚拟机执行Java方法（字节码）服务，而本地方法栈则是为虚拟机使用到的Native方法服务，如Java访问C语言的方法、汇编程序等。</li>
+<li>异常情况：与虚拟机栈一样。</li>
+</ul>
+</li>
+<li><p><strong>堆</strong>：</p>
+<ul>
+<li>堆是Java所管理的内存中最大的一块，是被所有线程共享的一块内存区域，在虚拟机启动时创建，用于存放对象实例，也是垃圾收集器管理的主要区域。</li>
+<li>根据GC分代收集算法，堆可细分为：新生代和老年代；新生代又分为Eden区、Survivor区（from,to）从内存分配的角度看，线程共享的Java堆可划分出多个线程私有的分配缓冲区（TLAB：Thread Local Allocation Buffer)</li>
+<li>堆内存仅要逻辑上连续即可，物理上不连续也可以，如果在堆中没有内存完成实例分配。并且堆也无法再扩展时，则会抛出OOM异常</li>
+</ul>
+</li>
+<li><p><strong>方法区</strong>：</p>
+<ul>
+<li>与堆一样，方法区是各线程共享的，用于存储已被虚拟机 加载的类信息、常量、静态变量、即时编译器编译后的代码等数据</li>
+<li>对于开发者来说，该区又称为“永久代”Permanent Generation，当方法区无法满足内存分配时，将抛出OOM异常</li>
+</ul>
+<span id="more"></span></li>
+</ul>
+<h3 id="堆内存结构"><a href="#堆内存结构" class="headerlink" title="堆内存结构"></a>堆内存结构</h3><p><img src="/images/jvm2.png"></p>
+<p><strong>堆内存分配策略：</strong></p>
+<ul>
+<li>new一个对象时，大对象（如长字符串与大数组）直接存放在老年代，其他普通对象存放在新生代的eden区</li>
+<li>eden区中的对象，在经历第一次GC后，如果没有被回收，虚拟机则把存活的对象存放在survivor中的from区</li>
+<li>eden区中的对象，在经历第二次GC后，如果没有被回收，虚拟机则把存活的对象存放在survivor中的to区，同时把存活在from区的对象从from区复制到to区，from区与to区指向交换</li>
+<li>以此类推，继续进行GC，存活对象存放在survivor区，from与to角色不断互换。</li>
+<li>经历了多次GC后，如果survivor区中对象仍然存活（达到GC年龄），则会晋升到老年代</li>
+</ul>
+<h3 id="Java对象内存分配与逃逸分析"><a href="#Java对象内存分配与逃逸分析" class="headerlink" title="Java对象内存分配与逃逸分析"></a>Java对象内存分配与逃逸分析</h3><h4 id="1、Java对象的分配："><a href="#1、Java对象的分配：" class="headerlink" title="1、Java对象的分配："></a>1、Java对象的分配：</h4><ul>
+<li>栈上分配<ul>
+<li>线程私有小对象</li>
+<li>无逃逸</li>
+<li>支持标量替换</li>
+<li>无需调整（虚拟机自动优化，无需调优）</li>
+</ul>
+</li>
+<li>线程本地分配TLAB（Thread Local Allocation Buffer）<ul>
+<li>占用eden，默认1%，仍在堆上申请，用作线程专用</li>
+<li>多线程的时候不用竞争（加锁）eden就可以申请空间（同步消除），提高效率</li>
+<li>小对象</li>
+<li>无需调整</li>
+</ul>
+</li>
+<li>老年代<ul>
+<li>大对象（大数组、长字符串）</li>
+</ul>
+</li>
+<li>eden<ul>
+<li>new普通对象</li>
+</ul>
+</li>
+</ul>
+<p><strong>分配策略：</strong> 如果JVM启动了逃逸分析，那么new一个对象时，首先会尝试在栈上分配，如果分配不了，则会尝试在线程本地分配，如果栈上分配与线程本地分配均分配失败的话，则会先判断该对象是否为大对象，如果是大对象，则在老年代分配内存，否则到新生代的eden区分配。</p>
+<h4 id="2、逃逸分析"><a href="#2、逃逸分析" class="headerlink" title="2、逃逸分析"></a>2、逃逸分析</h4><p>逃逸分析是一种为其他优化手段提供依据的分析技术，其基本行为是分析对象动态作用域：当一个对象在方法中被定义后，它可能被外部方法所引用，例如作为调用参数传递到其他方法中，称为方法逃逸；也有可能被其外部线程访问到，如复制给类变量或者可以在其他线程中访问的实例变量，称为线程逃逸。 如果一个对象不会逃逸到方法或者线程之外，则可以对这个对象进行一些高效的优化：</p>
+<ul>
+<li><p>栈上分配Stack Allocation：如果一个对象不会逃逸到方法之外，那么可以让这个对象在栈上分配内存，以提高执行效率，对象所占内存会随着栈帧出栈而销毁。在一般应用中，无逃逸的局部变量对象所占的比例较大，如果能使用栈上分配，那么大量的对象就会随着方法的结束而自动销毁，GC压力减小很多。</p>
+</li>
+<li><p>同步消除SynchronizationElimination：线程同步是一个相对耗时的过程，如果逃逸分析能够确定一个变量不会逃逸出线程，无法被其他线程访问，那么该变量的读写不存在竞争关系，即可以消除掉对这个变量的同步措施</p>
+</li>
+<li><p>标量替换：</p>
+<ul>
+<li><p>标量：指的是一个数据已经无法再分解成更小的数据来表示了，Java虚拟机的原始数据类型（int,float等数值类型以及reference类型）都不能再进行进一步的分解</p>
+</li>
+<li><p>聚合量：相对于标量，如果一个数据可继续分解，则可以称作聚合量，Java对象是典型的聚合量。</p>
+</li>
+<li><p>如果把一个Java对象拆散，根据程序访问的情况，将其使用到的成员变量恢复原始类型来访问，这过程成为标量替换</p>
+</li>
+<li><p>如果逃逸分析可以确定一个对象不会被外部访问，且这个对象可以被拆散，那程序真正执行的时候，可以不创建这个对象，而是直接创建它的成员变量来替换这个对象。将对象拆分后，可以在栈上分配内存</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="3、测试实例"><a href="#3、测试实例" class="headerlink" title="3、测试实例"></a>3、测试实例</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Description：新建10000000个对象，计算执行时间，再配置不同JVM参数</span></span><br><span class="line"><span class="comment">* 比较执行结果</span></span><br><span class="line"><span class="comment">*    -XX:-DoEscapeAnalysis  关闭逃逸分析</span></span><br><span class="line"><span class="comment">*    -XX:-EliminateAllocations 关闭标量替换</span></span><br><span class="line"><span class="comment">*    -XX:-UseTLAB 关闭线程本地内存</span></span><br><span class="line"><span class="comment">*    -XX:-PrintGC 打印GC信息</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JVMTest1</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">User</span></span>&#123;</span><br><span class="line">        <span class="keyword">int</span> id;</span><br><span class="line">        String name;</span><br><span class="line">        </span><br><span class="line">        User(<span class="keyword">int</span> id,String name)&#123;</span><br><span class="line">            <span class="keyword">this</span>.id = id;</span><br><span class="line">            <span class="keyword">this</span>.name = name;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">alloc</span><span class="params">(<span class="keyword">int</span> i)</span></span>&#123;</span><br><span class="line">        <span class="keyword">new</span> User(i,<span class="string">&quot;name&quot;</span>+i);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">            JVMTest1 t = <span class="keyword">new</span> JVMTest1();</span><br><span class="line">            <span class="keyword">long</span> s1 = System.currentTimeMillis();</span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;i&lt;<span class="number">10000000</span>;i++)&#123;</span><br><span class="line">                t.alloc(i);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">long</span> s2 = System.currentTimeMillis();</span><br><span class="line">            System.out.println(s2-s1);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>结果分析：</strong></p>
+<p>a. 无逃逸分析、无栈上分配、不使用线程本地内存：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-XX:-DoEscapeAnalysis -XX:-EliminateAllocations -XX:-UseTLAB -XX:+PrintGC</span><br></pre></td></tr></table></figure>
+
+<p>控制台输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[GC (Allocation Failure)  49152K-&gt;688K(188416K), 0.0010012 secs]</span><br><span class="line">[GC (Allocation Failure)  49840K-&gt;728K(188416K), 0.0009848 secs]</span><br><span class="line">[GC (Allocation Failure)  49880K-&gt;640K(188416K), 0.0007432 secs]</span><br><span class="line">[GC (Allocation Failure)  49792K-&gt;672K(237568K), 0.0008412 secs]</span><br><span class="line">[GC (Allocation Failure)  98976K-&gt;640K(237568K), 0.0012708 secs]</span><br><span class="line">[GC (Allocation Failure)  98944K-&gt;656K(328704K), 0.0008696 secs]</span><br><span class="line">[GC (Allocation Failure)  197264K-&gt;624K(328704K), 0.0017397 secs]</span><br><span class="line">[GC (Allocation Failure)  197232K-&gt;624K(320512K), 0.0003312 secs]</span><br><span class="line">791</span><br></pre></td></tr></table></figure>
+
+<p>b. 使用线程本地内存，无需在eden区分配内存时加锁，效率变高</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-XX:-DoEscapeAnalysis -XX:-EliminateAllocations -XX:+UseTLAB -XX:+PrintGC</span><br></pre></td></tr></table></figure>
+
+<p>控制台输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[GC (Allocation Failure)  49760K-&gt;640K(188416K), 0.0007129 secs]</span><br><span class="line">[GC (Allocation Failure)  49792K-&gt;624K(237568K), 0.0008062 secs]</span><br><span class="line">[GC (Allocation Failure)  98928K-&gt;608K(237568K), 0.0014966 secs]</span><br><span class="line">[GC (Allocation Failure)  98912K-&gt;728K(328704K), 0.0008608 secs]</span><br><span class="line">[GC (Allocation Failure)  197336K-&gt;588K(328704K), 0.0016310 secs]</span><br><span class="line">[GC (Allocation Failure)  197196K-&gt;620K(525312K), 0.0003275 secs]</span><br><span class="line">528</span><br></pre></td></tr></table></figure>
+
+<p>c. 开启逃逸分析、使用标量替换、使用线程本地内存、效率变高</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">-XX:+DoEscapeAnalysis -XX:+EliminateAllocations -XX:+UseTLAB -XX:+PrintGC</span><br></pre></td></tr></table></figure>
+
+<p>控制台输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[GC (Allocation Failure)  49152K-&gt;688K(188416K), 0.0010576 secs]</span><br><span class="line">[GC (Allocation Failure)  49840K-&gt;640K(188416K), 0.0009443 secs]</span><br><span class="line">[GC (Allocation Failure)  49792K-&gt;640K(188416K), 0.0007502 secs]</span><br><span class="line">[GC (Allocation Failure)  49792K-&gt;696K(237568K), 0.0008981 secs]</span><br><span class="line">[GC (Allocation Failure)  99000K-&gt;656K(237568K), 0.0011229 secs]</span><br><span class="line">[GC (Allocation Failure)  98960K-&gt;608K(328704K), 0.0010558 secs]</span><br><span class="line">[GC (Allocation Failure)  197216K-&gt;644K(328704K), 0.0015396 secs]</span><br><span class="line">486</span><br></pre></td></tr></table></figure>
+
+<p>问题分析：开启逃逸分析存在开销，有时效率不如未开逃逸分析时的效率高</p>
+<h3 id="垃圾回收算法"><a href="#垃圾回收算法" class="headerlink" title="垃圾回收算法"></a>垃圾回收算法</h3><h4 id="1、什么是可回收对象-垃圾-？"><a href="#1、什么是可回收对象-垃圾-？" class="headerlink" title="1、什么是可回收对象(垃圾)？"></a>1、什么是可回收对象(垃圾)？</h4><p><img src="/images/jvm3.png"></p>
+<ul>
+<li>强引用：强引用指的是子程序代码中普通存在的，类似Object obj = new Object()这类的引用，只要强引用还在，垃圾收集器则不会回收掉被引用的对象.</li>
+<li>软引用：软引用用于描述一些还有用但并非必需的对象。对于软引用关联着的对象，在系统将要发生内存溢出异常之前，将会把这些对象列进回收范围之中进行第二次回收，如果这次回收还没有足够的内存，才会抛出内存溢出异常，在jdk1.2之后，提供了SoftReference类来实现软引用.</li>
+<li>弱引用：弱引用也是用于描述非必须对象，但是它的强度比软引用更弱一些，被弱引用关联的对象只能生存到下一次垃圾收集发生之前。当垃圾收集器工作时，无论当前内存是否足够，都会回收掉只被弱引用关联的对象，在jdk1.2之后，提供了WeakReference类来实现弱引用.</li>
+<li>虚引用：也称为幽灵引用、幻影引用，是最弱的一种引用关系，一个对象是否有虚引用的存在，不会对其生成时间构成影响，无法通过虚引用来引用对象。为一个对象设置虚引用的目的是能在这个对象被收集器回收时收到一个系统通知，jdk1.2提供PhantomReference类来实现虚引用.</li>
+</ul>
+<h4 id="2、GC是如何确定垃圾的？"><a href="#2、GC是如何确定垃圾的？" class="headerlink" title="2、GC是如何确定垃圾的？"></a>2、GC是如何确定垃圾的？</h4><ul>
+<li><p>引用计数法</p>
+<ul>
+<li>算法思路：给对象添加一个引用计数器，每当有一个地方引用它时，计数器值加1；当引用失效时，计数器值减1；任何时刻计数器为0的对象则是不可用的。</li>
+<li>引用计数算法（Reference Counting）的实现简单，判定效率也很高，但是无法解决循环引用问题</li>
+</ul>
+</li>
+<li><p>可达性分析</p>
+<ul>
+<li><p>从roots对象计算可以达到的对象</p>
+</li>
+<li><p>可作为GC Roots的对象包括：</p>
+<ul>
+<li>虚拟机栈（栈帧中的本地变量表）中引用的对象</li>
+<li>方法区中类静态属性引用的对象</li>
+<li>方法区中常量引用的对象</li>
+<li>本地方法栈中JNI引用的对象</li>
+</ul>
+</li>
+<li><p>算法思路：以GC Roots 对象为起始点，从这些节点开始向下搜索（深度搜索），搜索所走过的路劲成为引用链（Reference Chain），当一个对象到GCRoots不存在引用链（不可达）时，则证明此对象是不可用，即判定为可回收对象。逻辑图如下：</p>
+<p><img src="/images/jvm4.png"></p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="3、GC算法"><a href="#3、GC算法" class="headerlink" title="3、GC算法"></a>3、GC算法</h4><ol>
+<li>Mark-Sweep标记清除</li>
+</ol>
+<ul>
+<li>算法分为标记和清除两个阶段：首先标记出所有需要回收的对象，在标记完成后统一回收所有被标记的对象，标记过程通过可达性分析，将不可达的对象进行标记判定。</li>
+<li>不足之处：<ul>
+<li>效率问题，标记和清除两个过程效率都不高</li>
+<li>空间问题，标记清除之后会产生大量不连续的内存碎片，空间碎片太多可能会导致后续需要分配较大内存的对象时，无法找到足够的连续内存，而不得不提前触发一次FGC</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>Copying复制</li>
+</ol>
+<ul>
+<li>将内存按容量划分为大小相等的两块，每次只使用其中的一块，当这一块的内存用完了，就将还存活着的对象复制到另外一块上面，然后再把使用过的内存空间一次清理掉。常用于新生代 survivor区的from/to的复制</li>
+<li>优点：在内存上进行复制效率高，不存在内存碎片化问题</li>
+<li>缺点：内存空间利用率低，算法代价高，因此实际分给新生代中的survivor区内存较小，与Eden区比例约为8:1:1</li>
+</ul>
+<ol start="3">
+<li>Mark-Compact标记压缩：</li>
+</ol>
+<ul>
+<li>标记过程仍然与标记-清除算法一样，采用可达性分析标记判定，然后让所有存活对象都向一端移动，然后直接清理掉端边界以外的内存。</li>
+<li>该算法效率略低于复制算法，但内存空间利用率高，常用于老年代GC</li>
+</ul>
+<ol start="4">
+<li><p>分代收集算法：</p>
+<p>当前商业虚拟机的垃圾收集都采用分代收集（GenerationalCollection）算法,，该算法根据对象存活周期的不同将堆内存划分为几块：新生代、老年代，然后根据各个年代的特点采用最适当的GC算法：</p>
+</li>
+</ol>
+<ul>
+<li>在新生代中，每次GC时都发现有大量对象死去，只有少量存活，则选用复制算法，只需要付出少量存活对象的复制成本即可完成GC</li>
+<li>在老年代中，对象存活率高、，没有额外空间对它进行分配担保，则需要使用标记-清除算法或者标记-压缩算法（默认使用）进行GC</li>
+</ul>
+<h4 id="4、垃圾收集器"><a href="#4、垃圾收集器" class="headerlink" title="4、垃圾收集器"></a>4、垃圾收集器</h4><ul>
+<li><p>串行收集器 Serial Collector:</p>
+<ul>
+<li><p>串行收集器使用单个线程执行所有垃圾收集工作，这使得它相对高效，因为线程之间没有通信开销。它最适合于单处理器机器，因为它不能利用多处理器硬件，尽管对于具有小数据集（高达大约100 MB）的应用程序，它可能对多处理器很有用。串行收集器在某些硬件和操作系统配置中默认选中，或者可以使用该选项明确启用-XX:+UseSerialGC。</p>
+</li>
+<li><p>XX:+UseSerialGC</p>
+</li>
+<li><p>单线程</p>
+</li>
+</ul>
+</li>
+<li><p>并行收集器 Paraller Collector：</p>
+<ul>
+<li><p>官方文档(翻译)：并行收集器（也称为吞吐量收集器）并行执行次要收集，这可以显着减少垃圾收集开销。它适用于在多处理器或多线程硬件上运行的中型到大型数据集的应用程序。并行收集器在某些硬件和操作系统配置上默认选中，或者可以使用该选项明确启用-XX:+UseParallelGC。</p>
+</li>
+<li><p>并行压缩是一个使并行采集器能够并行执行主要采集的功能。如果没有并行压缩，主要集合将使用单个线程执行，这可能会极大地限制可伸缩性。如果-XX:+UseParallelGC指定了选项，则默认启用并行压缩。关闭它的选项是-XX:-UseParallelOldGC。</p>
+</li>
+<li><p>并发量大，每次GC时，JVM需要停顿</p>
+</li>
+</ul>
+</li>
+<li><p>并发收集器</p>
+<ul>
+<li><p>CMS Collector： 此收集器适用于希望缩短垃圾收集暂停时间并能够与垃圾收集共享处理器资源的应用程序。</p>
+<ul>
+<li>停顿时间短</li>
+</ul>
+</li>
+<li><p>G1： 这种服务器式垃圾收集器适用于内存较大的多处理器机器。它以高概率满足垃圾收集暂停时间目标，同时实现高吞吐量。</p>
+<ul>
+<li>停顿短，同时并发大</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>并发开销：</p>
+<ul>
+<li><p>大多数并发收集器交换处理器资源（否则可用于应用程序）以缩短主要收集暂停时间。最明显的开销是在收集的并发部分期间使用一个或多个处理器。在N处理器系统上，并发部分集合将使用可用处理器的K / N，其中1 &lt;= K &lt;= ceiling { N / 4}。（注意K上的精确选择和边界）除了在并行阶段使用处理器之外，还会产生额外的开销以实现并发。因此，虽然垃圾收集暂停通常比并发收集器短得多，但应用程序吞吐量也往往略低于其他收集器。</p>
+</li>
+<li><p>在具有多个处理核心的计算机上，处理器可用于集合并发部分中的应用程序线程，因此并发垃圾收集器线程不会“暂停”应用程序。这通常会导致更短的暂停，但是应用程序可用的处理器资源也较少，应该会出现一些减速，特别是在应用程序最大限度地使用所有处理内核的情况下。随着N的增加，由于并发垃圾收集导致的处理器资源减少变得更小，同时收集的收益也增加。的部分并行模故障在并发标记扫描（CMS）集电极讨论了这样的缩放潜在限制。</p>
+</li>
+<li><p>由于至少有一个处理器用于并发阶段的垃圾收集，因此并发收集器通常不会为单处理器（单核）机器提供任何好处。但是，对于CMS（不是G1），可以使用单独的模式，可以在只有一个或两个处理器的系统上实现低暂停; 看到增量模式在并发标记扫描（CMS）收集器的详细信息。此功能在Java SE 8中不推荐使用，并可能在以后的主要版本中删除。</p>
+</li>
+</ul>
+</li>
+<li><p>选择收集器：除非应用程序具有相当严格的暂停时间要求，否则请先运行您的应用程序并允许VM选择收集器。如有必要，请调整堆大小以提高性能。如果性能仍不能达到您的目标，请使用以下指南作为选择收集器的起点。</p>
+<ul>
+<li>如果应用程序有一个小数据集（最多大约100MB），那么用选项选择串行收集器-XX:+UseSerialGC。</li>
+<li>如果应用程序将在单个处理器上运行，并且没有暂停时间要求，则让VM选择收集器，或者使用该选项选择串行收集器-XX:+UseSerialGC。</li>
+<li>如果（a）峰值应用程序性能是第一优先级并且（b）没有暂停时间要求或暂停1秒或更长时间是可接受的，则让VM选择收集器，或者选择并行收集器-XX:+UseParallelGC。</li>
+<li>如果响应时间比整体吞吐量更重要，并且垃圾收集暂停时间必须短于大约1秒，那么使用-XX:+UseConcMarkSweepGC或选择并发收集器-XX:+UseG1GC。</li>
+<li>如果推荐的收集器无法达到所需的性能，请首先尝试调整堆和代的大小以达到所需的目标。如果性能仍然不足，请尝试使用其他收集器：使用并发收集器来减少暂停时间，并使用并行收集器来提高多处理器硬件的整体吞吐量。</li>
+</ul>
+</li>
+</ul>
+<h3 id="OOM测试实例与内存查看工具的使用"><a href="#OOM测试实例与内存查看工具的使用" class="headerlink" title="OOM测试实例与内存查看工具的使用"></a>OOM测试实例与内存查看工具的使用</h3><h4 id="1、OOM测试实例"><a href="#1、OOM测试实例" class="headerlink" title="1、OOM测试实例"></a>1、OOM测试实例</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 内存溢出</span></span><br><span class="line"><span class="comment">* -XX:+HeapDumpOutOfMemoryError  当发生内存溢出时，导出dump文件</span></span><br><span class="line"><span class="comment">* -XX:HeapDumpPath=d:\tmp\jvm.dump  设置dump文件的路径为d:\tmp\jvm.dump2</span></span><br><span class="line"><span class="comment">* -XX:+PrintGCDetails  控制台打印详细GC信息</span></span><br><span class="line"><span class="comment">* -Xms10M  设置虚拟机初始堆内存为10M</span></span><br><span class="line"><span class="comment">* -Xmx10M  设置虚拟机最大堆内存为10M</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JVMTest3</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        List&lt;Object&gt; lists = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;<span class="number">100000000</span>;i++)&#123;</span><br><span class="line">            lists.add(<span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">1024</span>*<span class="number">1024</span>]);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>分析：</p>
+<ul>
+<li>一般情况下，虚拟机的初始堆内存会比最大堆内存要小，而调优时往往会把初始值-Xms调至最大值-Xmx或者接近最大值,目的是减少中间的GC内存计算过程。</li>
+<li>例如，设置-Xmx1G，-Xms256M，当程序运行时，虚拟机会不断地进行GC、申请新内存用于存新对象，且进行一次GC的效率较低，耗时。而直接设置-Xms1G时，初始内存开始就分配1G，与最大内存相等，程序运行时就省去了中间的内存计算及GC过程，进而提高了效率，这是调优的小技巧。</li>
+</ul>
+<h4 id="2、StackOverflow栈溢出"><a href="#2、StackOverflow栈溢出" class="headerlink" title="2、StackOverflow栈溢出"></a>2、StackOverflow栈溢出</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JVMTest4</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//计算递归调用次数</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 递归查看栈深度</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">foo</span><span class="params">()</span></span>&#123;</span><br><span class="line">        count++;</span><br><span class="line">        foo();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">            foo();</span><br><span class="line">        &#125;<span class="keyword">catch</span>(Throwable t)&#123;</span><br><span class="line">            System.out.println(count);</span><br><span class="line">            t.printStackTrace();<span class="comment">//栈溢出，递归调用过深</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">java</span><span class="selector-class">.lang</span><span class="selector-class">.StackOverflowError</span></span><br><span class="line">    <span class="selector-tag">at</span> <span class="selector-tag">com</span><span class="selector-class">.vechace</span><span class="selector-class">.JVM</span><span class="selector-class">.JVMTest4</span><span class="selector-class">.foo</span>(JVMTest4.<span class="attribute">java</span>:<span class="number">17</span>)</span><br><span class="line">    <span class="selector-tag">at</span> <span class="selector-tag">com</span><span class="selector-class">.vechace</span><span class="selector-class">.JVM</span><span class="selector-class">.JVMTest4</span><span class="selector-class">.foo</span>(JVMTest4.<span class="attribute">java</span>:<span class="number">17</span>)</span><br><span class="line">    <span class="selector-tag">at</span> <span class="selector-tag">com</span><span class="selector-class">.vechace</span><span class="selector-class">.JVM</span><span class="selector-class">.JVMTest4</span><span class="selector-class">.foo</span>(JVMTest4.<span class="attribute">java</span>:<span class="number">17</span>)</span><br><span class="line">    <span class="selector-tag">at</span> <span class="selector-tag">com</span><span class="selector-class">.vechace</span><span class="selector-class">.JVM</span><span class="selector-class">.JVMTest4</span><span class="selector-class">.foo</span>(JVMTest4.<span class="attribute">java</span>:<span class="number">17</span>)</span><br><span class="line">    <span class="selector-tag">at</span> <span class="selector-tag">com</span><span class="selector-class">.vechace</span><span class="selector-class">.JVM</span><span class="selector-class">.JVMTest4</span><span class="selector-class">.foo</span>(JVMTest4.<span class="attribute">java</span>:<span class="number">17</span>)</span><br><span class="line">    ......</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>分析：<ul>
+<li>，在JVM调优时，-Xss也是一个非常重要的调优参数，当-Xss调的值较小时，线程的并发数就多（总内存不变，每个线程分的内存少，线程数自然变多）</li>
+<li>而当-Xss调的比较大，则线程递归深度就深（内存分得多，调用栈深度越深，同时线程数变少），该值属于经验值，需要结合业务来进行分析。</li>
+</ul>
+</li>
+</ul>
+<h3 id="JVM参数"><a href="#JVM参数" class="headerlink" title="JVM参数"></a>JVM参数</h3><p><strong>1、商业虚拟机：</strong></p>
+<ul>
+<li>HotSpot：oracle商业虚拟机，在jdk1.8下，默认模式是Server</li>
+<li>Openjdk：开源虚拟机</li>
+</ul>
+<p><strong>2、JVM参数格式</strong></p>
+<p>-：标准参数，所有JVM都应该支持，可在命令行下输入Java查看 -X : 非标准参数，每个JVM实现都不同 -XX : 不稳定参数，下一个版本可能会取消</p>
+<p><strong>3、常用JVM参数</strong></p>
+<ul>
+<li>堆设置：<ul>
+<li>-Xms 初始堆大小</li>
+<li>-Xmx 最大堆大小</li>
+<li>-Xss 线程栈大小</li>
+<li>-XX:NewSize=n 设置新生代大小</li>
+<li>-XX:NewRatio=n设置新生代和老年代的比值，如-XX:NewRatio=3，表示新生代：老年代= 1:3，新生代占整个新老年代和的1/4</li>
+<li>-XX:SurvivorRatio=n新生代中eden区与两个survivor区的比值，如-XX:SurvivorRatio=3，表示eden:survior =3:2，一个survivor区占整个新生代的1/5</li>
+<li>-XX:MaxPermSize=n 设置永久代大小</li>
+</ul>
+</li>
+<li>收集器设置：<ul>
+<li>-XX:+UseSerialGC 设置使用串行收集器</li>
+<li>-XX:+UseParallelGC 设置并行收集器</li>
+<li>-XX:+UseConcMarkSweepGC 设置并发收集器</li>
+</ul>
+</li>
+<li>GC统计信息：<ul>
+<li>-XX:+PrintGC 打印GC信息</li>
+<li>-XX:+PrintGCDetails 打印详细GC信息</li>
+<li>-Xloggc:filename 打印GC信息到日志文件中</li>
+</ul>
+</li>
+<li>其他：<ul>
+<li>-XX:-DoEscapeAnalysis 关闭逃逸分析</li>
+<li>-XX:-EliminateAllocations 关闭标量替换</li>
+<li>-XX:-UseTLAB 关闭线程本地内存</li>
+</ul>
+</li>
+</ul>
+<h3 id="tomcat参数配置"><a href="#tomcat参数配置" class="headerlink" title="tomcat参数配置"></a>tomcat参数配置</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">set JAVA_OPTS = </span><br><span class="line"><span class="selector-tag">-Xms4g</span> </span><br><span class="line"><span class="selector-tag">-Xmx4g</span> </span><br><span class="line"><span class="selector-tag">-Xss512k</span> </span><br><span class="line"><span class="selector-tag">-XX</span>:+<span class="selector-tag">AggressiveOpts</span> 尽可能地用上<span class="selector-tag">JVM</span>自带的优化策略</span><br><span class="line"><span class="selector-tag">-XX</span>:+<span class="selector-tag">UseBiasedLocking</span>  启用偏置锁优化</span><br><span class="line">-XX:PermSize=64M //jdk1.8取消了该参数</span><br><span class="line">-XX:MaxPermSize=300M </span><br><span class="line">-XX:+DisableExplicitGC  关闭显式调用GC，如System.gc()，以免打乱调优结构</span><br><span class="line">-XX:+UseConcMarkSweepGC 使用CMS缩短响应时间，并发收集，低停顿</span><br><span class="line">-XX:+UseParNewGC 并发收集新生代的垃圾</span><br><span class="line">-XX:+CMSParallelRemarkEnabled 在使用UseParNewGC的情况下，尽量减少Mark标记时间</span><br><span class="line">-XX:+UseCMSCompactAtFullCollection 使用并发收集器CMS时，开启对老年代的压缩，使得内存碎片减少</span><br><span class="line">-XX:LargePageSizeInBytes=128M 内存分页大小对性能的提升（操作系统）</span><br><span class="line">-XX:+UseFastAccessorMethods get/set方法转成本地代码</span><br><span class="line">-Djava.awt.headless=true 修复Linux下tomcat处理图表时可能产生的一个bug</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>-Xms的内存值如何选择：</p>
+<ul>
+<li><p>根据实际业务来定，先查看服务器上部署了多少个Java应用，再来选择</p>
+</li>
+<li><p>例如：服务器内存64g，只部署了一个tomcat应用，那么可以设置-Xms的值接近64g，以达到内存最大利用，但是要注意设置前提：仅部署一个tomcat，如果部署了多个应用，则要根据实际业务来权衡</p>
+</li>
+<li><p>例如，一些业务中的实现需要频繁new对象的，则可以分配较大的eden区内存（调整-XX:NewRatio=n ，新老年代内存比例），以满足业务需求</p>
+</li>
+<li><p>而另一些业务服务需要不断的运行，老年代上对象占用较多，则可以分配较大的old区内存</p>
+</li>
+</ul>
+</li>
+<li><p>-XX:PermSize -XX:MaxPermSize值如何选择：当程序中类信息比较多的时候（类信息存在永久代），可适当调大永久代的内存空间，如：Eclipse启动速度慢，可以调大永久代内存大小，使得启动速度变快</p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/jvm-java%E5%9F%BA%E7%A1%80/" rel="tag"># jvm java基础</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/05/29/20200529_Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88/" rel="prev" title="Otter 跨机房数据同步方案">
+                  <i class="fa fa-chevron-left"></i> Otter 跨机房数据同步方案
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/08/30/20200830%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86/" rel="next" title="计算机网络知识">
+                  计算机网络知识 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

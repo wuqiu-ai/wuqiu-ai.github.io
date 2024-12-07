@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="HaproxyHAProxy是一个使用C语言编写的自由及开放源代码软件，其提供高可用性、负载均衡，以及基于TCP和HTTP的应用程序代理。 HAProxy特别适用于那些负载特大的web站点，这些站点通常又需要会话保持或七层处理。HAProxy运行在当前的硬件上，完全可以支持数以万计的并发连接。并且它的运行模式使得它可以很简单安全的整合进您当前的架构中， 同时可以保护你的web服务器不被暴露到网络上">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mycat部署文档之Haproxy">
+<meta property="og:url" content="http://ppjys.cn/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BHaproxy/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="HaproxyHAProxy是一个使用C语言编写的自由及开放源代码软件，其提供高可用性、负载均衡，以及基于TCP和HTTP的应用程序代理。 HAProxy特别适用于那些负载特大的web站点，这些站点通常又需要会话保持或七层处理。HAProxy运行在当前的硬件上，完全可以支持数以万计的并发连接。并且它的运行模式使得它可以很简单安全的整合进您当前的架构中， 同时可以保护你的web服务器不被暴露到网络上">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-05-01T04:07:35.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.612Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="mycat">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BHaproxy/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Mycat部署文档之Haproxy | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Haproxy"><span class="nav-number">1.</span> <span class="nav-text">Haproxy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96%E5%8C%85"><span class="nav-number">2.</span> <span class="nav-text">安装依赖包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD"><span class="nav-number">3.</span> <span class="nav-text">下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-number">4.</span> <span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">5.</span> <span class="nav-text">配置文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mycat%E7%8A%B6%E6%80%81%E7%9B%91%E6%B5%8B"><span class="nav-number">6.</span> <span class="nav-text">Mycat状态监测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8haproxy"><span class="nav-number">7.</span> <span class="nav-text">启动haproxy</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#haproxy%E7%AE%A1%E7%90%86%E5%B9%B3%E5%8F%B0"><span class="nav-number">8.</span> <span class="nav-text">haproxy管理平台</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#haproxy%E8%AE%B0%E5%BD%95%E6%97%A5%E5%BF%97%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="nav-number">9.</span> <span class="nav-text">haproxy记录日志（可选）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E4%BF%9D%E5%AD%98%EF%BC%8C%E9%87%8D%E5%90%AF-rsyslog-%E6%9C%8D%E5%8A%A1"><span class="nav-number">9.0.0.1.</span> <span class="nav-text">保存，重启 rsyslog 服务</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BHaproxy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Mycat部署文档之Haproxy
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-05-01 12:07:35" itemprop="dateCreated datePublished" datetime="2018-05-01T12:07:35+08:00">2018-05-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mycat/" itemprop="url" rel="index"><span itemprop="name">mycat</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="Haproxy"><a href="#Haproxy" class="headerlink" title="Haproxy"></a>Haproxy</h2><p>HAProxy是一个使用C语言编写的自由及开放源代码软件，其提供高可用性、负载均衡，以及基于TCP和HTTP的应用程序代理。</p>
+<p>HAProxy特别适用于那些负载特大的web站点，这些站点通常又需要会话保持或七层处理。HAProxy运行在当前的硬件上，完全可以支持数以万计的并发连接。并且它的运行模式使得它可以很简单安全的整合进您当前的架构中， 同时可以保护你的web服务器不被暴露到网络上。 </p>
+<h2 id="安装依赖包"><a href="#安装依赖包" class="headerlink" title="安装依赖包"></a>安装依赖包</h2><p>依赖gcc和make安装包</p>
+<blockquote>
+<p>sudo apt-get build-dep  gcc</p>
+</blockquote>
+<p>安装完了可以执行如下的命令来查看版本，</p>
+<blockquote>
+<p>gcc –version</p>
+</blockquote>
+<p>安装make安装包</p>
+<blockquote>
+<p>sudo apt install ubuntu-make</p>
+</blockquote>
+<h2 id="下载"><a href="#下载" class="headerlink" title="下载"></a>下载</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@haproxy-server-master ~]# cd &#x2F;home&#x2F;dxy&#x2F;temp&#x2F;</span><br><span class="line">[root@haproxy-server-master src]# wget http:&#x2F;&#x2F;pkgs.fedoraproject.org&#x2F;repo&#x2F;pkgs&#x2F;haproxy&#x2F;haproxy-1.7.9.tar.gz&#x2F;sha512&#x2F;d1ed791bc9607dbeabcfc6a1853cf258e28b3a079923b63d3bf97504dd59e64a5f5f44f9da968c23c12b4279e8d45ff3bd39418942ca6f00d9d548c9a0ccfd73&#x2F;haproxy-1.7.9.tar.gz</span><br><span class="line">[root@haproxy-server-master src]# tar -xvf haproxy-1.7.9.tar.gz</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@haproxy-server-master src]# cd haproxy-1.7.9</span><br><span class="line">[root@haproxy-server-master haproxy-1.7.9]# uname -r</span><br><span class="line">3.10.0-514.el7.x86_64</span><br><span class="line">[root@haproxy-server-master haproxy-1.7.9]# make TARGET&#x3D;linux2628 ARCH&#x3D;x86_64 PREFIX&#x3D;&#x2F;home&#x2F;dxy&#x2F;haproxy</span><br><span class="line">[root@haproxy-server-master haproxy-1.7.9]# make install PREFIX&#x3D;&#x2F;home&#x2F;dxy&#x2F;haproxy</span><br></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<ul>
+<li>TARGET=linux310，内核版本，使用uname -r查看内核，如：3.10.0-514.el7，此时该参数就为linux310；kernel 大于2.6.28的可以用：TARGET=linux2628；</li>
+<li>ARCH=x86_64，系统位数；</li>
+<li>PREFIX=/home/dxy/haproxy #/home/dxy/haproxy，为haprpxy安装路径。</li>
+</ul>
+<h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>1.79及以后的版本解压后文件内就没有haproxy.cfg文件，所以需要我们自己找个模板写一下。</p>
+<p>由于没有配置其他的服务器，这里就简单的添加一个可以让Haproxy启动的配置。</p>
+<p>haproxy 配置中分成五部分内容，分别如下：</p>
+<ul>
+<li>global：参数是进程级的，通常是和操作系统相关。这些参数一般只设置一次，如果配置无误，就不需要再次进行修改；</li>
+<li>defaults：配置默认参数，这些参数可以被用到frontend，backend，Listen组件；</li>
+<li>frontend：接收请求的前端虚拟节点，Frontend可以更加规则直接指定具体使用后端的backend；</li>
+<li>backend：后端服务集群的配置，是真实服务器，一个Backend对应一个或者多个实体服务器；</li>
+<li>Listen Fronted和backend的组合体。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line">[root@haproxy-server-master haproxy]# mkdir conf</span><br><span class="line">[root@haproxy-server-master haproxy]# ls</span><br><span class="line">conf  doc  sbin  share</span><br><span class="line">[root@haproxy-server-master haproxy]# cd conf&#x2F;</span><br><span class="line">[root@haproxy-server-master conf]# vim haproxy.cfg</span><br><span class="line"></span><br><span class="line">global   # 全局参数的设置</span><br><span class="line">    log 127.0.0.1 local0 info</span><br><span class="line">    # log语法：log &lt;address_1&gt;[max_level_1] # 全局的日志配置，使用log关键字，指定使用127.0.0.1上的syslog服务中的local0日志设备，记录日志等级为info的日志</span><br><span class="line">    user haproxy</span><br><span class="line">    group haproxy</span><br><span class="line">    # 设置运行haproxy的用户和组，也可使用uid，gid关键字替代之</span><br><span class="line">    daemon</span><br><span class="line">    # 以守护进程的方式运行</span><br><span class="line">    nbproc 16</span><br><span class="line">    # 设置haproxy启动时的进程数，根据官方文档的解释，我将其理解为：该值的设置应该和服务器的CPU核心数一致，即常见的2颗8核心CPU的服务器，即共有16核心，则可以将其值设置为：&lt;&#x3D;16 ，创建多个进程数，可以减少每个进程的任务队列，但是过多的进程数也可能会导致进程的崩溃。这里我设置为16</span><br><span class="line">    maxconn 4096</span><br><span class="line">    # 定义每个haproxy进程的最大连接数 ，由于每个连接包括一个客户端和一个服务器端，所以单个进程的TCP会话最大数目将是该值的两倍。</span><br><span class="line">    #ulimit -n 65536</span><br><span class="line">    # 设置最大打开的文件描述符数，在1.4的官方文档中提示，该值会自动计算，所以不建议进行设置</span><br><span class="line">    pidfile &#x2F;var&#x2F;run&#x2F;haproxy.pid</span><br><span class="line">    # 定义haproxy的pid </span><br><span class="line">defaults # 默认部分的定义</span><br><span class="line">    mode http</span><br><span class="line">    # mode语法：mode &#123;http|tcp|health&#125; 。http是七层模式，tcp是四层模式，health是健康检测，返回OK</span><br><span class="line">    log 127.0.0.1 local3 err</span><br><span class="line">    # 使用127.0.0.1上的syslog服务的local3设备记录错误信息</span><br><span class="line">    retries 3</span><br><span class="line">    # 定义连接后端服务器的失败重连次数，连接失败次数超过此值后将会将对应后端服务器标记为不可用</span><br><span class="line">    option httplog</span><br><span class="line">    # 启用日志记录HTTP请求，默认haproxy日志记录是不记录HTTP请求的，只记录“时间[Jan 5 13:23:46] 日志服务器[127.0.0.1] 实例名已经pid[haproxy[25218]] 信息[Proxy http_80_in stopped.]”，日志格式很简单。</span><br><span class="line">    option redispatch</span><br><span class="line">    # 当使用了cookie时，haproxy将会将其请求的后端服务器的serverID插入到cookie中，以保证会话的SESSION持久性；而此时，如果后端的服务器宕掉了，但是客户端的cookie是不会刷新的，如果设置此参数，将会将客户的请求强制定向到另外一个后端server上，以保证服务的正常。</span><br><span class="line">    option abortonclose</span><br><span class="line">    # 当服务器负载很高的时候，自动结束掉当前队列处理比较久的链接</span><br><span class="line">    option dontlognull</span><br><span class="line">    # 启用该项，日志中将不会记录空连接。所谓空连接就是在上游的负载均衡器或者监控系统为了探测该服务是否存活可用时，需要定期的连接或者获取某一固定的组件或页面，或者探测扫描端口是否在监听或开放等动作被称为空连接；官方文档中标注，如果该服务上游没有其他的负载均衡器的话，建议不要使用该参数，因为互联网上的恶意扫描或其他动作就不会被记录下来</span><br><span class="line">    option httpclose</span><br><span class="line">    # 这个参数我是这样理解的：使用该参数，每处理完一个request时，haproxy都会去检查http头中的Connection的值，如果该值不是close，haproxy将会将其删除，如果该值为空将会添加为：Connection: close。使每个客户端和服务器端在完成一次传输后都会主动关闭TCP连接。与该参数类似的另外一个参数是“option forceclose”，该参数的作用是强制关闭对外的服务通道，因为有的服务器端收到Connection: close时，也不会自动关闭TCP连接，如果客户端也不关闭，连接就会一直处于打开，直到超时。</span><br><span class="line">    contimeout 5000</span><br><span class="line">    # 设置成功连接到一台服务器的最长等待时间，默认单位是毫秒，新版本的haproxy使用timeout connect替代，该参数向后兼容</span><br><span class="line">    clitimeout 3000</span><br><span class="line">    # 设置连接客户端发送数据时的成功连接最长等待时间，默认单位是毫秒，新版本haproxy使用timeout client替代。该参数向后兼容</span><br><span class="line">    srvtimeout 3000</span><br><span class="line">    # 设置服务器端回应客户度数据发送的最长等待时间，默认单位是毫秒，新版本haproxy使用timeout server替代。该参数向后兼容</span><br><span class="line"></span><br><span class="line">listen status # 定义一个名为status的部分</span><br><span class="line">    bind 0.0.0.0:1080</span><br><span class="line">    # 定义监听的套接字</span><br><span class="line">    mode http</span><br><span class="line">    # 定义为HTTP模式</span><br><span class="line">    log global</span><br><span class="line">    # 继承global中log的定义</span><br><span class="line">    stats refresh 30s</span><br><span class="line">    # stats是haproxy的一个统计页面的套接字，该参数设置统计页面的刷新间隔为30s</span><br><span class="line">    stats uri &#x2F;admin?stats</span><br><span class="line">    # 设置统计页面的uri为&#x2F;admin?stats</span><br><span class="line">    stats realm Private lands</span><br><span class="line">    # 设置统计页面认证时的提示内容</span><br><span class="line">    stats auth admin:password</span><br><span class="line">    # 设置统计页面认证的用户和密码，如果要设置多个，另起一行写入即可</span><br><span class="line">    stats hide-version</span><br><span class="line">    # 隐藏统计页面上的haproxy版本信息</span><br><span class="line">## listen: 用于定义通过关联“前端”和“后端”一个完整的代理，通常只对TCP流量有用</span><br><span class="line"></span><br><span class="line">listen mycat_servers</span><br><span class="line">    bind  :3306 ## 绑定端口</span><br><span class="line">    mode  tcp</span><br><span class="line">    option     tcplog     ## 记录TCP请求日志</span><br><span class="line">    option     tcpka ##是否允许向server和client发送keepalive</span><br><span class="line">    option     httpchk OPTIONS * HTTP&#x2F;1.1\r\nHost:\ www ## 后端服务状态检测</span><br><span class="line">    ### 向后端服务器的48700端口（端口值在后端服务器上通过xinetd配置）发送 OPTIONS 请求</span><br><span class="line">    ### (原理请参考HTTP协议) ，HAProxy会根据返回内容来判断后端服务是否可用.</span><br><span class="line">    ### 2xx 和 3xx 的响应码表示健康状态，其他响应码或无响应表示服务器故障。</span><br><span class="line">    balance    roundrobin ## 定义负载均衡算法，可用于&quot;defaults&quot;、&quot;listen&quot;和&quot;backend&quot;中,默认为轮询方式</span><br><span class="line">    server     mycat_01 192.168.1.203:8066 check port 48700 inter 2000ms rise 2 fall 3 weight 10</span><br><span class="line">    server     mycat_02 192.168.1.204:8066 check port 48700 inter 2000ms rise 2 fall 3 weight 10</span><br><span class="line">    ## 格式：server</span><br><span class="line">    ### serser 在后端声明一个server，只能用于listen和backend区段</span><br><span class="line">    ###为此服务器指定的内部名称，其将会出现在日志及警告信息中</span><br><span class="line">    ###此服务器的IPv4地址，也支持使用可解析的主机名，但要在启动时需要解析主机名至响应的IPV4地址</span><br><span class="line">    ### [:[port]]指定将客户端连接请求发往此服务器时的目标端口，此为可选项</span><br><span class="line">    ### [param*]为此server设定的一系列参数，均为可选项，参数比较多，下面仅说明几个常用的参数：</span><br><span class="line">    #### weight:权重，默认为1，最大值为256，0表示不参与负载均衡</span><br><span class="line">    #### backup:设定为备用服务器，仅在负载均衡场景中的其他server均不可以启用此server</span><br><span class="line">    #### check:启动对此server执行监控状态检查，其可以借助于额外的其他参数完成更精细的设定</span><br><span class="line">    #### inter:设定监控状态检查的时间间隔，单位为毫秒，默认为2000，</span><br><span class="line">    ##### 也可以使用fastinter和downinter来根据服务器端专题优化此事件延迟</span><br><span class="line">    #### rise:设置server从离线状态转换至正常状态需要检查的次数（不设置的情况下，默认值为2）</span><br><span class="line">    #### fall:设置server从正常状态转换至离线状态需要检查的次数（不设置的情况下，默认值为3）</span><br><span class="line">    #### cookie:为指定server设定cookie值，此处指定的值将会在请求入站时被检查，</span><br><span class="line">    ##### 第一次为此值挑选的server将会被后续的请求所选中，其目的在于实现持久连接的功能</span><br><span class="line">    #### maxconn:指定此服务器接受的最大并发连接数，如果发往此服务器的连接数目高于此处指定的值，</span><br><span class="line">    #####其将被放置于请求队列，以等待其他连接被释放</span><br></pre></td></tr></table></figure>
+
+<h2 id="Mycat状态监测"><a href="#Mycat状态监测" class="headerlink" title="Mycat状态监测"></a>Mycat状态监测</h2><p>安装xinetd组件，用于开放监听端口</p>
+<blockquote>
+<p>sudo apt-get install xinetd</p>
+</blockquote>
+<p>在Mycat server1 Mycat server2上都需要添加检测端口48700的脚本，为此需要用到xinetd<br>首先在xinetd目录下面增加脚本与端口的映射配置文件</p>
+<blockquote>
+<p>vim /etc/xinetd.d/mycat_status</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">service mycat_status</span><br><span class="line">&#123;</span><br><span class="line">        flags           &#x3D; REUSE</span><br><span class="line">        socket_type     &#x3D; stream</span><br><span class="line">        port            &#x3D; 48700</span><br><span class="line">        wait            &#x3D; no</span><br><span class="line">        user            &#x3D; nobody</span><br><span class="line">        server          &#x3D; &#x2F;home&#x2F;dxy&#x2F;mycat&#x2F;bin&#x2F;mycat_status.sh</span><br><span class="line">        log_on_failure  +&#x3D; USERID</span><br><span class="line">        disable         &#x3D; no</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意：mycat_status检测脚本已经平台已经打包在安装包里面了的，由于里面用到了source，ubuntu请参考<a target="_blank" rel="noopener" href="http://www.linuxdiyf.com/linux/22530.html%E8%A7%A3%E5%86%B3%E3%80%82">http://www.linuxdiyf.com/linux/22530.html解决。</a></p>
+<p>增加service端口映射</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim &#x2F;etc&#x2F;services</span><br><span class="line"># Local services</span><br><span class="line">mycat_status    48700&#x2F;tcp</span><br></pre></td></tr></table></figure>
+<p>重启xinetd</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service xinetd restart</span><br></pre></td></tr></table></figure>
+
+<h2 id="启动haproxy"><a href="#启动haproxy" class="headerlink" title="启动haproxy"></a>启动haproxy</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@haproxy-server-master conf]# &#x2F;home&#x2F;dxy&#x2F;haproxy&#x2F;sbin&#x2F;haproxy -f &#x2F;home&#x2F;dxy&#x2F;haproxy&#x2F;conf&#x2F;haproxy.cfg</span><br></pre></td></tr></table></figure>
+<p>验证一下是否启动成功：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@haproxy-server-master conf]# lsof -i :1080</span><br><span class="line">COMMAND  PID USER   FD   TYPE DEVICE SIZE&#x2F;OFF NODE NAME</span><br><span class="line">haproxy 2221 root    3u  IPv4  20285      0t0  TCP *:socks (LISTEN)</span><br></pre></td></tr></table></figure>
+
+<h2 id="haproxy管理平台"><a href="#haproxy管理平台" class="headerlink" title="haproxy管理平台"></a>haproxy管理平台</h2><p>地址：<a target="_blank" rel="noopener" href="http://127.0.0.1:1080/admin?stats">http://127.0.0.1:1080/admin?stats</a></p>
+<ul>
+<li><h2 id="haproxy记录日志（可选）"><a href="#haproxy记录日志（可选）" class="headerlink" title="haproxy记录日志（可选）"></a>haproxy记录日志（可选）</h2>默认 haproxy 是不记录日志的，为了记录日志需要配置 syslog 模块，在 linux 下是 rsyslogd 服务。</li>
+</ul>
+<ol>
+<li>先安装 rsyslog（系统应该都安装了，先查看一下）<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install rsyslog</span><br></pre></td></tr></table></figure></li>
+<li>添加haproxy的日志配置<blockquote>
+<p>vim /etc/rsyslog.d/haproxy.conf</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ModLoad imudp</span><br><span class="line">$UDPServerRun 514</span><br><span class="line">local0.* &#x2F;home&#x2F;dxy&#x2F;haproxy&#x2F;logs&#x2F;haproxy.log</span><br></pre></td></tr></table></figure>
+日志的level: local0～local7 16～23保留为本地使用</li>
+</ol>
+<ul>
+<li>0 debug   有调式信息的，日志信息最多</li>
+<li>1 info    一般信息的日志，最常用</li>
+<li>2 notice  最具有重要性的普通条件的信息</li>
+<li>3 warning 警告级别</li>
+<li>4 err 错误级别，阻止某个功能或者模块不能正常工作的信息</li>
+<li>5 crit 严重级别，阻止整个系统或者整个软件不能正常工作的信息</li>
+<li>6 alert  需要立刻修改的信息</li>
+<li>7 emerg  内核崩溃等严重信息</li>
+</ul>
+<ol start="3">
+<li>修改 /etc/rsyslog.conf 文件<blockquote>
+<p>在#### RULES ####上面一行的地方加入以下内容（文件里应该默认有这个配置，可以看一下）：</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@haproxy-server-master &#x2F;]# vim &#x2F;etc&#x2F;rsyslog.conf</span><br><span class="line"></span><br><span class="line"># Include all config files in &#x2F;etc&#x2F;rsyslog.d&#x2F;</span><br><span class="line">$IncludeConfig &#x2F;etc&#x2F;rsyslog.d&#x2F;*.conf</span><br></pre></td></tr></table></figure></li>
+<li>修改 /etc/sysconfig/rsyslog 文件<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@haproxy-server-master &#x2F;]# vim &#x2F;etc&#x2F;default&#x2F;rsyslog</span><br><span class="line"></span><br><span class="line">SYSLOGD_OPTIONS&#x3D;&quot;-r -m 0 -c 2&quot;</span><br></pre></td></tr></table></figure>
+相关解释说明:</li>
+</ol>
+<ul>
+<li>-r:打开接受外来日志消息的功能,其监控514 UDP端口;</li>
+<li>-x:关闭自动解析对方日志服务器的FQDN信息,这能避免DNS不完整所带来的麻烦;</li>
+<li>-m:修改syslog的内部mark消息写入间隔时间(0为关闭),例如240为每隔240分钟写入一次”–MARK–”信息;</li>
+<li>-h:默认情况下,syslog不会发送从远端接受过来的消息到其他主机,而使用该选项,则把该开关打开,所有 接受到的信息都可根据syslog.conf中定义的@主机转发过去。</li>
+</ul>
+<h5 id="保存，重启-rsyslog-服务"><a href="#保存，重启-rsyslog-服务" class="headerlink" title="保存，重启 rsyslog 服务"></a>保存，重启 rsyslog 服务</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[root@haproxy-server-master &#x2F;]# systemctl restart rsyslog.service</span><br><span class="line">[root@haproxy-server-master &#x2F;]# systemctl status rsyslog.service</span><br><span class="line">● rsyslog.service - System Logging Service</span><br><span class="line">   Loaded: loaded (&#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;rsyslog.service; enabled; vendor preset: enabled)</span><br><span class="line">   Active: active (running) since 一 2017-11-27 10:51:26 CST; 11s ago</span><br><span class="line">     Docs: man:rsyslogd(8)</span><br><span class="line">           http:&#x2F;&#x2F;www.rsyslog.com&#x2F;doc&#x2F;</span><br><span class="line"> Main PID: 3855 (rsyslogd)</span><br><span class="line">   CGroup: &#x2F;system.slice&#x2F;rsyslog.service</span><br><span class="line">           └─3855 &#x2F;usr&#x2F;sbin&#x2F;rsyslogd -n</span><br><span class="line"></span><br><span class="line">11月 27 10:51:26 haproxy-server-master systemd[1]: Starting System Logging Service...</span><br><span class="line">11月 27 10:51:26 haproxy-server-master rsyslogd[3855]:  [origin software&#x3D;&quot;rsyslogd&quot; swVersion&#x3D;&quot;8.24.0&quot; x-pid&#x3D;&quot;38...tart</span><br><span class="line">11月 27 10:51:26 haproxy-server-master systemd[1]: Started System Logging Service.</span><br><span class="line">Hint: Some lines were ellipsized, use -l to show in full.</span><br></pre></td></tr></table></figure>
+<p>现在你就可以看到日志（/home/dxy/haproxy/logs/haproxy.log）了（如果没有，重启一下Haproxy）。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mycat/" rel="tag"># mycat</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BKeepalived/" rel="prev" title="Mycat部署文档之Keepalived">
+                  <i class="fa fa-chevron-left"></i> Mycat部署文档之Keepalived
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" rel="next" title="Mycat分片规则使用指南">
+                  Mycat分片规则使用指南 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

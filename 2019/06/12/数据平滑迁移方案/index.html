@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="数据迁移方案数据迁移核心思路抽象起来其实很简单，但如何稳定平滑迁移数据，我们会遇到不少问题，如：  数据如何迁移？ 如何校验数据迁移过程中的正确性？如果发现数据不一致，如何修复？ 我们的业务改造有问题如何回滚？  数据同步中间件选型开源数据同步中间件主要包括canal、otter、maxwell、kettle等，下面进行简单比对说明。  canal：canal是阿里巴巴旗下的一款开源项目，纯Jav">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据平滑迁移方案">
+<meta property="og:url" content="http://ppjys.cn/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="数据迁移方案数据迁移核心思路抽象起来其实很简单，但如何稳定平滑迁移数据，我们会遇到不少问题，如：  数据如何迁移？ 如何校验数据迁移过程中的正确性？如果发现数据不一致，如何修复？ 我们的业务改造有问题如何回滚？  数据同步中间件选型开源数据同步中间件主要包括canal、otter、maxwell、kettle等，下面进行简单比对说明。  canal：canal是阿里巴巴旗下的一款开源项目，纯Jav">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/1.png">
+<meta property="og:image" content="https://github.com/ppj19891020/pictures/blob/master/otter/7.png?raw=true">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/8.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/9.png">
+<meta property="article:published_time" content="2019-06-12T13:26:09.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.617Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="otter">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/1.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>数据平滑迁移方案 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88"><span class="nav-number">1.</span> <span class="nav-text">数据迁移方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E4%B8%AD%E9%97%B4%E4%BB%B6%E9%80%89%E5%9E%8B"><span class="nav-number">1.0.1.</span> <span class="nav-text">数据同步中间件选型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E7%82%B9%E5%8E%9F%E7%90%86%E9%98%90%E8%BF%B0"><span class="nav-number">1.0.2.</span> <span class="nav-text">重点原理阐述</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E5%AE%9E%E6%96%BD%E6%80%BB%E4%BD%93%E6%96%B9%E6%A1%88"><span class="nav-number">2.</span> <span class="nav-text">项目分库分表实施总体方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88"><span class="nav-number">2.0.0.1.</span> <span class="nav-text">实现方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%81%E5%BA%93%E6%B5%81%E7%A8%8B"><span class="nav-number">2.0.0.2.</span> <span class="nav-text">迁库流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9B%9E%E6%BB%9A%E6%96%B9%E6%A1%88"><span class="nav-number">2.0.0.3.</span> <span class="nav-text">回滚方案</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据平滑迁移方案
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-06-12 21:26:09" itemprop="dateCreated datePublished" datetime="2019-06-12T21:26:09+08:00">2019-06-12</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/otter/" itemprop="url" rel="index"><span itemprop="name">otter</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="数据迁移方案"><a href="#数据迁移方案" class="headerlink" title="数据迁移方案"></a>数据迁移方案</h1><p>数据迁移核心思路抽象起来其实很简单，但如何稳定平滑迁移数据，我们会遇到不少问题，如：</p>
+<ol>
+<li>数据如何迁移？</li>
+<li>如何校验数据迁移过程中的正确性？如果发现数据不一致，如何修复？</li>
+<li>我们的业务改造有问题如何回滚？</li>
+</ol>
+<h3 id="数据同步中间件选型"><a href="#数据同步中间件选型" class="headerlink" title="数据同步中间件选型"></a>数据同步中间件选型</h3><p>开源数据同步中间件主要包括canal、otter、maxwell、kettle等，下面进行简单比对说明。</p>
+<ul>
+<li>canal：canal是阿里巴巴旗下的一款开源项目，纯Java开发。基于数据库增量日志解析，提供增量数据订阅&amp;消费，目前主要支持了MySQL。</li>
+<li>otter：阿里巴巴旗下的另一款开源项目，始于中美数据同步需求，纯Java开发。可以理解为canal+ETL，对数据抽取进行了扩展，加入自由门、反查等功能，拓展了已经无法从binlog获取的数据来源。同时提供页面的ETL编辑配置功能，方便快速实现带逻辑的业务数据同步。</li>
+<li>maxwell：Maxwell 是java语言编写的能够读取、解析MySQL binlog，将行更新以json格式发送到 Kafka、RabbitMQ等，有了增量的数据流，可以想象的应用场景实在太多了，如ETL、维护缓存、收集表级别的dml指标、增量到搜索引擎、数据分区迁移、切库binlog回滚方案等等。</li>
+<li>kettle:kettle可以实现从不同数据源（excel、数据库、文本文件等）获取数据，然后将数据进行整合、转换处理，可以再将数据输出到指定的位置（excel、数据库、文本文件）等；是B/S架构，多用于数仓作业。</li>
+</ul>
+<p>最终结合公司需求，otter功能最强大，二次开发比较方便，最终选择用otter来作为数据同步工具。</p>
+<h3 id="重点原理阐述"><a href="#重点原理阐述" class="headerlink" title="重点原理阐述"></a>重点原理阐述</h3><ul>
+<li><p>全量迁移：数据迁移首要目标如何将历史全量数据迁移到新库中，我们利用otter的自由门原理改造支持全量数据同步功能，整个过程都是查询在线库的备库，因此不影响在线业务的数据库服务，自由门原理如下：</p>
+<p>  a. 基于otter系统表retl_buffer，插入特定的数据，包含需要同步的表名，pk信息。</p>
+<p>  b. otter系统感知后会根据表名和pk提取对应的数据(整行记录)，和正常的增量同步一起同步到目标库。</p>
+</li>
+<li><p>增量迁移：通过模拟mysql slave获取binlog数据，然后通过canal解析增量数据，最终准实时同步数据。</p>
+<blockquote>
+<p>  方案一：先开启全量任务，等全量数据同步完成后，在开启增量任务。由于迁移过程中业务服务一直运行，因此全量迁移完全成，并且要将全量时间点后的数据追回来，这里核心原理是同步全量时间位点后binlog日志数据来保证数据一致性，需要注意的是增量时间需要前移一小断时间(如5分钟)，其主要原因是全量迁移启动的那刻会有时间差，需要增量前移来保证数据最终一致性。</p>
+</blockquote>
+<blockquote>
+<p>方案二：先开启增量任务，然后开启全量任务，这种方案存在当全量和增量任务同时操作同一条pk数据的时候，就可能会产生丢失更新。推荐使用该方案，操作比较简单，这种场景出现的问题是很小的概率，最终还能通过数据校验服务来找到问题数据，然后用一键修复功能即可。</p>
+</blockquote>
+<p>  增量同步原理如下：</p>
+<p>  a. 基于Canal获取数据库增量日志数据。</p>
+<p>  b. 利用SETL调度模型实现调度和处理实现。</p>
+<p>  c. 基于zookeeper，解决分布式状态调度的，允许多node节点之间协同工作。</p>
+<p>  工作原理如下：</p>
+  <img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/1.png" width=600px/></li>
+</ul>
+<ul>
+<li><p>反向同步：迁移到新库后，为了保证业务方出现业务回滚，保证源库与目标库数据一致性，需要建立从新库到老库的回流任务，原理跟增量迁移一样，只是变更一下原库及目标库。</p>
+</li>
+<li><p>一致性校验：通过比对源库和目标库的所有同步字段的crc校验码，如果出现不一致，重新比对3次，如果最终数据不一致，则会将该条数据落库。流程图如下：  </p>
+<img src="https://github.com/ppj19891020/pictures/blob/master/otter/7.png?raw=true" width=500px/></li>
+<li><p>一键修复：将一致性校验比对失败的数据，通过全量同步原理来触发数据修复功能。</p>
+</li>
+</ul>
+<span id="more"></span>
+
+<h1 id="项目分库分表实施总体方案"><a href="#项目分库分表实施总体方案" class="headerlink" title="项目分库分表实施总体方案"></a>项目分库分表实施总体方案</h1><h4 id="实现方案"><a href="#实现方案" class="headerlink" title="实现方案"></a>实现方案</h4><ol>
+<li>业务系统改造和测试：业务方接入sharding-jdbc和分布式主键中间件，然后验收测试改造功能；</li>
+<li>数据迁移：利用otter的数据迁移功能，涉及到全量迁移、增量迁移、一致性校验及反向任务。</li>
+</ol>
+<h4 id="迁库流程"><a href="#迁库流程" class="headerlink" title="迁库流程"></a>迁库流程</h4><p>事先一定创建好增量任务、全量任务、逆向任务和一致性校验任务等操作，然后如下操作：</p>
+<ol>
+<li>开启Otter增量同步,然后开通全量同步；</li>
+<li>系统切换前做数据一致性校验，如若发现数据不一致，通过一键修复来修复数据；</li>
+<li>业务系统升级；</li>
+<li>升级完成后，同时关闭增量同步任务，防止无效覆盖；</li>
+<li>反向同步任务要清空位点信息和手动设置canal位点信息，时间戳为关闭增量的时间，最后开启反向同步任务，数据回流老库；</li>
+</ol>
+<p>问题点：</p>
+<ol>
+<li><p>如何保证全量任务已同步完成？</p>
+<blockquote>
+<p>通过查看”总控通道”的最后位点时间如果一直没更新，就表示全量任务同步完成；目前由于全量数据量不可控制，推荐根据历史时间推算或者按照全量数据24小时之后来表示全量同步完成（通过线下环境测试，全量数据大概1分钟可以导入19w左右）；</p>
+</blockquote>
+</li>
+<li><p>如何保证在开启反向任务之后，新库同步到老库数据丢失问题？</p>
+<blockquote>
+<p>在关闭正向同步之后，开启反向同步前，为了防止数据丢失，将反向同步的canal位点信息前移一段时间（停止正向增量任务的时间）；注意位点可以直接指定时间戳，如：{“journalName”:””,”position”:0,”timestamp”:1559628000000};</p>
+</blockquote>
+</li>
+</ol>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/8.png" width=600px/>
+
+<h4 id="回滚方案"><a href="#回滚方案" class="headerlink" title="回滚方案"></a>回滚方案</h4><p>事先一定创建好逆向一致性校验任务等操作，然后如下操作：</p>
+<ol>
+<li> 系统切换前做反向数据一致性校验，如若发现数据不一致，通过一键修复来修复数据；</li>
+<li> 业务系统回滚；</li>
+<li> 回滚完成后，同时关闭逆向增量任务；</li>
+<li> 正向同步任务要清空位点信息和手动设置cancal位点信息，时间戳为关闭逆向增量任务的时间，最后开启正向同步任务；</li>
+</ol>
+<p>问题点：</p>
+<ol>
+<li><p>业务一旦发生问题，一定要快速回滚，如何保证在短时间内能校验老库数据是一致的？</p>
+<blockquote>
+<p>针对需要快速校验和修复，同步前推荐业务方的同步表需要有”更新时间”字段,该字段最好有索引字段，这样既可以在校验服务中加入用”更新时间”的过滤条件，这样就可以不用全库校验，只校验这段时间内更新的数据；</p>
+</blockquote>
+</li>
+<li><p>由于业务是在回滚完成之后，然后在开启正向增量同步，存在这段时间过程中的丢失更新？</p>
+<blockquote>
+<p>在关闭反向同步之后，开启正向同步前，为了防止丢失数据，将正向同步的canal位点信息前移一小断时间（停止反向同步的时间）；注意位点可以直接指定时间戳，如：{“journalName”:””,”position”:0,”timestamp”:1559628000000};</p>
+</blockquote>
+</li>
+</ol>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/9.png" width=600px/>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/otter/" rel="tag"># otter</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/" rel="prev" title="Otter改造实践">
+                  <i class="fa fa-chevron-left"></i> Otter改造实践
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/06/12/Otter%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" rel="next" title="Otter遇到的问题">
+                  Otter遇到的问题 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="由于定制的Otter出现增量丢数据的问题，底层用到了canal，用来解析binlog数据，这篇文章就详细的讲些binlog相关的知识点。 Mysql 日志概述MySQL中有六种日志文件，分别是：重做日志（redo log）、回滚日志（undo log）、二进制日志（bin log）、错误日志（error log）、慢查询日志（slow query log）、一般查询日志（general log），">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mysql binlog知识">
+<meta property="og:url" content="http://ppjys.cn/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="由于定制的Otter出现增量丢数据的问题，底层用到了canal，用来解析binlog数据，这篇文章就详细的讲些binlog相关的知识点。 Mysql 日志概述MySQL中有六种日志文件，分别是：重做日志（redo log）、回滚日志（undo log）、二进制日志（bin log）、错误日志（error log）、慢查询日志（slow query log）、一般查询日志（general log），">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-09-18T10:39:28.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.609Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="mysql">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Mysql binlog知识 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mysql-%E6%97%A5%E5%BF%97%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">Mysql 日志概述</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Binlog"><span class="nav-number">1.1.</span> <span class="nav-text">Binlog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Redolog"><span class="nav-number">1.2.</span> <span class="nav-text">Redolog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Undolog"><span class="nav-number">1.3.</span> <span class="nav-text">Undolog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#binlog%E6%A0%BC%E5%BC%8F%E8%A7%A3%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">binlog格式解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#format-desc-event"><span class="nav-number">2.1.</span> <span class="nav-text">format_desc event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rotate-event"><span class="nav-number">2.2.</span> <span class="nav-text">rotate event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#query-event"><span class="nav-number">2.3.</span> <span class="nav-text">query event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#table-map-event-amp-write-rows-event"><span class="nav-number">2.4.</span> <span class="nav-text">table_map event &amp; write_rows event</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#intvar-event"><span class="nav-number">2.5.</span> <span class="nav-text">intvar event</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#binlog%E7%9B%B8%E5%85%B3%E5%91%BD%E4%BB%A4"><span class="nav-number">3.</span> <span class="nav-text">binlog相关命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8Bbinlog-format"><span class="nav-number">3.1.</span> <span class="nav-text">查看binlog_format</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%AE%E6%94%B9binlog-format"><span class="nav-number">3.2.</span> <span class="nav-text">修改binlog_format</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E6%98%AF%E5%90%A6%E5%BC%80%E5%90%AFbinlog"><span class="nav-number">3.3.</span> <span class="nav-text">查看是否开启binlog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96binlog%E6%96%87%E4%BB%B6%E5%88%97%E8%A1%A8"><span class="nav-number">3.4.</span> <span class="nav-text">获取binlog文件列表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E5%BD%93%E5%89%8D%E6%AD%A3%E5%9C%A8%E5%86%99%E5%85%A5%E7%9A%84binlog%E6%96%87%E4%BB%B6"><span class="nav-number">3.5.</span> <span class="nav-text">查看当前正在写入的binlog文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8Bmaster%E4%B8%8A%E7%9A%84binlog"><span class="nav-number">3.6.</span> <span class="nav-text">查看master上的binlog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AA%E6%9F%A5%E7%9C%8B%E7%AC%AC%E4%B8%80%E4%B8%AAbinlog%E6%96%87%E4%BB%B6%E7%9A%84%E5%86%85%E5%AE%B9"><span class="nav-number">3.7.</span> <span class="nav-text">只查看第一个binlog文件的内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E6%8C%87%E5%AE%9Abinlog%E6%96%87%E4%BB%B6%E7%9A%84%E5%86%85%E5%AE%B9"><span class="nav-number">3.8.</span> <span class="nav-text">查看指定binlog文件的内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8mysqlbinlog%E5%B7%A5%E5%85%B7%E6%9F%A5%E7%9C%8B"><span class="nav-number">3.9.</span> <span class="nav-text">用mysqlbinlog工具查看</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">4.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Mysql binlog知识
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-09-18 18:39:28" itemprop="dateCreated datePublished" datetime="2020-09-18T18:39:28+08:00">2020-09-18</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mysql/" itemprop="url" rel="index"><span itemprop="name">mysql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>由于定制的Otter出现增量丢数据的问题，底层用到了canal，用来解析binlog数据，这篇文章就详细的讲些binlog相关的知识点。</p>
+<h2 id="Mysql-日志概述"><a href="#Mysql-日志概述" class="headerlink" title="Mysql 日志概述"></a>Mysql 日志概述</h2><p>MySQL中有六种日志文件，分别是：重做日志（redo log）、回滚日志（undo log）、二进制日志（bin log）、错误日志（error log）、慢查询日志（slow query log）、一般查询日志（general log），中继日志（relay log）。<br>其中bin log和undo log与事务操作息息相关,bin log也与事务操作有一定的关系，这三种日志，对理解MySQL中的事务操作有着重要的意义。</p>
+<h3 id="Binlog"><a href="#Binlog" class="headerlink" title="Binlog"></a>Binlog</h3><p><strong>是什么</strong></p>
+<p>由Mysql的Server层实现,是逻辑日志,记录的是sql语句的原始逻辑，比如”给 ID=2 这一行的C字段加1”。</p>
+<p><strong>怎么工作的</strong></p>
+<p>binlog会写入指定大小的物理文件中,是追加写入的,当前文件写满则会创建新的文件写入。</p>
+<p>产生:事务提交的时候,一次性将事务中的sql语句,按照一定的格式记录到binlog中。<br>清理:可设置参数expire_logs_days,在生成时间超过配置的天数之后,会被自动删除。</p>
+<p><strong>做什么用的</strong></p>
+<ol>
+<li><p>用于复制,在主从复制中，从库利用主库上的binlog进行重播(执行日志中记录的修改逻辑),实现主从同步。</p>
+</li>
+<li><p>用于数据库的基于时间点的还原。</p>
+</li>
+</ol>
+<p><strong>3种模式</strong></p>
+<ol>
+<li><p>statement：基于SQL语句的模式，某些语句中含有一些函数，例如 UUID,NOW 等在复制过程可能导致数据不一致甚至出错。</p>
+</li>
+<li><p>row：基于行的模式，记录的是行的变化,很安全。但是 binlog 的磁盘占用会比其他两种模式大很多,在一些大表中清除大量数据时在 binlog 中会生成很多条语句,可能导致从库延迟变大。</p>
+</li>
+<li><p>mixed：混合模式,根据语句来选用是 statement 还是 row 模式。表结构变更使用 statement 模式来记录,如果 SQL 语句是 update 或者 delete 语句,那么使用row模式。</p>
+</li>
+</ol>
+<h3 id="Redolog"><a href="#Redolog" class="headerlink" title="Redolog"></a>Redolog</h3><p><strong>是什么</strong></p>
+<p>由引擎层的InnoDB引擎实现,是物理日志,记录的是物理数据页修改的信息,比如”某个数据页上内容发生了哪些改动”</p>
+<p><strong>怎么工作的</strong></p>
+<p>原理:当一条数据需要更新时,InnoDB会先将更新操作记录到rodolog中,并更新到内存中,这个更新就算是完成了。InnoDB引擎会在mysql空闲时将这些更新操作更新到磁盘中(数据文件)。<br>(这个就是MySql经常说到的WAL技术,Write-Ahead Logging ,关键点是先写日志,再写磁盘)</p>
+<p>存储:redolog是顺序写入指定大小的物理文件中的。是循环写入的,当文件快写满时,会边擦除边刷磁盘,即擦除日志记录(redolog file)并将数据刷到磁盘中。</p>
+<p><strong>做什么用的</strong></p>
+<ol>
+<li><p>提供crash-safe 能力(崩溃恢复),确保事务的持久性。<br>数据库突然崩溃,有些数据并未刷到数据文件中,当重启MySQL数据库,会从redolog中未刷到磁盘的数据刷到磁盘中。</p>
+</li>
+<li><p>利用WAL技术推迟物理数据页的刷新，从而提升数据库吞吐，有效降低了访问时延。</p>
+</li>
+</ol>
+<h3 id="Undolog"><a href="#Undolog" class="headerlink" title="Undolog"></a>Undolog</h3><p><strong>是什么</strong></p>
+<p>由引擎层的InnoDB引擎实现,是逻辑日志,记录数据修改被修改前的值,比如”把Name=’B’ 修改为Name = ‘B2’ ，那么undo日志就会用来存放Name=’B’的记录”</p>
+<p><strong>怎么工作的</strong></p>
+<p>当一条数据需要更新前,会先把修改前的记录存储在undolog中,如果这个修改出现异常,,则会使用undo日志来实现回滚操作,保证事务的一致性。</p>
+<p>当事务提交之后，undo log并不能立马被删除,而是会被放到待清理链表中,待判断没有事物用到该版本的信息时才可以清理相应undolog。</p>
+<p><strong>做什么用的</strong></p>
+<p>保存了事务发生之前的数据的一个版本，用于回滚，同时可以提供多版本并发控制下的读（MVCC），也即非锁定读</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><strong>3种日志在事物执行过程中的工作，执行sql如下：</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">BEGIN</span>;</span><br><span class="line">update name <span class="operator">=</span> <span class="string">&#x27;wk&#x27;</span> <span class="keyword">from</span> <span class="keyword">user</span> <span class="keyword">where</span> id <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line">update name <span class="operator">=</span> <span class="string">&#x27;river&#x27;</span> <span class="keyword">from</span> <span class="keyword">user</span> <span class="keyword">where</span> id <span class="operator">=</span> <span class="number">2</span>;</span><br><span class="line"><span class="keyword">Commit</span>;</span><br></pre></td></tr></table></figure>
+
+<p>A. 将id=1的行name的值读取到内存中<br>B. 记录id=1的行name=ken到undo log<br>C. 修改name=wk<br>D. 记录相应数据页的修改到redo log,并更新内存中的数据<br>E. 将id=2的行name的值读取到内存中<br>F. 记录id=2的行name=lj到undo log<br>G. 修改name=lj<br>H. 记录相应数据页的修改到redo log,并更新内存中的数据<br>I. 记录事务中所有SQL的逻辑操作到bin log<br>J. 提交事务<br>K. MySql服务器空闲时,把redo log中的物理数据页刷到磁盘数据文件中</p>
+<p><strong>特性</strong></p>
+<ol>
+<li><p>保证原子性:更新数据前,记录undo log,为保证在更新数据时发生异常导致更新失败,这时可以使用undo log对数据进行回滚(回滚内存中的数据,并会在redo log中记录回滚操作)</p>
+</li>
+<li><p>保证持久性:每更新数据后,记录redo log,为防止服务器突然宕机,导致没有把数据刷到磁盘中,每次重启MySql服务器都会从redo log将脏页(未能及时写到磁盘的数据页)刷到磁盘</p>
+</li>
+<li><p>两阶段提交,保证数据的一致性:<br>先写redo log,再写bin log,完成后才能认为事务是完整的。从库主要通过bin log进行同步,但如果服务器异常宕机,可能会造成主从数据不一致的情况。</p>
+<p>a. 写完redo log宕机,bin log还没写<br>因为两阶段提交机制,MySql会判断redo log 和 bin log是否都完整,如果不完整,则认为事务未提交,在从redo log 刷数据时,就不会刷未提交的事务的数据</p>
+<p>b. 在写bin log的中途宕机<br>已经写了部分的bin log,但是没有写完整（binlog 是否完整会有一个标识符标识），仍然认为事务未提交。崩溃恢复和主从复制时,都不会使用未提交的数据,从而实现数据的一致性。</p>
+<p>c. bin log写完了,但未提交事务<br>两阶段提交机制认为,只要redo log和bin log都是完整的,则可以认为事务提交了。</p>
+</li>
+</ol>
+<span id="more"></span>
+
+<h2 id="binlog格式解析"><a href="#binlog格式解析" class="headerlink" title="binlog格式解析"></a>binlog格式解析</h2><p><strong>binlog格式如下：</strong></p>
+<ul>
+<li>binlog文件以一个值为0Xfe62696e的魔数开头，这个魔数对应0xfe ‘b’’i’’n’。</li>
+<li>binlog由一系列的binlog event构成。每个binlog event包含header和data两部分。<ul>
+<li>header部分提供的是event的公共的类型信息，包括event的创建时间，服务器等等。</li>
+<li>data部分提供的是针对该event的具体信息，如具体数据的修改。</li>
+</ul>
+</li>
+<li>从mysql5.0版本开始，binlog采用的是v4版本，第一个event都是<code>format_desc event</code> 用于描述binlog文件的格式版本，这个格式就是event写入binlog文件的格式。关于之前版本的binlog格式，可以参见<a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=http://dev.mysql.com/doc/internals/en/binary-log-versions.html">http://dev.mysql.com/doc/internals/en/binary-log-versions.html</a></li>
+<li>接下来的event就是按照上面的格式版本写入的event。</li>
+<li>最后一个<code>rotate event</code>用于说明下一个binlog文件。</li>
+</ul>
+<p>接下来分析下几种常见的event，其他的event类型可以参见官方文档。event数据结构如下：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">+=====================================+</span><br><span class="line">| <span class="selector-tag">event</span>  | <span class="selector-tag">timestamp</span>         <span class="selector-tag">0</span> : <span class="selector-tag">4</span>    |</span><br><span class="line">| <span class="selector-tag">header</span> +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">type_code</span>         <span class="selector-tag">4</span> : <span class="selector-tag">1</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">server_id</span>         <span class="selector-tag">5</span> : <span class="selector-tag">4</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">event_length</span>      <span class="selector-tag">9</span> : <span class="selector-tag">4</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">next_position</span>    <span class="selector-tag">13</span> : <span class="selector-tag">4</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">flags</span>            <span class="selector-tag">17</span> : <span class="selector-tag">2</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">extra_headers</span>    <span class="selector-tag">19</span> : <span class="selector-tag">x-19</span> |</span><br><span class="line">+=====================================+</span><br><span class="line">| <span class="selector-tag">event</span>  | <span class="selector-tag">fixed</span> <span class="selector-tag">part</span>        <span class="selector-tag">x</span> : <span class="selector-tag">y</span>    |</span><br><span class="line">| <span class="selector-tag">data</span>   +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">variable</span> <span class="selector-tag">part</span>              |</span><br><span class="line">+=====================================+</span><br></pre></td></tr></table></figure>
+
+<h3 id="format-desc-event"><a href="#format-desc-event" class="headerlink" title="format_desc event"></a>format_desc event</h3><p><strong>作用：binlog文件的第一个event，记录版本号等元数据信息。</strong></p>
+<p>对照官方文档中的说明来看下<code>format_desc event</code>格式：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">+=====================================+</span><br><span class="line">| <span class="selector-tag">event</span>  | <span class="selector-tag">timestamp</span>         <span class="selector-tag">0</span> : <span class="selector-tag">4</span>    |</span><br><span class="line">| <span class="selector-tag">header</span> +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | type_code         4 : 1    | = FORMAT_DESCRIPTION_EVENT = 15</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">server_id</span>         <span class="selector-tag">5</span> : <span class="selector-tag">4</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | event_length      9 : 4    | &gt;= 91</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">next_position</span>    <span class="selector-tag">13</span> : <span class="selector-tag">4</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">flags</span>            <span class="selector-tag">17</span> : <span class="selector-tag">2</span>    |</span><br><span class="line">+=====================================+</span><br><span class="line">| event  | binlog_version   19 : 2    | = 4</span><br><span class="line">| <span class="selector-tag">data</span>   +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">server_version</span>   <span class="selector-tag">21</span> : <span class="selector-tag">50</span>   |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">create_timestamp</span> <span class="selector-tag">71</span> : <span class="selector-tag">4</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | <span class="selector-tag">header_length</span>    <span class="selector-tag">75</span> : <span class="selector-tag">1</span>    |</span><br><span class="line">|        +<span class="selector-tag">----------------------------</span>+</span><br><span class="line">|        | post-header      76 : n    | = array of n bytes, one byte per event</span><br><span class="line">|        | <span class="selector-tag">lengths</span> <span class="selector-tag">for</span> <span class="keyword">all</span>            |   <span class="selector-tag">type</span> <span class="selector-tag">that</span> <span class="selector-tag">the</span> <span class="selector-tag">server</span> <span class="selector-tag">knows</span> <span class="selector-tag">about</span></span><br><span class="line">|        | <span class="selector-tag">event</span> <span class="selector-tag">types</span>                |</span><br><span class="line">+=====================================+</span><br></pre></td></tr></table></figure>
+
+<p>前面4个字节是固定的magic number,值为0x6e6962fe。</p>
+<p>接着是一个<code>format_desc event</code>，先看下19个字节的header。这19个字节中前4个字节0x567fb2b8是时间戳，第5个字节0x0f是event type，接着4个字节0x00000004是server_id，再接着4个字节0x00000067是长度103，然后的4个字节0x0000006b是下一个event的起始位置107，接着的2个字节的0x0001是flag（1为LOG_EVENT_BINLOG_IN_USE_F，标识binlog还没有关闭，binlog关闭后，flag会被设置为0），这样4+1+4+4+4+2=19个字节的公共头就完了(extra_headers暂时没有用到)。</p>
+<p>然后是这个event的data部分，event的data分为<code>Fixed data</code>和<code>Variable data</code>两部分，其中<code>Fixed data</code>是event的固定长度和格式的数据，<code>Variable data</code>则是长度变化的数据，比如format_desc event的Fixed data长度是0x54=84个字节。下面看下这84=2+50+4+1+27个字节的分配：开始的2个字节0x0004为binlog的版本号4，接着的50个字节为mysql-server版本，如我的版本是5.5.46-0ubuntu0.14.04.2-log，与<code>SELECT version();</code>查看的结果一致。接下来4个字节是binlog创建时间，这里是0；然后的1个字节0x13是指之后所有event的公共头长度，这里都是19；接着的27个字节中每个字节为mysql已知的event（共27个）的Fixed data的长度；可以发现format_desc event自身的Variable data部分为空。</p>
+<h3 id="rotate-event"><a href="#rotate-event" class="headerlink" title="rotate event"></a>rotate event</h3><p><strong>作用：连接下一个binlog文件</strong></p>
+<p>前面的内容跟之前的几乎一致，除了format_desc event的flag从0x0001变成了0x0000。然后从0x567fb3c2开始是一个<code>rotate event</code>。依照前面的分析，前面19个字节为event的header，其event type是0x04，长度为0x2b=43，下一个event起始位置为0x96=150，然后是flag为0x0000，接着是event data部分，首先的8个字节为<code>Fixed data</code>部分，记录的是下一个binlog的位置偏移4，而余下来的43-19-8=16个字节为<code>Variable data</code>部分，记录的是下一个binlog的文件名mysql-bin.000054。对照<code>mysqlbinlog -vv mysql-bin.000053</code>可以验证。</p>
+<h3 id="query-event"><a href="#query-event" class="headerlink" title="query event"></a>query event</h3><p><strong>作用：存储statement类的信息，基于statement的binlog格式记录sql语句，在row模式下记录事务begin标签</strong></p>
+<p>刷新binlog，设置<code>binlog_format=statement</code>，创建一个表<code>CREATE TABLE</code>tt<code>(</code>i<code>varchar(100) DEFAULT NULL) ENGINE=InnoDB</code>, 然后在测试表tt中插入一条数据<code>insert into tt values(&#39;abc&#39;)</code>，会产生3个event，包括2个query event和1个xid event。其中2个query event分别是BEGIN以及INSERT 语句，而xid event则是事务提交语句（xid event是支持XA的存储引擎才有的，因为测试表tt是innodb引擎的，所以会有。如果是myisam引擎的表，也会有BEGIN和COMMIT,只不过COMMIT会是一个query event而不是xid event）。</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; show binlog events in &#x27;mysql-bin.000060&#x27;;</span><br><span class="line">+<span class="selector-tag">------------------</span>+<span class="selector-tag">-----</span>+<span class="selector-tag">-------------</span>+<span class="selector-tag">-----------</span>+<span class="selector-tag">-------------</span>+<span class="selector-tag">--------------------------------------------------------</span>+</span><br><span class="line">| <span class="selector-tag">Log_name</span>         | <span class="selector-tag">Pos</span> | <span class="selector-tag">Event_type</span>  | <span class="selector-tag">Server_id</span> | <span class="selector-tag">End_log_pos</span> | <span class="selector-tag">Info</span>                                                   |</span><br><span class="line">+<span class="selector-tag">------------------</span>+<span class="selector-tag">-----</span>+<span class="selector-tag">-------------</span>+<span class="selector-tag">-----------</span>+<span class="selector-tag">-------------</span>+<span class="selector-tag">--------------------------------------------------------</span>+</span><br><span class="line">| <span class="selector-tag">mysql-bin</span><span class="selector-class">.000060</span> |   <span class="selector-tag">4</span> | <span class="selector-tag">Format_desc</span> |         <span class="selector-tag">4</span> |         <span class="selector-tag">107</span> | <span class="selector-tag">Server</span> <span class="selector-tag">ver</span>: <span class="selector-tag">5</span><span class="selector-class">.5</span><span class="selector-class">.46-0ubuntu0</span><span class="selector-class">.14</span><span class="selector-class">.04</span><span class="selector-class">.2-log</span>, <span class="selector-tag">Binlog</span> <span class="selector-tag">ver</span>: <span class="selector-tag">4</span> |</span><br><span class="line">| <span class="selector-tag">mysql-bin</span><span class="selector-class">.000060</span> | <span class="selector-tag">107</span> | <span class="selector-tag">Query</span>       |         <span class="selector-tag">4</span> |         <span class="selector-tag">175</span> | <span class="selector-tag">BEGIN</span>                                                  |</span><br><span class="line">| <span class="selector-tag">mysql-bin</span><span class="selector-class">.000060</span> | <span class="selector-tag">175</span> | <span class="selector-tag">Query</span>       |         <span class="selector-tag">4</span> |         <span class="selector-tag">266</span> | <span class="selector-tag">use</span> `<span class="selector-tag">test</span>`; <span class="selector-tag">insert</span> <span class="selector-tag">into</span> <span class="selector-tag">tt</span> <span class="selector-tag">values</span>(<span class="string">&#x27;abc&#x27;</span>)               |</span><br><span class="line">| <span class="selector-tag">mysql-bin</span><span class="selector-class">.000060</span> | <span class="selector-tag">266</span> | <span class="selector-tag">Xid</span>         |         <span class="selector-tag">4</span> |         <span class="selector-tag">293</span> | <span class="selector-tag">COMMIT</span> <span class="comment">/* xid=138 */</span>                                   |</span><br><span class="line">+<span class="selector-tag">------------------</span>+<span class="selector-tag">-----</span>+<span class="selector-tag">-------------</span>+<span class="selector-tag">-----------</span>+<span class="selector-tag">-------------</span>+<span class="selector-tag">--------------------------------------------------</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="table-map-event-amp-write-rows-event"><a href="#table-map-event-amp-write-rows-event" class="headerlink" title="table_map event &amp; write_rows event"></a>table_map event &amp; write_rows event</h3><p><strong>作用：TABLE_MAP_EVENT: row模式下记录表源数据，对读取行记录提供规则参考</strong></p>
+<p><strong>作用：WRITE_ROWS_EVENT/DELETE_ROWS_EVENT/UPDATE_ROWS_EVENT: row模式下记录对应行数据变化的记录</strong></p>
+<p>执行语句<code>INSERT INTO trow VALUES(1, NULL), (2, &#39;a&#39;)</code>，这个语句会产生<code>一个query event，一个table_map event、一个write_rows event以及一个xid event</code>。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">mysql&gt; show binlog events <span class="keyword">in</span> <span class="string">&#x27;mysql-bin.000074&#x27;</span>;</span><br><span class="line"><span class="params">| Log_name         |</span> Pos <span class="params">| Event_type  |</span> Server_id <span class="params">| End_log_pos |</span> Info                                                   <span class="params">|</span></span><br><span class="line"><span class="params">+------------------+-----+-------------+-----------+-------------+--------------------------------------------------------+</span></span><br><span class="line"><span class="params">|</span> mysql-bin.<span class="number">000074</span> <span class="params">|   4 |</span> Format_desc <span class="params">|         4 |</span>         <span class="number">107</span> <span class="params">| Server ver: 5.5.46-0ubuntu0.14.04.2-log, Binlog ver: 4 |</span></span><br><span class="line"><span class="params">| mysql-bin.000074 |</span> <span class="number">107</span> <span class="params">| Query       |</span>         <span class="number">4</span> <span class="params">|         175 |</span> <span class="keyword">BEGIN</span>                                                  <span class="params">|</span></span><br><span class="line"><span class="params">|</span> mysql-bin.<span class="number">000074</span> <span class="params">| 175 |</span> Table_map   <span class="params">|         4 |</span>         <span class="number">221</span> <span class="params">| table_id: 50 (test.trow)                               |</span></span><br><span class="line"><span class="params">| mysql-bin.000074 |</span> <span class="number">221</span> <span class="params">| Write_rows  |</span>         <span class="number">4</span> <span class="params">|         262 |</span> <span class="symbol">table_id:</span> <span class="number">50</span> <span class="symbol">flags:</span> STMT_END_F                         <span class="params">|</span></span><br><span class="line"><span class="params">|</span> mysql-bin.<span class="number">000074</span> <span class="params">| 262 |</span> Xid         <span class="params">|         4 |</span>         <span class="number">289</span> <span class="params">| COMMIT /* xid=245 */                                   </span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="intvar-event"><a href="#intvar-event" class="headerlink" title="intvar event"></a>intvar event</h3><p>intvar event在binlog_format=<strong>statement</strong>时使用到，用于自增键类型auto_increment，十分重要。intval event的Fixed data部分为空，而Variable data部分为9个字节，第1个字节用于标识自增事件类型 LAST_INSERT_ID_EVENT = 1 or INSERT_ID_EVENT = 2，余下的8个字节为自增ID。创建一个测试表 <code>create table tinc (i int auto_increment primary key, c varchar(10)) engine=innodb;</code>，然后执行一个插入语句<code>INSERT INTO tinc(c) values(&#39;abc&#39;);</code>就可以看到intvar event了，这里的自增事件类型为INSERT_ID_EVENT。而如果用语句<code>INSERT INTO tinc(i, c) VALUES(LAST_INSERT_ID()+1, &#39;abc&#39;)</code>，则可以看到自增事件类型为LAST_INSERT_ID_EVENT的intvar event。</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="params">| Log_name         |</span> Pos <span class="params">| Event_type  |</span> Server_id <span class="params">| End_log_pos |</span> Info                                                   <span class="params">|</span></span><br><span class="line"><span class="params">+------------------+-----+-------------+-----------+-------------</span></span><br><span class="line"><span class="params">|</span> mysql-bin.000079 <span class="params">|   4 |</span> Format_desc <span class="params">|         4 |</span>         <span class="number">107</span> <span class="params">| Server ver: 5.5.46-0ubuntu0.14.04.2-log, Binlog ver: 4 |</span></span><br><span class="line"><span class="params">| mysql-bin.000079 |</span> <span class="number">107</span> <span class="params">| Query       |</span>         <span class="number">4</span> <span class="params">|         175 |</span> <span class="keyword">BEGIN</span>                                                  <span class="params">|</span></span><br><span class="line"><span class="params">|</span> mysql-bin.000079 <span class="params">| 175 |</span> Intvar      <span class="params">|         4 |</span>         <span class="number">203</span> <span class="params">| INSERT_ID=1                                            |</span></span><br><span class="line"><span class="params">| mysql-bin.000079 |</span> <span class="number">203</span> <span class="params">| Query       |</span>         <span class="number">4</span> <span class="params">|         299 |</span> use <span class="string">`test`</span>; insert into tinc(c) values(<span class="string">&#x27;abc&#x27;</span>)          <span class="params">|</span></span><br><span class="line"><span class="params">|</span> mysql-bin.000079 <span class="params">| 299 |</span> Xid         <span class="params">|         4 |</span>         <span class="number">326</span> <span class="params">| COMMIT /* xid=263 */                                </span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="binlog相关命令"><a href="#binlog相关命令" class="headerlink" title="binlog相关命令"></a>binlog相关命令</h2><h3 id="查看binlog-format"><a href="#查看binlog-format" class="headerlink" title="查看binlog_format"></a>查看binlog_format</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show variables like &#x27;binlog_format&#x27;</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改binlog-format"><a href="#修改binlog-format" class="headerlink" title="修改binlog_format"></a>修改binlog_format</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set globle binlog_format=&#x27;MIXED&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>修改完成之后，需要重启mysql服务器；如果不重启只能针对以后新建立的连接就会生效配置，旧的连接不生效；</p>
+<h3 id="查看是否开启binlog"><a href="#查看是否开启binlog" class="headerlink" title="查看是否开启binlog"></a>查看是否开启binlog</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show variables like &#x27;log_bin&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>如果binlog没有开启，可以通过set sql_log_bin=1命令来启用;如果想停用binlog,可以使用set sql_log_bin=0。</p>
+<h3 id="获取binlog文件列表"><a href="#获取binlog文件列表" class="headerlink" title="获取binlog文件列表"></a>获取binlog文件列表</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">show</span> <span class="selector-tag">binary</span> <span class="selector-tag">logs</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="查看当前正在写入的binlog文件"><a href="#查看当前正在写入的binlog文件" class="headerlink" title="查看当前正在写入的binlog文件"></a>查看当前正在写入的binlog文件</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">show</span> <span class="selector-tag">master</span> <span class="selector-tag">status</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="查看master上的binlog"><a href="#查看master上的binlog" class="headerlink" title="查看master上的binlog"></a>查看master上的binlog</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">show</span> <span class="selector-tag">master</span> <span class="selector-tag">logs</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="只查看第一个binlog文件的内容"><a href="#只查看第一个binlog文件的内容" class="headerlink" title="只查看第一个binlog文件的内容"></a>只查看第一个binlog文件的内容</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">show</span> <span class="selector-tag">binlog</span> <span class="selector-tag">events</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="查看指定binlog文件的内容"><a href="#查看指定binlog文件的内容" class="headerlink" title="查看指定binlog文件的内容"></a>查看指定binlog文件的内容</h3><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">show binlog events in &#x27;mysql-bin.000002&#x27;</span><br></pre></td></tr></table></figure>
+
+<h3 id="用mysqlbinlog工具查看"><a href="#用mysqlbinlog工具查看" class="headerlink" title="用mysqlbinlog工具查看"></a>用mysqlbinlog工具查看</h3><p><strong>基于时间查看binlog</strong></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqlbinlog --start-datetime=&#x27;2020-09-10 00:00:00&#x27; --stop-datetime=&#x27;2013-09-20 01:01:01&#x27; -d 库名 二进制文件</span><br></pre></td></tr></table></figure>
+
+<p>需要登录mysql服务器，然后找到binlog文件，最后用mysqlbinlog命令。</p>
+<p><strong>基于偏移量查看binlog</strong></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysqlbinlog --start-postion=107 --stop-position=1000 -d 库名 二进制文件</span><br></pre></td></tr></table></figure>
+
+<p>需要登录mysql服务器，然后找到binlog文件，最后用mysqlbinlog命令。</p>
+<p><strong>远程查看</strong></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-tag">mysqlbinlog</span> <span class="selector-tag">-u</span> <span class="selector-tag">username</span> <span class="selector-tag">-p</span> <span class="selector-tag">password</span> <span class="selector-tag">-hl-127</span><span class="selector-class">.0</span><span class="selector-class">.0</span><span class="selector-class">.1</span> <span class="selector-tag">-P3306</span> \</span><br><span class="line">--read-from-remote-server --start-datetime=&#x27;2013-09-20 23:00:00&#x27; --stop-datetime=&#x27;2013-09-20 23:30:00&#x27; mysql-bin.000001 &gt; t.binlog</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/internals/en/event-classes-and-types.html">Mysql事件详情</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mysql/" rel="tag"># mysql</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/" rel="prev" title="线上故障排查总结">
+                  <i class="fa fa-chevron-left"></i> 线上故障排查总结
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/" rel="next" title="Otter跨机房迁移采坑记录">
+                  Otter跨机房迁移采坑记录 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

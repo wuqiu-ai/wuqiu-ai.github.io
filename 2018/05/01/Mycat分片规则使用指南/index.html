@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="枚举法通过在配置文件中配置可能的枚举id，自己配置分片，本规则适用于特定的场景，比如有些业务需要按照省 份或区县来做保存，而全国省份区县固定的，这类业务使用本条规则，配置如下 12345678910111213141516&lt;tableRule name&#x3D;&quot;sharding-by-intfile&quot;&gt;    &lt;rule&gt;      &lt;!--标">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mycat分片规则使用指南">
+<meta property="og:url" content="http://ppjys.cn/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="枚举法通过在配置文件中配置可能的枚举id，自己配置分片，本规则适用于特定的场景，比如有些业务需要按照省 份或区县来做保存，而全国省份区县固定的，这类业务使用本条规则，配置如下 12345678910111213141516&lt;tableRule name&#x3D;&quot;sharding-by-intfile&quot;&gt;    &lt;rule&gt;      &lt;!--标">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-05-01T04:07:35.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.612Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="mycat">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Mycat分片规则使用指南 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%9A%E4%B8%BE%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">枚举法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E5%88%86%E7%89%87hash%E7%AE%97%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">固定分片hash算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%8C%83%E5%9B%B4%E7%BA%A6%E5%AE%9A"><span class="nav-number">3.</span> <span class="nav-text">范围约定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B1%82%E6%A8%A1%E6%B3%95"><span class="nav-number">4.</span> <span class="nav-text">求模法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E6%9C%9F%E5%88%97%E5%88%86%E5%8C%BA%E6%B3%95"><span class="nav-number">5.</span> <span class="nav-text">日期列分区法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%9A%E9%85%8D%E5%8F%96%E6%A8%A1"><span class="nav-number">6.</span> <span class="nav-text">通配取模</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ASCII%E7%A0%81%E6%B1%82%E6%A8%A1%E9%80%9A%E9%85%8D"><span class="nav-number">7.</span> <span class="nav-text">ASCII码求模通配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E7%A8%8B%E6%8C%87%E5%AE%9A"><span class="nav-number">8.</span> <span class="nav-text">编程指定</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7hash"><span class="nav-number">9.</span> <span class="nav-text">一致性hash</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Mycat分片规则使用指南
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-05-01 12:07:35" itemprop="dateCreated datePublished" datetime="2018-05-01T12:07:35+08:00">2018-05-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mycat/" itemprop="url" rel="index"><span itemprop="name">mycat</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="枚举法"><a href="#枚举法" class="headerlink" title="枚举法"></a>枚举法</h2><p>通过在配置文件中配置可能的枚举id，自己配置分片，本规则适用于特定的场景，比如有些业务需要按照省 份或区县来做保存，而全国省份区县固定的，这类业务使用本条规则，配置如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-intfile&quot;&gt;</span><br><span class="line">    &lt;rule&gt;</span><br><span class="line">      &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">      &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">      &lt;!--分片函数--&gt;</span><br><span class="line">      &lt;algorithm&gt;hash-int&lt;&#x2F;algorithm&gt;</span><br><span class="line">    &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;hash-int&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByFileMap&quot;&gt;</span><br><span class="line">  &lt;!--标识配置文件名称--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;mapFile&quot;&gt;partition-hash-int.txt&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--type默认值为0，0表示Integer，非零表示String--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;type&quot;&gt;0&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--所有的节点配置都是从0开始，及0代表节点1--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;defaultNode&quot;&gt;0&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+<p>partition-hash-int.txt 配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">10000&#x3D;0</span><br><span class="line">10010&#x3D;1</span><br><span class="line">DEFAULT_NODE&#x3D;1</span><br></pre></td></tr></table></figure>
+<p>配置说明:</p>
+<blockquote>
+<p>上面 columns 标识将要分片的表字段，algorithm 分片函数，其中分片函数配置中，mapFile 标识配置文件名称，type为分片字段的类型，默认值为 0，0 表示 Integer，非零表示 String， 所有的节点配置都是从 0 开始，及 0 代表节点 1；defaultNode 默认节点:小于 0 表示不设置默认节点，大于等于 0 表示设置默认节点，默认节点的作用:枚举分片时，如果碰到不识别的枚举值，就让它路由到默认节点；如果不配置默认节点(defaultNode 值小于 0 表示不配置默认节点)，碰到不识别的枚举值就会报错</p>
+</blockquote>
+<span id="more"></span>
+
+<h2 id="固定分片hash算法"><a href="#固定分片hash算法" class="headerlink" title="固定分片hash算法"></a>固定分片hash算法</h2><p>本条规则类似于十进制的求模运算，区别在于是二进制的操作,是取 id 的二进制低 10 位，即 id 二进制 &amp;1111111111。<br>此算法的优点在于如果按照 10 进制取模运算，在连续插入 1-10 时候 1-10 会被分到 1-10 个分片，增 大了插入的事务控制难度，而此算法根据二进制则可能会分到连续的分片，减少插入事务事务控制难度。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;rule1&quot;&gt;</span><br><span class="line">  &lt;rule&gt;</span><br><span class="line">    &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">    &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">    &lt;!--分片函数--&gt;</span><br><span class="line">    &lt;algorithm&gt;func1&lt;&#x2F;algorithm&gt;</span><br><span class="line">  &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;func1&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByLong&quot;&gt;</span><br><span class="line">  &lt;!--分片个数列表--&gt;</span><br><span class="line">  &lt;property name&#x3D;&quot;partitionCount&quot;&gt;2,1&lt;&#x2F;property&gt;</span><br><span class="line">  &lt;!--分片范围列表--&gt;</span><br><span class="line">  &lt;property name&#x3D;&quot;partitionLength&quot;&gt;256,512&lt;&#x2F;property&gt;</span><br><span class="line">  &lt;!--分区长度:默认为最大2^n&#x3D;1024 ,即最大支持1024分区--&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+<p>配置说明:</p>
+<blockquote>
+<p>上面 columns 标识将要分片的表字段，algorithm 分片函数，<br>partitionCount 分片个数列表，partitionLength 分片范围列表 分区长度:默认为最大 2^n=1024 ,即最大支持 1024 分区,</p>
+</blockquote>
+<p>约束:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">count,length两个数组的长度必须是一致的。</span><br><span class="line">1024 &#x3D; sum((count[i]*length[i])). count和length两个向量的点积恒等于1024</span><br></pre></td></tr></table></figure>
+<p>用法例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">本例的分区策略：希望将数据水平分成3份，前两份各占25%，第三份占50%。（故本例非均匀分区）</span><br><span class="line">&#x2F;&#x2F; |&lt;---------------------1024------------------------&gt;|</span><br><span class="line">&#x2F;&#x2F; |&lt;----256---&gt;|&lt;----256---&gt;|&lt;----------512----------&gt;|</span><br><span class="line">&#x2F;&#x2F; | partition0 | partition1 | partition2 |</span><br><span class="line">&#x2F;&#x2F; | 共2份,故count[0]&#x3D;2 | 共1份，故count[1]&#x3D;1 |</span><br><span class="line">int[] count &#x3D; new int[] &#123; 2, 1 &#125;;</span><br><span class="line">int[] length &#x3D; new int[] &#123; 256, 512 &#125;;</span><br><span class="line">PartitionUtil pu &#x3D; new PartitionUtil(count, length);</span><br><span class="line">&#x2F;&#x2F; 下面代码演示分别以offerId字段或memberId字段根据上述分区策略拆分的分配结果</span><br><span class="line">int DEFAULT_STR_HEAD_LEN &#x3D; 8; &#x2F;&#x2F; cobar默认会配置为此值</span><br><span class="line">long offerId &#x3D; 12345;</span><br><span class="line">String memberId &#x3D; &quot;qiushuo&quot;;</span><br><span class="line">&#x2F;&#x2F; 若根据offerId分配，partNo1将等于0，即按照上述分区策略，offerId为12345时将会被分配到partition0中</span><br><span class="line">int partNo1 &#x3D; pu.partition(offerId);</span><br><span class="line">&#x2F;&#x2F; 若根据memberId分配，partNo2将等于2，即按照上述分区策略，memberId为qiushuo时将会被分到partition2中</span><br><span class="line">int partNo2 &#x3D; pu.partition(memberId, 0, DEFAULT_STR_HEAD_LEN);</span><br></pre></td></tr></table></figure>
+
+<p>如果需要平均分配设置：平均分为4分片，partitionCount*partitionLength=1024</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;function name&#x3D;&quot;func1&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByLong&quot;&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;partitionCount&quot;&gt;4&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;partitionLength&quot;&gt;256&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="范围约定"><a href="#范围约定" class="headerlink" title="范围约定"></a>范围约定</h2><p>此分片适用于，提前规划好分片字段某个范围属于哪个分片,start &lt;= range &lt;= end.K=1000,M=10000.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;auto-sharding-long&quot;&gt;</span><br><span class="line">    &lt;rule&gt;</span><br><span class="line">      &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">      &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">      &lt;!--分片函数--&gt;</span><br><span class="line">      &lt;algorithm&gt;rang-long&lt;&#x2F;algorithm&gt;</span><br><span class="line">    &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;rang-long&quot; class&#x3D;&quot;com.dxy.mycat.route.function.AutoPartitionByLong&quot;&gt;</span><br><span class="line">  &lt;!--配置文件路径--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;mapFile&quot;&gt;autopartition-long.txt&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># range start-end ,data node index</span><br><span class="line"># 所有的节点配置都是从0开始，及0代表节点1，此配置非常简单，即预先制定可能的id范围到某个分片</span><br><span class="line"># K&#x3D;1000,M&#x3D;10000.</span><br><span class="line">0-500M&#x3D;0</span><br><span class="line">500M-1000M&#x3D;1</span><br><span class="line">1000M-1500M&#x3D;2</span><br><span class="line">或</span><br><span class="line">0-10000000&#x3D;0</span><br><span class="line">10000001-20000000&#x3D;1</span><br></pre></td></tr></table></figure>
+<p>配置说明:</p>
+<blockquote>
+<p>上面 columns 标识将要分片的表字段，algorithm 分片函数，rang-long 函数中 mapFile 代表配置文件路径<br>defaultNode 超过范围后的默认节点。</p>
+<p>所有的节点配置都是从 0 开始，及 0 代表节点 1，此配置非常简单，即预先制定可能的 id 范围到某个分片<br>0-500M=0 500M-1000M=1<br>1000M-1500M=2 或<br>0-10000000=0 10000001-20000000=1</p>
+</blockquote>
+<h2 id="求模法"><a href="#求模法" class="headerlink" title="求模法"></a>求模法</h2><p>此种配置非常明确即根据 id进行十进制求模预算，相比固定分片 hash，此种在批量插入时可能存在批量插入单 事务插入多数据分片，增大事务一致性难度。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;mod-long&quot;&gt;</span><br><span class="line">   &lt;rule&gt;</span><br><span class="line">     &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">     &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">     &lt;!--分片函数--&gt;</span><br><span class="line">     &lt;algorithm&gt;mod-long&lt;&#x2F;algorithm&gt;</span><br><span class="line">   &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;mod-long&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByMod&quot;&gt;</span><br><span class="line">   &lt;!--注意！这里填写数据库节点数，否则无法分片--&gt;</span><br><span class="line">   &lt;property name&#x3D;&quot;count&quot;&gt;3&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="日期列分区法"><a href="#日期列分区法" class="headerlink" title="日期列分区法"></a>日期列分区法</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-date&quot;&gt;</span><br><span class="line">      &lt;rule&gt;</span><br><span class="line">        &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">        &lt;columns&gt;create_time&lt;&#x2F;columns&gt;</span><br><span class="line">        &lt;!--分片函数--&gt;</span><br><span class="line">        &lt;algorithm&gt;sharding-by-date&lt;&#x2F;algorithm&gt;</span><br><span class="line">      &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;  </span><br><span class="line">&lt;function name&#x3D;&quot;sharding-by-date&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByDate&quot;&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;dateFormat&quot;&gt;yyyy-MM-dd&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;sBeginDate&quot;&gt;2015-01-01&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;sPartionDay&quot;&gt;10&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+<p>配置中配置了开始日期，分区天数，即默认从开始日期算起，分隔10天一个分区</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Assert.assertEquals(true, 0 &#x3D;&#x3D; partition.calculate(&quot;2015-01-01&quot;));</span><br><span class="line">Assert.assertEquals(true, 0 &#x3D;&#x3D; partition.calculate(&quot;2015-01-10&quot;));</span><br><span class="line">Assert.assertEquals(true, 1 &#x3D;&#x3D; partition.calculate(&quot;2015-01-11&quot;));</span><br><span class="line">Assert.assertEquals(true, 12 &#x3D;&#x3D; partition.calculate(&quot;2015-05-01&quot;));</span><br></pre></td></tr></table></figure>
+<p>配置说明:</p>
+<blockquote>
+<p>columns :标识将要分片的表字段;<br>algorithm :分片函数;<br>dateFormat :日期格式;<br>sBeginDate :开始日期;<br>sEndDate:结束日期;<br>sPartionDay :分区天数，即默认从开始日期算起，分隔 10 天一个分区;</p>
+</blockquote>
+<h2 id="通配取模"><a href="#通配取模" class="headerlink" title="通配取模"></a>通配取模</h2><p>此种规则是取模运算与范围约束的结合，主要为了后续数据迁移做准备，即可以自主决定取模后数据的节点分布。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-pattern&quot;&gt;</span><br><span class="line">      &lt;rule&gt;</span><br><span class="line">        &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">        &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">        &lt;!--分片函数--&gt;</span><br><span class="line">        &lt;algorithm&gt;sharding-by-pattern&lt;&#x2F;algorithm&gt;</span><br><span class="line">      &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;sharding-by-pattern&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByPattern&quot;&gt;</span><br><span class="line">  &lt;!--求模基数--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;patternValue&quot;&gt;256&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--默认节点--&gt;</span><br><span class="line">    &lt;!--如果配置了默认，则不会按照求模运算--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;defaultNode&quot;&gt;2&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!-- 配置文件路径--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;mapFile&quot;&gt;partition-pattern.txt&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+<p>partition-pattern.txt ：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># id partition range start-end ,data node index</span><br><span class="line">###### first host configuration</span><br><span class="line">1-32&#x3D;0</span><br><span class="line">33-64&#x3D;1</span><br><span class="line">65-96&#x3D;2</span><br><span class="line">97-128&#x3D;3</span><br><span class="line">######## second host configuration</span><br><span class="line">129-160&#x3D;4</span><br><span class="line">161-192&#x3D;5</span><br><span class="line">193-224&#x3D;6</span><br><span class="line">225-256&#x3D;7</span><br><span class="line">0-0&#x3D;7</span><br><span class="line">#1-32 即代表id%256后分布的范围，如果在1-32则在分区1，其他类推，如果id非数据，则会分配在defaoultNode 默认节点</span><br></pre></td></tr></table></figure>
+
+<h2 id="ASCII码求模通配"><a href="#ASCII码求模通配" class="headerlink" title="ASCII码求模通配"></a>ASCII码求模通配</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-prefixpattern&quot;&gt;</span><br><span class="line">      &lt;rule&gt;</span><br><span class="line">        &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">        &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">        &lt;!--分片函数--&gt;</span><br><span class="line">        &lt;algorithm&gt;sharding-by-prefixpattern&lt;&#x2F;algorithm&gt;</span><br><span class="line">      &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;sharding-by-pattern&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByPattern&quot;&gt;</span><br><span class="line">    &lt;!--求模基数--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;patternValue&quot;&gt;256&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--ASCII 截取的位数--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;prefixLength&quot;&gt;5&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!-- 配置文件路径--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;mapFile&quot;&gt;partition-pattern.txt&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+<p>partition-pattern.txt：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># range start-end ,data node index</span><br><span class="line"># ASCII</span><br><span class="line"># 48-57&#x3D;0-9</span><br><span class="line"># 64、65-90&#x3D;@、A-Z</span><br><span class="line"># 97-122&#x3D;a-z</span><br><span class="line">###### first host configuration</span><br><span class="line">1-4&#x3D;0</span><br><span class="line">5-8&#x3D;1</span><br><span class="line">9-12&#x3D;2</span><br><span class="line">13-16&#x3D;3</span><br><span class="line">###### second host configuration</span><br><span class="line">17-20&#x3D;4</span><br><span class="line">21-24&#x3D;5</span><br><span class="line">25-28&#x3D;6</span><br><span class="line">29-32&#x3D;7</span><br><span class="line">0-0&#x3D;7</span><br><span class="line">#1-32 即代表id%256后分布的范围，如果在1-32则在分区1，其他类推</span><br></pre></td></tr></table></figure>
+<p>此种方式类似方式6只不过采取的是将列种获取前prefixLength位列所有ASCII码的和进行求模sum%patternValue ,获取的值，在通配范围内的即 分片数，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ASCII编码：</span><br><span class="line">48-57&#x3D;0-9阿拉伯数字</span><br><span class="line">64、65-90&#x3D;@、A-Z</span><br><span class="line">97-122&#x3D;a-z</span><br></pre></td></tr></table></figure>
+<p>配置说明:</p>
+<blockquote>
+<p>上面 columns 标识将要分片的表字段，algorithm 分片函数，patternValue 即求模基数，prefixLength ASCII 截取的位数<br>mapFile 配置文件路径<br>配置文件中，1-32 即代表 id%256 后分布的范围，如果在 1-32 则在分区 1，其他类推</p>
+</blockquote>
+<p>例子：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">String idVal&#x3D;&quot;gf89f9a&quot;;</span><br><span class="line">Assert.assertEquals(true, 0&#x3D;&#x3D;autoPartition.calculate(idVal));</span><br><span class="line">idVal&#x3D;&quot;8df99a&quot;;</span><br><span class="line">Assert.assertEquals(true, 4&#x3D;&#x3D;autoPartition.calculate(idVal));</span><br><span class="line">idVal&#x3D;&quot;8dhdf99a&quot;;</span><br><span class="line">Assert.assertEquals(true, 3&#x3D;&#x3D;autoPartition.calculate(idVal));</span><br></pre></td></tr></table></figure>
+
+<h2 id="编程指定"><a href="#编程指定" class="headerlink" title="编程指定"></a>编程指定</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-substring&quot;&gt;</span><br><span class="line">      &lt;rule&gt;</span><br><span class="line">      &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">        &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">    &lt;!--分片函数--&gt;</span><br><span class="line">        &lt;algorithm&gt;sharding-by-substring&lt;&#x2F;algorithm&gt;</span><br><span class="line">      &lt;&#x2F;rule&gt;</span><br><span class="line">   &lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;sharding-by-substring&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionDirectBySubString&quot;&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;startIndex&quot;&gt;0&lt;&#x2F;property&gt; &lt;!-- zero-based --&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;size&quot;&gt;2&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;partitionCount&quot;&gt;8&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;defaultPartition&quot;&gt;0&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+<p>此方法为直接根据字符子串（必须是数字）计算分区号（由应用传递参数，显式指定分区号）。<br>例如id=05-100000002<br>在此配置中代表根据id中从startIndex=0，开始，截取siz=2位数字即05，05就是获取的分区，如果没传默认分配到defaultPartition</p>
+<ul>
+<li>字符串拆分hash解析<strong>不推荐使用</strong><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-stringhash&quot;&gt;</span><br><span class="line">      &lt;rule&gt;</span><br><span class="line">        &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">        &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">        &lt;!--分片函数--&gt;</span><br><span class="line">        &lt;algorithm&gt;sharding-by-stringhash&lt;&#x2F;algorithm&gt;</span><br><span class="line">      &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;sharding-by-substring&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionDirectBySubString&quot;&gt;</span><br><span class="line">  &lt;!--字符串hash求模基数--&gt;</span><br><span class="line">    &lt;property name&#x3D;length&gt;512&lt;&#x2F;property&gt; &lt;!-- zero-based --&gt;</span><br><span class="line">    &lt;!--分区数--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;count&quot;&gt;2&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--预算位--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;hashSlice&quot;&gt;0:2&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+配置说明：<blockquote>
+<p>上面 columns 标识将要分片的表字段，algorithm 分片函数 函数中 partitionLength 代表字符串 hash 求模基数，<br>partitionCount 分区数，<br>hashSlice hash 预算位，即根据子字符串中 int 值 hash 运算</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&gt; &quot;2&quot; -&gt; (0,2)&lt;br&#x2F;&gt;</span><br><span class="line">&gt; &quot;1:2&quot; -&gt; (1,2)&lt;br&#x2F;&gt;</span><br><span class="line">&gt; &quot;1:&quot; -&gt; (1,0)&lt;br&#x2F;&gt;</span><br><span class="line">&gt; &quot;-1:&quot; -&gt; (-1,0)&lt;br&#x2F;&gt;</span><br><span class="line">&gt; &quot;:-1&quot; -&gt; (0,-1)&lt;br&#x2F;&gt;</span><br><span class="line">&gt; &quot;:&quot; -&gt; (0,0)&lt;br&#x2F;&gt;</span><br></pre></td></tr></table></figure>
+例子<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">String idVal&#x3D;null;</span><br><span class="line"> rule.setPartitionLength(&quot;512&quot;);</span><br><span class="line"> rule.setPartitionCount(&quot;2&quot;);</span><br><span class="line"> rule.init();</span><br><span class="line"> rule.setHashSlice(&quot;0:2&quot;);</span><br><span class="line">&#x2F;&#x2F;		idVal &#x3D; &quot;0&quot;;</span><br><span class="line">&#x2F;&#x2F;		Assert.assertEquals(true, 0 &#x3D;&#x3D; rule.calculate(idVal));</span><br><span class="line">&#x2F;&#x2F;		idVal &#x3D; &quot;45a&quot;;</span><br><span class="line">&#x2F;&#x2F;		Assert.assertEquals(true, 1 &#x3D;&#x3D; rule.calculate(idVal));</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">&#x2F;&#x2F;last 4</span><br><span class="line">rule &#x3D; new PartitionByString();</span><br><span class="line">rule.setPartitionLength(&quot;512&quot;);</span><br><span class="line">rule.setPartitionCount(&quot;2&quot;);</span><br><span class="line">rule.init();</span><br><span class="line">&#x2F;&#x2F;last 4 characters</span><br><span class="line">rule.setHashSlice(&quot;-4:0&quot;);</span><br><span class="line">idVal &#x3D; &quot;aaaabbb0000&quot;;</span><br><span class="line">Assert.assertEquals(true, 0 &#x3D;&#x3D; rule.calculate(idVal));</span><br><span class="line">idVal &#x3D; &quot;aaaabbb2359&quot;;</span><br><span class="line">Assert.assertEquals(true, 0 &#x3D;&#x3D; rule.calculate(idVal));</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="一致性hash"><a href="#一致性hash" class="headerlink" title="一致性hash"></a>一致性hash</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-murmur&quot;&gt;</span><br><span class="line">      &lt;rule&gt;</span><br><span class="line">        &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">        &lt;algorithm&gt;murmur&lt;&#x2F;algorithm&gt;</span><br><span class="line">      &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;murmur&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByMurmurHash&quot;&gt;</span><br><span class="line">      &lt;property name&#x3D;&quot;seed&quot;&gt;0&lt;&#x2F;property&gt;&lt;!-- 默认是0--&gt;</span><br><span class="line">      &lt;property name&#x3D;&quot;count&quot;&gt;2&lt;&#x2F;property&gt;&lt;!-- 要分片的数据库节点数量，必须指定，否则没法分片--&gt;</span><br><span class="line">      &lt;property name&#x3D;&quot;virtualBucketTimes&quot;&gt;160&lt;&#x2F;property&gt;&lt;!-- 一个实际的数据库节点被映射为这么多虚拟节点，默认是160倍，也就是虚拟节点数是物理节点数的160倍--&gt;</span><br><span class="line">      &lt;!--</span><br><span class="line">      &lt;property name&#x3D;&quot;weightMapFile&quot;&gt;weightMapFile&lt;&#x2F;property&gt;</span><br><span class="line">                     节点的权重，没有指定权重的节点默认是1。以properties文件的格式填写，以从0开始到count-1的整数值也就是节点索引为key，以节点权重值为值。所有权重值必须是正整数，否则以1代替 --&gt;</span><br><span class="line">      &lt;!--</span><br><span class="line">      &lt;property name&#x3D;&quot;bucketMapPath&quot;&gt;&#x2F;etc&#x2F;mycat&#x2F;bucketMapPath&lt;&#x2F;property&gt;</span><br><span class="line">                      用于测试时观察各物理节点与虚拟节点的分布情况，如果指定了这个属性，会把虚拟节点的murmur hash值与物理节点的映射按行输出到这个文件，没有默认值，如果不指定，就不会输出任何东西 --&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+<p>一致性hash预算有效解决了分布式数据的扩容问题，前1-9中id规则都多少存在数据扩容难题，而10规则解决了数据扩容难点</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mycat/" rel="tag"># mycat</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BHaproxy/" rel="prev" title="Mycat部署文档之Haproxy">
+                  <i class="fa fa-chevron-left"></i> Mycat部署文档之Haproxy
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/05/02/ideaVim%E4%BD%BF%E7%94%A8%E8%AE%B0%E5%BD%95/" rel="next" title="ideaVim使用记录">
+                  ideaVim使用记录 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

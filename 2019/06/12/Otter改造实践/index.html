@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="otter简介Otter的业务域是支持异构数据库实时同步，数据记录变更订阅服务。Otter需要保障数据库的事务一致性，包括DDL（表结构变更）也可以进行同步或过滤。而DBA天生就在这个坑里，绝对不能让主备不一致、或事务不完整，哪怕只是一条数据。而且DBA迫切希望以后不用通知下游了，让DRC自动适配主备切换或拆库。 定位：基于数据库增量日志解析，准实时同步到本机房或异地机房的mysql&#x2F;oracle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Otter改造实践">
+<meta property="og:url" content="http://ppjys.cn/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="otter简介Otter的业务域是支持异构数据库实时同步，数据记录变更订阅服务。Otter需要保障数据库的事务一致性，包括DDL（表结构变更）也可以进行同步或过滤。而DBA天生就在这个坑里，绝对不能让主备不一致、或事务不完整，哪怕只是一条数据。而且DBA迫切希望以后不用通知下游了，让DRC自动适配主备切换或拆库。 定位：基于数据库增量日志解析，准实时同步到本机房或异地机房的mysql&#x2F;oracle">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/2.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/3.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/4.jpg">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/5.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/6.png">
+<meta property="article:published_time" content="2019-06-12T13:22:21.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.613Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="otter">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/1.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Otter改造实践 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#otter%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">otter简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Otter%E6%9E%B6%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">Otter架构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8E%9F%E7%90%86%EF%BC%9A"><span class="nav-number">2.1.</span> <span class="nav-text">原理：</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%9F%E8%83%BD%E6%94%B9%E9%80%A0"><span class="nav-number">3.</span> <span class="nav-text">功能改造</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E6%94%AF%E6%8C%81"><span class="nav-number">3.1.</span> <span class="nav-text">分库分表支持</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%88%91%E4%BB%AC%E5%85%AC%E5%8F%B8%E4%B8%9A%E5%8A%A1%E5%9C%A8%E6%94%B9%E9%80%A0%E8%BF%87%E7%A8%8B%E4%B8%AD%EF%BC%8C%E6%B6%89%E5%8F%8A%E5%88%B0%E4%BB%A5%E4%B8%8B%E9%9C%80%E6%B1%82%EF%BC%9A"><span class="nav-number">3.1.1.</span> <span class="nav-text">我们公司业务在改造过程中，涉及到以下需求：</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E7%82%B9"><span class="nav-number">3.1.2.</span> <span class="nav-text">改造点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%A8%E9%87%8F%E6%95%B0%E6%8D%AE%E8%BF%81%E7%A7%BB%E6%94%AF%E6%8C%81"><span class="nav-number">3.2.</span> <span class="nav-text">全量数据迁移支持</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E7%82%B9-1"><span class="nav-number">3.2.1.</span> <span class="nav-text">改造点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C%E6%94%AF%E6%8C%81"><span class="nav-number">3.3.</span> <span class="nav-text">数据校验支持</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E7%82%B9-2"><span class="nav-number">3.3.1.</span> <span class="nav-text">改造点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%84%B1%E6%95%8F%E6%95%B0%E6%8D%AE%E6%94%B9%E9%80%A0"><span class="nav-number">3.4.</span> <span class="nav-text">脱敏数据改造</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E7%82%B9-3"><span class="nav-number">3.4.1.</span> <span class="nav-text">改造点</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Otter改造实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-06-12 21:22:21" itemprop="dateCreated datePublished" datetime="2019-06-12T21:22:21+08:00">2019-06-12</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/otter/" itemprop="url" rel="index"><span itemprop="name">otter</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="otter简介"><a href="#otter简介" class="headerlink" title="otter简介"></a>otter简介</h3><p>Otter的业务域是支持异构数据库实时同步，数据记录变更订阅服务。<br>Otter需要保障数据库的事务一致性，包括DDL（表结构变更）也可以进行同步或过滤。而DBA天生就在这个坑里，绝对不能让主备不一致、或事务不完整，哪怕只是一条数据。而且DBA迫切希望以后不用通知下游了，让DRC自动适配主备切换或拆库。</p>
+<p>定位：基于数据库增量日志解析，准实时同步到本机房或异地机房的mysql/oracle数据库.一个分布式数据库同步系统.</p>
+<p>Otter具备的三大特性：</p>
+<ul>
+<li>1)稳定性，支持HA；</li>
+<li>2)实时性;</li>
+<li>3)一致性，数据同步前后必须保证数据的一致性;</li>
+</ul>
+<p>我们公司对Otter的需求场景：</p>
+<ul>
+<li>MySQL原生复制</li>
+<li>大数据实时抽取</li>
+<li>搜索实时索引</li>
+<li>数据迁移</li>
+</ul>
+<h3 id="Otter架构"><a href="#Otter架构" class="headerlink" title="Otter架构"></a>Otter架构</h3><img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/1.png" width=800px/>
+
+<p>数据同步过程可以分为Select–&gt;Extract、Transform–&gt;Load四个过程，也就是上图中的S、E、T、L，通过将这4个步骤进行服务拆分，每个服务都具有自己的线程池。通过S、L过程的串型，保证数据的一致性，E、T过程的并行提升系统处理的性能。</p>
+<h4 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h4><ol>
+<li><p>基于Canal开源产品，获取数据库增量日志数据。</p>
+</li>
+<li><p>典型管理系统架构，manager(web管理)+node(工作节点)</p>
+<p> a. manager运行时推送同步配置到node节点;<br> b. node节点将同步状态反馈到manager上;</p>
+</li>
+<li><p>基于zookeeper，解决分布式状态调度的，允许多node节点之间协同工作.</p>
+</li>
+</ol>
+<span id="more"></span>
+
+<h3 id="功能改造"><a href="#功能改造" class="headerlink" title="功能改造"></a>功能改造</h3><h4 id="分库分表支持"><a href="#分库分表支持" class="headerlink" title="分库分表支持"></a>分库分表支持</h4><p>原生的otter是不支持分库分表场景的，分库分表已经不属于Otter数据同步业务领域，但是分库分表的支持又是绝大多数功能数据同步不可避免的。</p>
+<h5 id="我们公司业务在改造过程中，涉及到以下需求："><a href="#我们公司业务在改造过程中，涉及到以下需求：" class="headerlink" title="我们公司业务在改造过程中，涉及到以下需求："></a>我们公司业务在改造过程中，涉及到以下需求：</h5><ol>
+<li>支持分库场景；</li>
+<li>支持分表场景；</li>
+<li>支持分库分表场景；</li>
+<li>分片算法支持简单取模算法；</li>
+<li>分片支持自定义算法，只需要实现DxyShardingAlgorithm接口即可；</li>
+</ol>
+<p>我们是在DataMedia上做扩展的，增加了分片类型、分片字段和分片算法字段。</p>
+<ol>
+<li><p>分库分表：</p>
+ <img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/2.jpg" width=500px/></li>
+<li><p>分表：  </p>
+ <img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/3.jpg" width=500px/></li>
+<li><p>分库：  </p>
+ <img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/4.jpg" width=500px/></li>
+</ol>
+<h5 id="改造点"><a href="#改造点" class="headerlink" title="改造点"></a>改造点</h5><p>1).在Transform阶段进行了扩展，当目标数据表配置为分库分表时候，这时候会加载最终目标数据表的路由；</p>
+<p>2).当eventdata不包含分片字段导致无法确定分片路由，我们将会为每个分片拷贝eventdata，解决多路拷贝分发；</p>
+<p>3).多路拷贝情况下，针对多库多表，增加库表验证防止库表不一致路由问题；</p>
+<p>4).在Extract阶段，针对数据库反查数据为空的情况，去除反查为null列（问题：通道同步模式为列模式，先插入数据，然后更新数据，最后删除数据，otter在Extract阶段会反查数据库查询未更新的列，此时该数据已删除，造成生成sql中出现null列）；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 分库分表路由计算</span></span><br><span class="line"><span class="comment"> * 在T模型中计算路由</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> result 结果集</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> targerDataMedia 目标datamedia</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> boolean true表示需要过滤该条数据;false不需要过滤</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> ShardingCalDTO <span class="title">sharingCalculate</span><span class="params">(EventData result, DataMedia targerDataMedia)</span></span>&#123;</span><br><span class="line">    ShardingCalDTO shardingCalDTO = <span class="keyword">new</span> ShardingCalDTO();</span><br><span class="line">    List&lt;ShardingCalDTO.ShardingDSDTO&gt; list = <span class="keyword">new</span> ArrayList&lt;ShardingCalDTO.ShardingDSDTO&gt;();</span><br><span class="line">    shardingCalDTO.setShardingDSDTOList(list);</span><br><span class="line">    <span class="keyword">if</span>(targerDataMedia.getShardingType().intValue() != ShardingTypeEnum.NORMAL.getCode())&#123;</span><br><span class="line">        DbMediaSource dbDataMediaSource = <span class="keyword">null</span>;<span class="comment">//最终数据源</span></span><br><span class="line">        String schema = <span class="string">&quot;&quot;</span>;<span class="comment">//数据库</span></span><br><span class="line">        String table = <span class="string">&quot;&quot;</span>;<span class="comment">//数据表`</span></span><br><span class="line">        List&lt;DbMediaSource&gt; sharingDataSources = targerDataMedia.getShardingDBSources();</span><br><span class="line">        Assert.assertNotNull(sharingDataSources);</span><br><span class="line">        <span class="comment">//数据源名称对应的数据元缓存</span></span><br><span class="line">        Map&lt;String,DbMediaSource&gt; dbMediaSourcemap = <span class="keyword">new</span> HashMap&lt;String,DbMediaSource&gt;(sharingDataSources.size());</span><br><span class="line">        <span class="comment">//列名对应column缓存</span></span><br><span class="line">        Map&lt;String, EventColumn&gt; columnMap = <span class="keyword">new</span> HashMap&lt;String, EventColumn&gt;();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(DbMediaSource dbMediaSource:sharingDataSources)&#123;</span><br><span class="line">            dbMediaSourcemap.put(dbMediaSource.getName(),dbMediaSource);</span><br><span class="line">        &#125; </span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> != result.getKeys() &amp;&amp; <span class="number">0</span> != result.getKeys().size())&#123;</span><br><span class="line">            <span class="keyword">for</span>(EventColumn eventColumn:result.getKeys())&#123;</span><br><span class="line">                columnMap.put(eventColumn.getColumnName(),eventColumn);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> != result.getColumns() &amp;&amp; <span class="number">0</span> != result.getColumns().size())&#123;</span><br><span class="line"></span><br><span class="line">               columnMap.put(eventColumn.getColumnName(),eventColumn);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(result.getEventType() == EventType.INSERT &amp;&amp; <span class="keyword">null</span> == columnMap.get(targerDataMedia.getShardingDBColumn()) &amp;&amp;</span><br><span class="line">                <span class="keyword">null</span> == columnMap.get(targerDataMedia.getShardingTableColumn()))&#123;</span><br><span class="line">            <span class="comment">//插入语句不存在分片键则直接跳过该数据</span></span><br><span class="line">            shardingCalDTO.setSkip(<span class="keyword">true</span>);</span><br><span class="line">            LOGGER.error(<span class="string">&quot;插入语句不存在分片键，跳过 eventdate:&#123;&#125;&quot;</span>,result.toString());</span><br><span class="line">            <span class="keyword">return</span> shardingCalDTO;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//分库数据源计算</span></span><br><span class="line">        <span class="keyword">if</span>(targerDataMedia.getShardingType().intValue() == ShardingTypeEnum.SHARDING_TABLE.getCode())&#123;</span><br><span class="line">            <span class="comment">//分表情况</span></span><br><span class="line">            List&lt;ShardingTableDTO&gt; shardingTableDTOs = targerDataMedia.getShardingTableDTOS();</span><br><span class="line">            Assert.assertNotNull(shardingTableDTOs);</span><br><span class="line">            EventColumn eventColumn = columnMap.get(targerDataMedia.getShardingTableColumn());</span><br><span class="line">            <span class="keyword">if</span>(<span class="keyword">null</span> == eventColumn || <span class="keyword">null</span> == eventColumn.getColumnValue())&#123;</span><br><span class="line">                <span class="comment">//不存在分片键的时候，需要组装多数据源，用于组装多个evebtdata数据</span></span><br><span class="line">                <span class="keyword">for</span>(ShardingTableDTO shardingTableDTO:shardingTableDTOs)&#123;</span><br><span class="line">                    ShardingCalDTO.ShardingDSDTO shardingDSDTO = shardingCalDTO.<span class="function">new <span class="title">ShardingDSDTO</span><span class="params">()</span></span>;</span><br><span class="line">                    shardingDSDTO.setShardingDbMediaSource(dbMediaSourcemap.get(shardingTableDTO.getDsName()));</span><br><span class="line">                    shardingDSDTO.setShardingScheme(shardingTableDTO.getDbName());</span><br><span class="line">                    shardingDSDTO.setShardingTabele(shardingTableDTO.getTableName());</span><br><span class="line">                    list.add(shardingDSDTO);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                dbDataMediaSource = dbMediaSourcemap.get(shardingTableDTOs.get(<span class="number">0</span>).getDsName());</span><br><span class="line">                schema = shardingTableDTOs.get(<span class="number">0</span>).getDbName();</span><br><span class="line">                ShardingTableDTO shardingTableDTOResult = shardingStrategyFactory.getSharingStrategy(shardingTableDTOs,targerDataMedia.getShardingTableAlgorithm(),</span><br><span class="line">                    targerDataMedia.getShardingTableColumn(), eventColumn.getColumnValue());</span><br><span class="line">                table = shardingTableDTOResult.getTableName();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="comment">//分库和分库分表情况</span></span><br><span class="line">            List&lt;ShardingDBDTO&gt; shardingDBDTOS = targerDataMedia.getShardingDBDTOS();</span><br><span class="line">            EventColumn dbColumn = columnMap.get(targerDataMedia.getShardingDBColumn());</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span>(<span class="keyword">null</span> != dbColumn &amp;&amp; <span class="keyword">null</span> != dbColumn.getColumnValue())&#123;</span><br><span class="line">                ShardingDBDTO shardingDBDTO = shardingStrategyFactory.getSharingStrategy(shardingDBDTOS,targerDataMedia.getShardingDBAlgorithm(),</span><br><span class="line">                    targerDataMedia.getShardingDBColumn(), dbColumn.getColumnValue());</span><br><span class="line">                dbDataMediaSource = dbMediaSourcemap.get(shardingDBDTO.getDsName());</span><br><span class="line">                schema = shardingDBDTO.getDbName();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span>(targerDataMedia.getShardingType().intValue() == ShardingTypeEnum.SHARDING_DB_TABLE.getCode()) &#123;</span><br><span class="line">                    List&lt;ShardingTableDTO&gt; shardingTableDTOs = targerDataMedia.getShardingTableDTOS();</span><br><span class="line">                    EventColumn tableColumn = columnMap.get(targerDataMedia.getShardingTableColumn());</span><br><span class="line">                    <span class="keyword">if</span>(<span class="keyword">null</span> == tableColumn || <span class="keyword">null</span> == tableColumn.getColumnValue()) &#123;</span><br><span class="line">                        <span class="comment">//如果分表键为空，则需要遍历所有的分表</span></span><br><span class="line">                        <span class="keyword">for</span>(ShardingTableDTO shardingTableDTO:shardingTableDTOs)&#123;</span><br><span class="line">                            ShardingCalDTO.ShardingDSDTO shardingDSDTO = shardingCalDTO.n<span class="function">ew <span class="title">ShardingDSDTO</span><span class="params">()</span></span>;</span><br><span class="line">                            shardingDSDTO.setShardingDbMediaSource(dbMediaSourcemap.get(shardingDBDTO.getDsName()));</span><br><span class="line">                            shardingDSDTO.setShardingScheme(shardingDBDTO.getDbName());</span><br><span class="line">                            shardingDSDTO.setShardingTabele(shardingTableDTO.getTableName());</span><br><span class="line">                            list.add(shardingDSDTO);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                        ShardingTableDTO shardingTableDTO= shardingStrategyFactory.getSharingStrategy(shardingTableDTOs,targerDataMedia.getShardingTableAlgorithm(),</span><br><span class="line">                                targerDataMedia.getShardingTableColumn(), tableColumn.getColumnValue());</span><br><span class="line">                        table = shardingTableDTO.getTableName();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;<span class="keyword">else</span> <span class="keyword">if</span>(targerDataMedia.getShardingType().intValue() == ShardingTypeEnum.SHARDING_DB.getCode()) &#123;</span><br><span class="line">                    table = targerDataMedia.getName();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                <span class="comment">//分片键为空</span></span><br><span class="line">                <span class="keyword">if</span>(targerDataMedia.getShardingType().intValue() == ShardingTypeEnum.SHARDING_DB_TABLE.getCode()) &#123;</span><br><span class="line">                    List&lt;ShardingTableDTO&gt; shardingTableDTOs = targerDataMedia.getShardingTableDTOS();</span><br><span class="line">                    <span class="keyword">for</span>(ShardingDBDTO shardingDBDTO:shardingDBDTOS)&#123;</span><br><span class="line">                        <span class="keyword">for</span>(ShardingTableDTO shardingTableDTO:shardingTableDTOs)&#123;</span><br><span class="line">                            <span class="keyword">if</span>(!shardingDBDTO.getAvaliableTabelName().contains(shardingTableDTO.getTableName()))&#123;</span><br><span class="line">                                LOGGER.warn(<span class="string">&quot;跳过该表名:&#123;&#125; eventData:&#123;&#125;&quot;</span>,shardingTableDTO.getTableName(),result.toString());</span><br><span class="line">                                <span class="keyword">continue</span>;</span><br><span class="line">                            &#125;</span><br><span class="line">                            ShardingCalDTO.ShardingDSDTO shardingDSDTO = shardingCalDTO.n<span class="function">ew <span class="title">ShardingDSDTO</span><span class="params">()</span></span>;</span><br><span class="line">                            shardingDSDTO.setShardingDbMediaSource(dbMediaSourcemap.get(shardingDBDTO.getDsName()));</span><br><span class="line">                            shardingDSDTO.setShardingScheme(shardingDBDTO.getDbName());</span><br><span class="line">                            shardingDSDTO.setShardingTabele(shardingTableDTO.getTableName());</span><br><span class="line">                            list.add(shardingDSDTO);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;<span class="keyword">else</span> <span class="keyword">if</span>(targerDataMedia.getShardingType().intValue() == ShardingTypeEnum.SHARDING_DB.getCode())&#123;</span><br><span class="line">                    <span class="keyword">for</span>(ShardingDBDTO shardingDBDTO:shardingDBDTOS)&#123;</span><br><span class="line">                        ShardingCalDTO.ShardingDSDTO shardingDSDTO = shardingCalDTO.n<span class="function">ew <span class="title">ShardingDSDTO</span><span class="params">()</span></span>;</span><br><span class="line">                        shardingDSDTO.setShardingDbMediaSource(dbMediaSourcemap.get(shardingDBDTO.getDsName()));</span><br><span class="line">                        shardingDSDTO.setShardingScheme(shardingDBDTO.getDbName());</span><br><span class="line">                        shardingDSDTO.setShardingTabele(targerDataMedia.getName());</span><br><span class="line">                        list.add(shardingDSDTO);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> != dbDataMediaSource &amp;&amp; StringUtils.isNotEmpty(schema) &amp;&amp; StringUtils.isNotEmpty(table))&#123;</span><br><span class="line">            ShardingCalDTO.ShardingDSDTO shardingDSDTO = shardingCalDTO.n<span class="function">ew <span class="title">ShardingDSDTO</span><span class="params">()</span></span>;</span><br><span class="line">            shardingDSDTO.setShardingDbMediaSource(dbDataMediaSource);</span><br><span class="line">            shardingDSDTO.setShardingScheme(schema);</span><br><span class="line">            shardingDSDTO.setShardingTabele(table);</span><br><span class="line">            list.add(shardingDSDTO);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> shardingCalDTO;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>4).Load阶段改造合并sql适配分片合并；</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 把old中的值存在而new中不存在的值合并到new中,并且把old中的变更前的主键保存到new中的变更前的主键.</span></span><br><span class="line"><span class="comment"> * </span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> newEventData</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> oldEventData</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> EventData <span class="title">replaceColumnValue</span><span class="params">(EventData newEventData, EventData oldEventData)</span> </span>&#123;</span><br><span class="line">    List&lt;EventColumn&gt; newColumns = newEventData.getColumns();</span><br><span class="line">    List&lt;EventColumn&gt; oldColumns = oldEventData.getColumns();</span><br><span class="line">    List&lt;EventColumn&gt; temp = <span class="keyword">new</span> ArrayList&lt;EventColumn&gt;();</span><br><span class="line">    <span class="keyword">for</span> (EventColumn oldColumn : oldColumns) &#123;</span><br><span class="line">        <span class="keyword">boolean</span> contain = <span class="keyword">false</span>;</span><br><span class="line">        <span class="keyword">for</span> (EventColumn newColumn : newColumns) &#123;</span><br><span class="line">            <span class="keyword">if</span> (oldColumn.getColumnName().equalsIgnoreCase(newColumn.getColumnName())) &#123;</span><br><span class="line">                newColumn.setUpdate(newColumn.isUpdate() || oldColumn.isUpdate());<span class="comment">// 合并isUpdate字段</span></span><br><span class="line">                contain = <span class="keyword">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!contain) &#123;</span><br><span class="line">            temp.add(oldColumn);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//2019.04.18 by ppj 验证新的字段中是否存在通过反查还未查询到的列，</span></span><br><span class="line">    <span class="comment">// 这边做用旧值替换（先insert，后update情况下会出现，反正数据库做了not null验证导致挂起状态）</span></span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;newColumns.size();i++)&#123;</span><br><span class="line">        EventColumn newColumn = newColumns.get(i);</span><br><span class="line">        <span class="keyword">if</span>(newColumn.isReverse())&#123;</span><br><span class="line">            <span class="keyword">boolean</span> bol = <span class="keyword">false</span>;</span><br><span class="line">            <span class="keyword">for</span>(EventColumn oldColumn:oldColumns)&#123;</span><br><span class="line">                <span class="keyword">if</span>(newColumn.getColumnName().equalsIgnoreCase(oldColumn.getColumnName()))&#123;</span><br><span class="line">                    newColumns.set(i,oldColumn);</span><br><span class="line">                    bol = <span class="keyword">true</span>;</span><br><span class="line">                    logger.warn(<span class="string">&quot;insert-&gt;update 合并反查字段为空,重新设置反查字段 newEventData:&#123;&#125; oldEventData:&#123;&#125;&quot;</span>,</span><br><span class="line">                            newEventData.toString(),oldEventData.toString());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span>(!bol)&#123;</span><br><span class="line">                newColumns.remove(i);</span><br><span class="line">                logger.warn(<span class="string">&quot;insert-&gt;update 合并反查字段为空,移除该newEventData字段 newEventData:&#123;&#125; oldEventData:&#123;&#125;&quot;</span>,</span><br><span class="line">                        newEventData.toString(),oldEventData.toString());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    newColumns.addAll(temp);</span><br><span class="line">    Collections.sort(newColumns, <span class="keyword">new</span> EventColumnIndexComparable()); <span class="comment">// 排序</span></span><br><span class="line">    <span class="comment">// 把上一次变更的旧主键传递到这次变更的旧主键.</span></span><br><span class="line">    newEventData.setOldKeys(oldEventData.getOldKeys());</span><br><span class="line">    <span class="keyword">if</span> (oldEventData.getSyncConsistency() != <span class="keyword">null</span>) &#123;</span><br><span class="line">        newEventData.setSyncConsistency(oldEventData.getSyncConsistency());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (oldEventData.getSyncMode() != <span class="keyword">null</span>) &#123;</span><br><span class="line">        newEventData.setSyncMode(oldEventData.getSyncMode());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (oldEventData.isRemedy()) &#123;</span><br><span class="line">        newEventData.setRemedy(oldEventData.isRemedy());</span><br><span class="line">    &#125;</span><br><span class="line">    newEventData.setSize(oldEventData.getSize() + newEventData.getSize());</span><br><span class="line">    <span class="keyword">return</span> newEventData;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>5).在Extract阶段，考虑update语句中数据库反查因查不到数据导致字段为null问题，增加去除null字段；</p>
+<h4 id="全量数据迁移支持"><a href="#全量数据迁移支持" class="headerlink" title="全量数据迁移支持"></a>全量数据迁移支持</h4><p>原生的otter可以通过自由门来实现全量数据导入和修订功能。<br>自由门原理如下：</p>
+<blockquote>
+</blockquote>
+<pre><code>a.基于otter系统表retl_buffer，插入特定的数据，包含需要同步的表名，pk信息。  
+b.otter系统感知后会根据表名和pk提取对应的数据(整行记录)，和正常的增量同步一起同步到目标库。
+</code></pre>
+<p>我们公司业务在改造过程中，涉及到以下痛点：</p>
+<ol>
+<li> 由于原先的otter系统表需要在每一个迁移实例建立retl.buffer表，当迁移的库比较多的时候，需要每个实例分别建立retl库，不利于统一控制，同时给库表元数据管理代理一定的难度；</li>
+<li> 由于全量数据迁移需要手动导入数据，增加迁移复杂度；</li>
+</ol>
+<h5 id="改造点-1"><a href="#改造点-1" class="headerlink" title="改造点"></a>改造点</h5><p>1)增加总控通道，所有的全量数据迁移统一用总控通道；</p>
+<p>2)增加全量数据一键导入功能，自动将数据迁移至总控通道；</p>
+<p>我们在Select阶段改造，将数据进行分批处理，每批的管道改造同步管道。（统一控制相对单独控制存在一个风险点：如果同步的这批存量数据在Extract阶段后和Load阶段前存在源库数据对应记录的修改，同时修改的增量binlog又比存量同步的数据同步更快，存在数据老数据覆盖新数据的风险，不过这种场景概率极小）</p>
+<ol>
+<li><p>总控全量迁移通道  </p>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/5.png" width=500px/></li>
+<li><p>全量数据迁移任务  </p>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/otter/6.png" width=500px/></li>
+</ol>
+<p>1）Select阶段改造</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 设置profiling信息</span></span><br><span class="line"><span class="keyword">boolean</span> profiling = isProfiling();</span><br><span class="line">Long profilingStartTime = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">if</span> (profiling) &#123;</span><br><span class="line">    profilingStartTime = System.currentTimeMillis();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">MDC.put(OtterConstants.splitPipelineLogFileKey, String.valueOf(pipelineId));</span><br><span class="line">String currentName = Thread.currentThread().getName();</span><br><span class="line">Thread.currentThread().setName(createTaskName(pipelineId, <span class="string">&quot;SelectWorker&quot;</span>));</span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    pipeline = configClientService.findPipeline(pipelineId);</span><br><span class="line">    List&lt;EventData&gt; eventData = message.getDatas();</span><br><span class="line">    <span class="keyword">long</span> startTime = etlEventData.getStartTime();</span><br><span class="line">    <span class="keyword">if</span> (!CollectionUtils.isEmpty(eventData)) &#123;</span><br><span class="line">        startTime = eventData.get(<span class="number">0</span>).getExecuteTime();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//如果数据来自RETL库RETL_BUFFER表，将数据分批，每批的管道改成同步管道信息</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.equalsIgnoreCase(RETL_BUFFER, pipeline.getPairs().get(<span class="number">0</span>).getSource().getName())</span><br><span class="line">            &amp;&amp; StringUtils.equalsIgnoreCase(RETL, pipeline.getPairs().get(<span class="number">0</span>).getSource().getNamespace())) &#123;</span><br><span class="line">        <span class="comment">//modify by pangpeijie 自由门改造支持</span></span><br><span class="line">        Map&lt;Long, Map&lt;Long,RowBatch&gt;&gt; rowBatchMap = OtterMigrateMap.makeComputingMap(<span class="keyword">new</span> Function&lt;Long, Map&lt;Long, RowBatch&gt;&gt;() &#123;</span><br><span class="line">            <span class="meta">@Nullable</span></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Map&lt;Long, RowBatch&gt; <span class="title">apply</span><span class="params">(<span class="meta">@Nullable</span> Long channelId)</span> </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> OtterMigrateMap.makeComputingMap(<span class="keyword">new</span> Function&lt;Long, RowBatch&gt;() &#123;</span><br><span class="line">                    <span class="meta">@Nullable</span></span><br><span class="line">                    <span class="meta">@Override</span></span><br><span class="line">                    <span class="function"><span class="keyword">public</span> RowBatch <span class="title">apply</span><span class="params">(<span class="meta">@Nullable</span> Long pipelineId)</span> </span>&#123;</span><br><span class="line">                        RowBatch rowBatch = <span class="keyword">new</span> RowBatch();</span><br><span class="line">                        Identity identity = <span class="keyword">new</span> Identity();</span><br><span class="line">                        identity.setChannelId(channelId);</span><br><span class="line">                        identity.setPipelineId(pipelineId);</span><br><span class="line">                        identity.setProcessId(etlEventData.getProcessId());</span><br><span class="line">                        rowBatch.setIdentity(identity);</span><br><span class="line">                        <span class="keyword">return</span> rowBatch;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//数据分批准备</span></span><br><span class="line">        <span class="keyword">for</span> (EventData data : eventData) &#123;</span><br><span class="line">            <span class="comment">// 获取每一条数据对应的pipeline</span></span><br><span class="line">            EventColumn pipelineColumn = getMatchColumn(data.getColumns(), PIPELINE_ID);</span><br><span class="line">            <span class="comment">// 获取每一条数据对应的channelID</span></span><br><span class="line">            EventColumn channelColumn = getMatchColumn(data.getColumns(),CHANNEL_ID);</span><br><span class="line">            <span class="keyword">if</span>(<span class="keyword">null</span> == pipelineColumn || <span class="keyword">null</span> == channelColumn)&#123;</span><br><span class="line">                logger.error(<span class="string">&quot;自由门数据问题，直接跳过,data:&#123;&#125;&quot;</span>,data);</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            RowBatch rowBatch = rowBatchMap.get(Long.parseLong(channelColumn.getColumnValue())).get(Long.parseLong(pipelineColumn.getColumnValue()));</span><br><span class="line">            rowBatch.merge(data);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//开始分批推送数据</span></span><br><span class="line">        Iterator channelIterator = rowBatchMap.entrySet().iterator();</span><br><span class="line">        <span class="keyword">while</span> (channelIterator.hasNext())&#123;</span><br><span class="line">            Map.Entry channelEntry = (Map.Entry) channelIterator.next();</span><br><span class="line">            Long channelId = (Long)channelEntry.getKey();</span><br><span class="line">            Map&lt;Long, RowBatch&gt; rowBatchMaps = (Map&lt;Long, RowBatch&gt;)channelEntry.getValue();</span><br><span class="line">            Iterator pipelineIterator = rowBatchMaps.entrySet().iterator();</span><br><span class="line">            <span class="keyword">while</span> (pipelineIterator.hasNext())&#123;</span><br><span class="line">                Map.Entry pipelineEntry = (Map.Entry) pipelineIterator.next();</span><br><span class="line">                Long pipelineTempId = (Long)pipelineEntry.getKey();</span><br><span class="line">                RowBatch rowBatch = (RowBatch)pipelineEntry.getValue();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">long</span> nextNodeId = etlEventData.getNextNid();</span><br><span class="line">                List&lt;PipeKey&gt; pipeKeys = rowDataPipeDelegate.put(<span class="keyword">new</span> DbBatch(rowBatch), nextNodeId);</span><br><span class="line">                etlEventData.setDesc(pipeKeys);</span><br><span class="line">                etlEventData.setNumber((<span class="keyword">long</span>) rowBatch.getDatas().size());</span><br><span class="line">                etlEventData.setFirstTime(startTime); <span class="comment">// 使用原始数据的第一条</span></span><br><span class="line">                etlEventData.setBatchId(message.getId());</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (profiling) &#123;</span><br><span class="line">                    Long profilingEndTime = System.currentTimeMillis();</span><br><span class="line">                    stageAggregationCollector.push(pipelineTempId,</span><br><span class="line">                            StageType.SELECT,</span><br><span class="line">                            <span class="keyword">new</span> AggregationItem(profilingStartTime, profilingEndTime));</span><br><span class="line">                &#125;</span><br><span class="line">                arbitrateEventService.selectEvent().single(etlEventData);</span><br><span class="line">                logger.info(<span class="string">&quot;自由门 分批处理 channelId:&#123;&#125; pipelineId:&#123;&#125; data size:&#123;&#125;&quot;</span>,channelId,pipelineTempId,rowBatch.getDatas().size());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">        Channel channel = configClientService.findChannelByPipelineId(pipelineId);</span><br><span class="line">        RowBatch rowBatch = <span class="keyword">new</span> RowBatch();</span><br><span class="line">        <span class="comment">// 构造唯一标识</span></span><br><span class="line">        Identity identity = <span class="keyword">new</span> Identity();</span><br><span class="line">        identity.setChannelId(channel.getId());</span><br><span class="line">        identity.setPipelineId(pipelineId);</span><br><span class="line">        identity.setProcessId(etlEventData.getProcessId());</span><br><span class="line">        rowBatch.setIdentity(identity);</span><br><span class="line">        <span class="comment">// 进行数据合并</span></span><br><span class="line">        <span class="keyword">for</span> (EventData data : eventData) &#123;</span><br><span class="line">            rowBatch.merge(data);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">long</span> nextNodeId = etlEventData.getNextNid();</span><br><span class="line">        List&lt;PipeKey&gt; pipeKeys = rowDataPipeDelegate.put(<span class="keyword">new</span> DbBatch(rowBatch), nextNodeId);</span><br><span class="line">        etlEventData.setDesc(pipeKeys);</span><br><span class="line">        etlEventData.setNumber((<span class="keyword">long</span>) eventData.size());</span><br><span class="line">        etlEventData.setFirstTime(startTime); <span class="comment">// 使用原始数据的第一条</span></span><br><span class="line">        etlEventData.setBatchId(message.getId());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (profiling) &#123;</span><br><span class="line">            Long profilingEndTime = System.currentTimeMillis();</span><br><span class="line">            stageAggregationCollector.push(pipelineId,</span><br><span class="line">                    StageType.SELECT,</span><br><span class="line">                    <span class="keyword">new</span> AggregationItem(profilingStartTime, profilingEndTime));</span><br><span class="line">        &#125;</span><br><span class="line">        arbitrateEventService.selectEvent().single(etlEventData);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!isInterrupt(e)) &#123;</span><br><span class="line">        logger.error(String.format(<span class="string">&quot;[%s] selectwork executor is error! data:%s&quot;</span>,</span><br><span class="line">            pipelineId,</span><br><span class="line">            etlEventData), e);</span><br><span class="line">        sendRollbackTermin(pipelineId, e);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        logger.info(String.format(<span class="string">&quot;[%s] selectwork executor is interrrupt! data:%s&quot;</span>,</span><br><span class="line">            pipelineId,</span><br><span class="line">            etlEventData), e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    Thread.currentThread().setName(currentName);</span><br><span class="line">    MDC.remove(OtterConstants.splitPipelineLogFileKey);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="数据校验支持"><a href="#数据校验支持" class="headerlink" title="数据校验支持"></a>数据校验支持</h4><p>原生的otter有数据一致性功能，原理是根据binlog延时超过最大阈值，然后通过反查数据库同步获取最新数据 (以数据库最新版本同步，解决交替性，比如设置一致性反查数据库延迟阀值为60秒，即当同步过程中发现数据延迟超过了60秒，就会基于PK反查一次数据库，拿到当前最新值进行同步，减少交替性的问题)，业务在改造过程中，涉及以下痛点：</p>
+<ol>
+<li>源库和目标库不能全量数据校验，导致业务方无法相信迁移数据可靠性；</li>
+<li>如果出现数据不一致问题，通过人工修复数据流程比较繁琐；</li>
+</ol>
+<h5 id="改造点-2"><a href="#改造点-2" class="headerlink" title="改造点"></a>改造点</h5><ol>
+<li>支持全量数据校验，通过比对用主键查询源库和目标库的crc校验码，如果出现不一致则会重试3次，最终落库；</li>
+<li>根据全量数据校验查询到的不一致数据，通过全量任务触发来修复数据不一致；</li>
+</ol>
+<h4 id="脱敏数据改造"><a href="#脱敏数据改造" class="headerlink" title="脱敏数据改造"></a>脱敏数据改造</h4><p>原生的otter在数据安全方面做的比较差，业务在改造过程中，涉及到以下痛点：</p>
+<ol>
+<li>匿名用户可以查看所有同步任务进度和数据库实例的信息；</li>
+<li>数据库实例账号密码明文存储；</li>
+</ol>
+<h5 id="改造点-3"><a href="#改造点-3" class="headerlink" title="改造点"></a>改造点</h5><ol>
+<li>数据库账号密码采用密文存储；</li>
+<li>manager管理端改造权限，分为管理用户和普通用户；管理用户具有最高权限；普通用户只能查看任务的基本信息、同步进度和日志等；</li>
+<li>manager管理端数据库连接改造接入pk；</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/otter/" rel="tag"># otter</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/12/20/%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%BB%E9%94%AE%E8%B0%83%E7%A0%94%E6%96%B9%E6%A1%88/" rel="prev" title="分布式主键调研文档">
+                  <i class="fa fa-chevron-left"></i> 分布式主键调研文档
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/" rel="next" title="数据平滑迁移方案">
+                  数据平滑迁移方案 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

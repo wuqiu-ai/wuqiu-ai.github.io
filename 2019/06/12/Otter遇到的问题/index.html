@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="1. biglog文件被清理1.1 报错日志   1Could not find first log file name in binary log index file 1.2 现象    pipeline的mainstem状态 一直处于定位中状态  1.3 问题排查   一般出现这个报错，都是由于清空数据库binlog文件导致（自动清除biglog），我们按下述步骤确定是否由于binlog文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Otter遇到的问题">
+<meta property="og:url" content="http://ppjys.cn/2019/06/12/Otter%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="1. biglog文件被清理1.1 报错日志   1Could not find first log file name in binary log index file 1.2 现象    pipeline的mainstem状态 一直处于定位中状态  1.3 问题排查   一般出现这个报错，都是由于清空数据库binlog文件导致（自动清除biglog），我们按下述步骤确定是否由于binlog文件">
+<meta property="og:locale">
+<meta property="article:published_time" content="2019-06-12T13:28:33.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.613Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="otter">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2019/06/12/Otter%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Otter遇到的问题 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-biglog%E6%96%87%E4%BB%B6%E8%A2%AB%E6%B8%85%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">1. biglog文件被清理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-mysql%E5%A4%A7%E4%BA%8B%E7%89%A9%E9%80%A0%E6%88%90otter%E5%81%87%E6%AD%BB"><span class="nav-number">2.</span> <span class="nav-text">2. mysql大事物造成otter假死</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-node%E8%8A%82%E7%82%B9%E5%86%85%E5%AD%98%E6%BA%A2%E5%87%BA"><span class="nav-number">3.</span> <span class="nav-text">3. node节点内存溢出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-node%E8%8A%82%E7%82%B9%E6%8C%82%E6%8E%89"><span class="nav-number">4.</span> <span class="nav-text">4. node节点挂掉</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-otter%E7%BD%91%E7%BB%9C%E6%95%85%E9%9A%9C"><span class="nav-number">5.</span> <span class="nav-text">5. otter网络故障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E6%95%B0%E6%8D%AE%E6%BA%90ip%E5%8F%98%E6%9B%B4%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95"><span class="nav-number">6.</span> <span class="nav-text">6.数据源ip变更处理方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E6%97%A5%E5%BF%97%E5%88%97%E8%A1%A8%E4%B8%AD%E5%87%BA%E7%8E%B0miss-data-with-keys%E5%BC%82%E5%B8%B8%EF%BC%8C%E5%90%8C%E6%AD%A5%E5%87%BA%E7%8E%B0%E6%8C%82%E8%B5%B7%E5%90%8E%E5%8F%88%E8%87%AA%E5%8A%A8%E6%81%A2%E5%A4%8D"><span class="nav-number">7.</span> <span class="nav-text">7.日志列表中出现miss data with keys异常，同步出现挂起后又自动恢复</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-%E6%97%A5%E5%BF%97%E5%88%97%E8%A1%A8%E4%B8%AD%E5%87%BA%E7%8E%B0manager%E5%BC%82%E5%B8%B8"><span class="nav-number">8.</span> <span class="nav-text">8.日志列表中出现manager异常</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2019/06/12/Otter%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Otter遇到的问题
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-06-12 21:28:33" itemprop="dateCreated datePublished" datetime="2019-06-12T21:28:33+08:00">2019-06-12</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/otter/" itemprop="url" rel="index"><span itemprop="name">otter</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="1-biglog文件被清理"><a href="#1-biglog文件被清理" class="headerlink" title="1. biglog文件被清理"></a>1. biglog文件被清理</h3><pre><code>1.1 报错日志  
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Could not find first log file name in binary log index file</span><br></pre></td></tr></table></figure>
+1.2 现象  
+
+pipeline的mainstem状态 一直处于定位中状态
+
+1.3 问题排查  
+一般出现这个报错，都是由于清空数据库binlog文件导致（自动清除biglog），我们按下述步骤确定是否由于binlog文件被清理：  
+
+首先，查看当前同步的binlog位点;  
+其次，登录数据库查看binlog信息（show master logs）；
+最后，对比位点信息就能发现biglog丢失；
+
+1.4 处理方法
+
+1）通道停止增量同步；  
+2）清空掉otter的同步信息；  
+3）检查canal的同步位点信息；  
+4）重新启动otter同步；  
+</code></pre>
+<h3 id="2-mysql大事物造成otter假死"><a href="#2-mysql大事物造成otter假死" class="headerlink" title="2. mysql大事物造成otter假死"></a>2. mysql大事物造成otter假死</h3><pre><code>2.1 报错日志  
+    无报错日志
+
+2.2 现象  
+    channel状态正常，mainstrm状态正常，但是position信息里，position的信息一直不更新（超过半小时以上）
+
+2.3 问题排查  
+    确认是否为大事物的方法  
+    1）查询数据库当前位点信息（show master logs）；
+    2）查询位点的详细信息（show binlog events in &#39;binlog名称&#39;）；
+    3）查看binlog日志中begin和commit的偏移量相差多大即可；
+    
+2.4 处理方法
+    1）清空掉otter同步信息；
+    2）检查canal的同步位点配置；
+    3）重新启动otter同步；
+    
+</code></pre>
+<h3 id="3-node节点内存溢出"><a href="#3-node节点内存溢出" class="headerlink" title="3. node节点内存溢出"></a>3. node节点内存溢出</h3><pre><code>3.1 报错日志
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.OutOfMemoryError: unable to create new native thread</span><br></pre></td></tr></table></figure>
+
+3.2 现象  
+node节点均为运行状态，但是涉及到问题node的channel同步处于挂起状态，且无法解挂及停止；
+
+3.3问题排查  
+1）根据报错log找到对应的node节点；
+2）查看该node节点的日志找到该报错日志；
+
+3.4处理方法   
+1）重启node节点；
+</code></pre>
+<span id="more"></span>
+
+<h3 id="4-node节点挂掉"><a href="#4-node节点挂掉" class="headerlink" title="4. node节点挂掉"></a>4. node节点挂掉</h3><pre><code>4.1 现象  
+Channel配置显示为挂起或者停止状态，并且启动或者解挂操作置灰不可操作，可以判定为node节点挂了。
+
+4.2 问题排查  
+进入node管理页面，查看是否有node节点处于未启动状态；
+
+4.3 处理方法  
+1） 重启node节点
+</code></pre>
+<h3 id="5-otter网络故障"><a href="#5-otter网络故障" class="headerlink" title="5. otter网络故障"></a>5. otter网络故障</h3><pre><code>5.1 报错日志  
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">pid:14 nid:1 exception:canal:dataplatform:com.alibaba.otter.canal.parse.exception.CanalParseException: java.io.IOException: connect &#x2F;192.168.116.16:3306 failure</span><br><span class="line">Caused by: java.io.IOException: connect &#x2F;192.168.116.16:3306 failure</span><br><span class="line"> at com.alibaba.otter.canal.parse.driver.mysql.MysqlConnector.connect(MysqlConnector.java:77)</span><br><span class="line"> at com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.connect(MysqlConnection.java:86)</span><br><span class="line"> at com.alibaba.otter.canal.parse.inbound.mysql.MysqlEventParser.preDump(MysqlEventParser.java:85)</span><br><span class="line"> at com.alibaba.otter.canal.parse.inbound.AbstractEventParser$3.run(AbstractEventParser.java:175)</span><br><span class="line"> at java.lang.Thread.run(Thread.java:748)</span><br><span class="line">Caused by: java.net.ConnectException: Connection timed out (Connection timed out)</span><br></pre></td></tr></table></figure>
+
+5.2 现象
+channel同步处于挂起状态，解挂后有开始挂起状态；
+
+5.3 问题排查
+查看对应的node日志，是否数据库连接失败；
+
+5.4 处理方法
+联系dba处理；
+</code></pre>
+<h3 id="6-数据源ip变更处理方法"><a href="#6-数据源ip变更处理方法" class="headerlink" title="6.数据源ip变更处理方法"></a>6.数据源ip变更处理方法</h3><pre><code>6.1 现象
+生产环境下，偶尔会因为主备设置或者ip规划导致需要更改同步的数据源ip。
+
+6.2 处理方法
+1）Channel停止同步；
+2）记录binlog的同步进度；
+3）修改对应canal的数据源地址；
+4）删除当前同步位点信息；
+5）重新开启同步；
+</code></pre>
+<h3 id="7-日志列表中出现miss-data-with-keys异常，同步出现挂起后又自动恢复"><a href="#7-日志列表中出现miss-data-with-keys异常，同步出现挂起后又自动恢复" class="headerlink" title="7.日志列表中出现miss data with keys异常，同步出现挂起后又自动恢复"></a>7.日志列表中出现miss data with keys异常，同步出现挂起后又自动恢复</h3><pre><code>7.1 报错日志
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pid:2 nid:2 exception:setl:load miss data with keys:[MemoryPipeKey[identity&#x3D;Identity[channelId&#x3D;1,pipelineId&#x3D;2,processId&#x3D;4991953],time&#x3D;1383190001987,dataType&#x3D;DB_BATCH]]</span><br></pre></td></tr></table></figure>
+7.2 处理方式
+要理解该异常，需要先了解一下otter调度模型，里面SEDA中多个stage之间通过pipe进行数据交互，
+比如T模块完成后会将数据存到pipe中，然后通知SEDA中心，中心会通知L模块起来工作，
+L模块就会根据T传给中心的pipeKey去提取数据，而该异常就是当L模块根据pipeKey去提取数据时，发现数据没了。 主要原因：pipe在设计时，如果是单机传输时，会使用softReference来存储，
+所以当jvm内存不足时就会被GC掉，所以就会出现无数据的情况.
+
+ps. 如果miss data with keys异常非常多的时候，你就得考虑是否当前node已经超负载运行，内存不够，
+需要将上面的部分同步任务迁移出去。如果是偶尔的异常，那可以忽略，该异常会有自动恢复RESTART同步任务的处理。
+</code></pre>
+<h3 id="8-日志列表中出现manager异常"><a href="#8-日志列表中出现manager异常" class="headerlink" title="8.日志列表中出现manager异常"></a>8.日志列表中出现manager异常</h3><pre><code>8.1 报错日志
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">pid:2 nid:null exception:channel:can&#39;t restart by no select live node</span><br><span class="line">&#x2F;&#x2F;该异常代表pipelineId &#x3D; 2，select模块的node没有可用的节点.</span><br><span class="line"></span><br><span class="line">pid:-1 nid:null exception:cid:2 restart recovery successful for rid:-1</span><br><span class="line">&#x2F;&#x2F;该异常代表channelId &#x3D; 2，成功发起了一次restart同步任务的操作.</span><br><span class="line"></span><br><span class="line">pid:-1 nid:null exception:nid:2 is dead and restart cids:[1,2]</span><br><span class="line">&#x2F;&#x2F;该异常代表node id &#x3D; 2，因为该node挂了，触发了channelId &#x3D; 1 &#x2F; 2的两个同步任务发起restart同步任务的操作. (一种failover的机制)</span><br></pre></td></tr></table></figure>
+8.2 处理方式
+无需处理
+</code></pre>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/otter/" rel="tag"># otter</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/06/12/%E6%95%B0%E6%8D%AE%E5%B9%B3%E6%BB%91%E8%BF%81%E7%A7%BB%E6%96%B9%E6%A1%88/" rel="prev" title="数据平滑迁移方案">
+                  <i class="fa fa-chevron-left"></i> 数据平滑迁移方案
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/09/01/Spring%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BA%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" rel="next" title="Spring源码构建环境搭建">
+                  Spring源码构建环境搭建 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

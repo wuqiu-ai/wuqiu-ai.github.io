@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="背景 ***公司系统间的数据同步通过http接口通信，这种方式会导致数据同步高峰期间nginx的负载流量增加，从而影响业务流量。其二就是http方式的不稳定性，会导致一些数据不一致的问题。针对这个现象，目前提出2中解决方式，第一种可以通过高可用消息队列来进行解耦，第二种通过数据库底层binlog来监听数据变化。  otter介绍 otter为阿里的一款增量数据同步工具，基于数据库增量日志解析，准实">
+<meta property="og:type" content="article">
+<meta property="og:title" content="otter">
+<meta property="og:url" content="http://ppjys.cn/2018/04/24/otter%E5%9F%BA%E7%A1%80%E4%BB%8B%E7%BB%8D/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="背景 ***公司系统间的数据同步通过http接口通信，这种方式会导致数据同步高峰期间nginx的负载流量增加，从而影响业务流量。其二就是http方式的不稳定性，会导致一些数据不一致的问题。针对这个现象，目前提出2中解决方式，第一种可以通过高可用消息队列来进行解耦，第二种通过数据库底层binlog来监听数据变化。  otter介绍 otter为阿里的一款增量数据同步工具，基于数据库增量日志解析，准实">
+<meta property="og:locale">
+<meta property="og:image" content="https://camo.githubusercontent.com/2988fbbc7ddfe94ed027cd71720b1ffa5912a635/687474703a2f2f646c322e69746579652e636f6d2f75706c6f61642f6174746163686d656e742f303038382f313138392f64343230636131342d326438302d336435352d383038312d6239303833363036613830312e6a7067">
+<meta property="article:published_time" content="2018-04-24T02:07:35.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.614Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="otter">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://camo.githubusercontent.com/2988fbbc7ddfe94ed027cd71720b1ffa5912a635/687474703a2f2f646c322e69746579652e636f6d2f75706c6f61642f6174746163686d656e742f303038382f313138392f64343230636131342d326438302d336435352d383038312d6239303833363036613830312e6a7067">
+
+
+<link rel="canonical" href="http://ppjys.cn/2018/04/24/otter%E5%9F%BA%E7%A1%80%E4%BB%8B%E7%BB%8D/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>otter | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#otter%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.1.</span> <span class="nav-text">otter介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#otter%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">1.2.</span> <span class="nav-text">otter工作原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Otter%E7%9B%AE%E5%89%8D%E6%94%AF%E6%8C%81%E4%BA%86%E4%BB%80%E4%B9%88"><span class="nav-number">1.3.</span> <span class="nav-text">Otter目前支持了什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87"><span class="nav-number">1.4.</span> <span class="nav-text">环境准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A"><span class="nav-number">1.5.</span> <span class="nav-text">名词解释</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%87%E5%9D%91%E9%97%AE%E9%A2%98"><span class="nav-number">1.6.</span> <span class="nav-text">采坑问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">1.7.</span> <span class="nav-text">参考资料</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/04/24/otter%E5%9F%BA%E7%A1%80%E4%BB%8B%E7%BB%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          otter
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-04-24 10:07:35" itemprop="dateCreated datePublished" datetime="2018-04-24T10:07:35+08:00">2018-04-24</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/otter/" itemprop="url" rel="index"><span itemprop="name">otter</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><blockquote>
+<p>***公司系统间的数据同步通过http接口通信，这种方式会导致数据同步高峰期间nginx的负载流量增加，从而影响业务流量。其二就是http方式的不稳定性，会导致一些数据不一致的问题。针对这个现象，目前提出2中解决方式，第一种可以通过高可用消息队列来进行解耦，第二种通过数据库底层binlog来监听数据变化。</p>
+</blockquote>
+<h2 id="otter介绍"><a href="#otter介绍" class="headerlink" title="otter介绍"></a>otter介绍</h2><blockquote>
+<p>otter为阿里的一款增量数据同步工具，基于数据库增量日志解析，准实时同步到本机房或异地机房的mysql/oracle数据库.一个分布式数据库同步系统。</p>
+</blockquote>
+<h2 id="otter工作原理"><a href="#otter工作原理" class="headerlink" title="otter工作原理"></a>otter工作原理</h2><img width="848" src="https://camo.githubusercontent.com/2988fbbc7ddfe94ed027cd71720b1ffa5912a635/687474703a2f2f646c322e69746579652e636f6d2f75706c6f61642f6174746163686d656e742f303038382f313138392f64343230636131342d326438302d336435352d383038312d6239303833363036613830312e6a7067" height="303" alt="">
+
+<p>原理描述：</p>
+<ol>
+<li>基于Canal开源产品，获取数据库增量日志数据。</li>
+<li>典型管理系统架构，manager(web管理)+node(工作节点).manager运行时推送同步配置到node节点.node节点将同步状态反馈到manager上.</li>
+<li>基于zookeeper，解决分布式状态调度的，允许多node节点之间协同工作.</li>
+</ol>
+<h2 id="Otter目前支持了什么"><a href="#Otter目前支持了什么" class="headerlink" title="Otter目前支持了什么"></a>Otter目前支持了什么</h2><ol>
+<li>单向同步， mysql/oracle互相同步</li>
+<li>双向同步，无冲突变更</li>
+<li>文件同步，本地/aranda文件</li>
+<li>双A同步，冲突检测&amp;冲突补救</li>
+<li>数据迁移，中间表/行记录同步<blockquote>
+<p>典型的场景是账户信息表和账户交易明细表，更新账户余额后需要登记一条账户明细，并且保证在一个事务里，用户可以通过交易明细表查看交易记录，但是交易明细表的数据量是逐步递增的，用户量多的系统，几个月下来的数据超过千万了，表数据量一多就导致查询和插入变慢，而一开始就对账户明细做分表处理就难于保证强一致性事务，通过otter可以将记录同步导历史表，并且进行分表处理，用户往年的交易记录就可以查询历史表了，而原交易明细表就可以删除一个月甚至几天前的数据；</p>
+</blockquote>
+</li>
+</ol>
+<span id="more"></span>
+
+<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><ol>
+<li>otter manager依赖于mysql进行配置信息的存储，所以需要预先安装mysql，并初始化otter <a target="_blank" rel="noopener" href="https://raw.github.com/alibaba/otter/master/manager/deployer/src/main/resources/sql/otter-manager-schema.sql">manager的系统表结构</a>。</li>
+<li>整个otter架构依赖了zookeeper进行多节点调度，所以需要预先安装zookeeper，不需要初始化节点，otter程序启动后会自检.</li>
+<li>安装jdk1.6+<blockquote>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://github.com/alibaba/otter/wiki/Manager_Quickstart">https://github.com/alibaba/otter/wiki/Manager_Quickstart</a><br><a target="_blank" rel="noopener" href="https://github.com/alibaba/otter/wiki/Node_Quickstart">https://github.com/alibaba/otter/wiki/Node_Quickstart</a></p>
+</blockquote>
+</li>
+</ol>
+<h2 id="名词解释"><a href="#名词解释" class="headerlink" title="名词解释"></a>名词解释</h2><ol>
+<li>Channel：同步通道，单向同步中一个Pipeline组成，在双向同步中有两个Pipeline组成；Pipeline：从源端到目标端的整个过程描述，主要由一些同步映射过程组成；</li>
+<li>DataMediaPair：根据业务表定义映射关系，比如源表和目标表，字段映射，字段组等；</li>
+<li>DataMedia:抽象的数据介质概念，可以理解为数据表/mq队列定义；</li>
+<li>DataMediaSource: 抽象的数据介质源信息，补充描述DateMedia；</li>
+<li>ColumnPair: 定义字段映射关系；</li>
+<li>ColumnGroup: 定义字段映射组；</li>
+<li>Node: 处理同步过程的工作节点，对应一个jvm；</li>
+</ol>
+<h2 id="采坑问题"><a href="#采坑问题" class="headerlink" title="采坑问题"></a>采坑问题</h2><ol>
+<li>mysql需要开启binlog,并且binlog的模式一定要Row。</li>
+<li>mysql5.6版本需要binlog_checksum设置为none，默认开始crc校验。</li>
+<li>mysql mater节点需要设置server-id，server-id需要和manager上配置的node的id一致。错误内容如下：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pid:1 nid:1 exception:canal:源数据库cancal:java.io.IOException: Received error packet: errno &#x3D; 1236, sqlstate &#x3D; HY000 errmsg &#x3D; Misconfigured master - server_id was not set</span><br><span class="line">    at com.alibaba.otter.canal.parse.inbound.mysql.dbsync.DirectLogFetcher.fetch(DirectLogFetcher.java:105)</span><br><span class="line">    at com.alibaba.otter.canal.parse.inbound.mysql.MysqlConnection.dump(MysqlConnection.java:146)</span><br><span class="line">    at com.alibaba.otter.canal.parse.inbound.AbstractEventParser$3.run(AbstractEventParser.java:227)</span><br><span class="line">    at java.lang.Thread.run(Thread.java:745)</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li><a target="_blank" rel="noopener" href="https://github.com/alibaba/otter/wiki">https://github.com/alibaba/otter/wiki</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/alibaba/otter/wiki/Faq">https://github.com/alibaba/otter/wiki/Faq</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/wudufeng/article/details/78688240">https://blog.csdn.net/wudufeng/article/details/78688240</a></li>
+<li><a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/223077?utm_content=m_32233">https://yq.aliyun.com/articles/223077?utm_content=m_32233</a></li>
+<li><a target="_blank" rel="noopener" href="https://my.oschina.net/u/860872/blog/1609715">https://my.oschina.net/u/860872/blog/1609715</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/findumars/p/6294542.html">https://www.cnblogs.com/findumars/p/6294542.html</a></li>
+<li>mysql binlog优化<br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/doseoer/p/6132454.html">https://www.cnblogs.com/doseoer/p/6132454.html</a></li>
+<li>binlog采坑 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/276815076/p/7993712.html">https://www.cnblogs.com/276815076/p/7993712.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/223077?utm_content=m_32233">https://yq.aliyun.com/articles/223077?utm_content=m_32233</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/wudufeng/article/details/78688240">https://blog.csdn.net/wudufeng/article/details/78688240</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/otter/" rel="tag"># otter</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/04/23/docker%E5%9F%BA%E7%A1%80%E5%91%BD%E4%BB%A4/" rel="prev" title="docker 基础命令">
+                  <i class="fa fa-chevron-left"></i> docker 基础命令
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/04/26/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94/" rel="next" title="分库分表方案对比">
+                  分库分表方案对比 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

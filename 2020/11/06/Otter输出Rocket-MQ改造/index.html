@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="背景最近业务团队需要实时同步Mysql—&gt;ES数据的需求，本来想基于canal-adapter直接开发业务，后来觉得业务方可能有对binlog的订阅共性，最终我们决定还是在otter上做改造，支持Rocket-Mq输出。 整理的需求点如下：  支持输出平台RocketMQ服务&#x2F;云上RocketMQ服务；  支持业务方指定某些表，某些表可以指定事件（Insert、Update、Delete事件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="otter输出Rocket-MQ改造">
+<meta property="og:url" content="http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="背景最近业务团队需要实时同步Mysql—&gt;ES数据的需求，本来想基于canal-adapter直接开发业务，后来觉得业务方可能有对binlog的订阅共性，最终我们决定还是在otter上做改造，支持Rocket-Mq输出。 整理的需求点如下：  支持输出平台RocketMQ服务&#x2F;云上RocketMQ服务；  支持业务方指定某些表，某些表可以指定事件（Insert、Update、Delete事件">
+<meta property="og:locale">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocket-mq.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocketmq1.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocketmq2.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocketmq3.png">
+<meta property="og:image" content="http://ppjys.cn/images/otter-rocketmq4.png">
+<meta property="article:published_time" content="2020-11-06T11:45:17.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.613Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="otter">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://ppjys.cn/images/otter-rocket-mq.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>otter输出Rocket-MQ改造 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84%E5%9B%BE"><span class="nav-number">2.</span> <span class="nav-text">架构图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E7%82%B9"><span class="nav-number">3.</span> <span class="nav-text">改造点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          otter输出Rocket-MQ改造
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-11-06 19:45:17" itemprop="dateCreated datePublished" datetime="2020-11-06T19:45:17+08:00">2020-11-06</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/otter/" itemprop="url" rel="index"><span itemprop="name">otter</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近业务团队需要实时同步Mysql—&gt;ES数据的需求，本来想基于canal-adapter直接开发业务，后来觉得业务方可能有对binlog的订阅共性，最终我们决定还是在otter上做改造，支持Rocket-Mq输出。</p>
+<p>整理的需求点如下：</p>
+<ul>
+<li><p>支持输出平台RocketMQ服务/云上RocketMQ服务；</p>
+</li>
+<li><p>支持业务方指定某些表，某些表可以指定事件（Insert、Update、Delete事件）；</p>
+</li>
+<li><p>直接全量数据迁移至RocketMQ Topic；</p>
+</li>
+<li><p>支持跨机房传输到异地RocketMQ；</p>
+</li>
+</ul>
+<h2 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h2><p><img src="/images/otter-rocket-mq.png"></p>
+<span id="more"></span>
+
+<h2 id="改造点"><a href="#改造点" class="headerlink" title="改造点"></a>改造点</h2><ol>
+<li><p>定义RocketMQ实体，定义一个RocketMQ的目标源。</p>
+</li>
+<li><p>改造数据源，支持RocketMQ的配置。</p>
+<p><img src="/images/otter-rocketmq1.png"></p>
+<p><img src="/images/otter-rocketmq2.png"></p>
+<p><img src="/images/otter-rocketmq3.png"></p>
+<p><img src="/images/otter-rocketmq4.png"></p>
+</li>
+<li><p>改造Transerformer模块，支持将数据转换成RocketMQ需要的格式。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RocketMQTransformer</span>  <span class="keyword">extends</span> <span class="title">AbstractOtterTransformer</span>&lt;<span class="title">EventData</span>, <span class="title">EventData</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> EventData <span class="title">transform</span><span class="params">(EventData data, OtterTransformerContext context)</span> </span>&#123;</span><br><span class="line">        data.setPairId(context.getDataMediaPair().getId());</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>改造Load模块，支持将数据向RocketMQ发送。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RocketMQLoader</span> <span class="keyword">implements</span> <span class="title">OtterLoader</span>&lt;<span class="title">DbBatch</span>, <span class="title">List</span>&lt;<span class="title">LoadContext</span>&gt;&gt;</span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(RocketMQLoader.class);</span><br><span class="line">    <span class="keyword">private</span> ExecutorService executorService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> ConfigClientService configClientService;</span><br><span class="line">    <span class="keyword">private</span> LoadStatsTracker loadStatsTracker;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * rocket mq 实例 缓存</span></span><br><span class="line"><span class="comment">      */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Map&lt;Long,RocketMqSender&gt; rocketMqSenderMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取 mq productor</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> pipelineId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> RocketMqSender <span class="title">getRocketMqSender</span><span class="params">(Long pipelineId)</span></span>&#123;</span><br><span class="line">        RocketMqSender rocketMqSender = rocketMqSenderMap.get(pipelineId);</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> == rocketMqSender)&#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (RocketMqSender.class)&#123;</span><br><span class="line">                rocketMqSender = rocketMqSenderMap.get(pipelineId);</span><br><span class="line">                <span class="keyword">if</span>(<span class="keyword">null</span> == rocketMqSender)&#123;</span><br><span class="line">                    Pipeline pipeline = configClientService.findPipeline(pipelineId);</span><br><span class="line">                    DataMediaPair dataMediaPair = pipeline.getPairs().get(<span class="number">0</span>);</span><br><span class="line">                    RocketMqDataMedia rocketMqDataMedia = (RocketMqDataMedia) dataMediaPair.getTarget();</span><br><span class="line">                    rocketMqSender = <span class="keyword">new</span> RocketMqSender(pipelineId,rocketMqDataMedia.getSource());</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        rocketMqSender.start();</span><br><span class="line">                    &#125; <span class="keyword">catch</span> (MQClientException e) &#123;</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;mq start fail,error：&quot;</span>+e.getErrorMessage());</span><br><span class="line">                    &#125;</span><br><span class="line">                    rocketMqSenderMap.put(pipelineId,rocketMqSender);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> rocketMqSender;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> == rocketMqSender)&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;获取mq product失败&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> rocketMqSender;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 删除 rocket mq productor</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> pipelineId</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">removeRocketMqSenderByPipeline</span><span class="params">(Long pipelineId)</span></span>&#123;</span><br><span class="line">        RocketMqSender rocketMqSender = rocketMqSenderMap.remove(pipelineId);</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> == rocketMqSender)&#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        rocketMqSender.shutdown();</span><br><span class="line">        logger.info(<span class="string">&quot;pipeline id:&#123;&#125; rocket mq shutdown&quot;</span>,pipelineId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> List&lt;LoadContext&gt; <span class="title">load</span><span class="params">(DbBatch data)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> RowBatch rowBatch = data.getRowBatch();</span><br><span class="line">        <span class="keyword">boolean</span> existRowBatch = (rowBatch != <span class="keyword">null</span> &amp;&amp; !CollectionUtils.isEmpty(rowBatch.getDatas()));</span><br><span class="line">        List&lt;Future&gt; futures = <span class="keyword">new</span> ArrayList&lt;Future&gt;();</span><br><span class="line">        ExecutorCompletionService completionService = <span class="keyword">new</span> ExecutorCompletionService(executorService);</span><br><span class="line">        <span class="keyword">if</span> (existRowBatch) &#123;</span><br><span class="line">            submitRowBatch(futures, completionService, rowBatch);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 先获取一下异步处理的结果，记录一下出错的index</span></span><br><span class="line">        List&lt;LoadContext&gt; processedContexts = <span class="keyword">new</span> ArrayList&lt;LoadContext&gt;();</span><br><span class="line">        <span class="keyword">int</span> index = <span class="number">0</span>;</span><br><span class="line">        LoadException exception = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">while</span> (index &lt; futures.size()) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Future future = completionService.take();<span class="comment">// 它也可能被打断</span></span><br><span class="line">                future.get();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                exception = <span class="keyword">new</span> LoadException(e);</span><br><span class="line">                logger.error(<span class="string">&quot;线程中断异常&quot;</span>,e);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (ExecutionException e) &#123;</span><br><span class="line">                exception = <span class="keyword">new</span> LoadException(e);</span><br><span class="line">                logger.error(<span class="string">&quot;load 执行异常&quot;</span>,e);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            index++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 任何一个线程返回，出现了异常，就退出整个调度</span></span><br><span class="line">        <span class="keyword">if</span> (index &lt; futures.size()) &#123;<span class="comment">// 小于代表有错误，需要对未完成的记录进行cancel操作，对已完成的结果进行收集，做重复录入过滤记录</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> errorIndex = <span class="number">0</span>; errorIndex &lt; futures.size(); errorIndex++) &#123;</span><br><span class="line">                Future future = futures.get(errorIndex);</span><br><span class="line">                <span class="keyword">if</span> (!future.isDone()) &#123;</span><br><span class="line">                    future.cancel(<span class="keyword">true</span>); <span class="comment">// 对未完成的进行取消</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; futures.size(); i++) &#123;<span class="comment">// 收集一下正确处理完成的结果</span></span><br><span class="line">                Future future = futures.get(i);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    LoadContext loadContext = (LoadContext) future.get();</span><br><span class="line">                    processedContexts.add((RocketMqLoadContext) loadContext);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    <span class="comment">// ignore</span></span><br><span class="line">                &#125; <span class="keyword">catch</span> (ExecutionException e) &#123;</span><br><span class="line">                    <span class="comment">// ignore</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 统计信息</span></span><br><span class="line">            <span class="keyword">for</span>(EventData eventData:rowBatch.getDatas())&#123;</span><br><span class="line">                processStat(eventData,rowBatch.getIdentity());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (exception != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> exception;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> processedContexts;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">submitRowBatch</span><span class="params">(List&lt;Future&gt; futures, ExecutorCompletionService completionService,</span></span></span><br><span class="line"><span class="function"><span class="params">        <span class="keyword">final</span> RowBatch rowBatch)</span> </span>&#123;</span><br><span class="line">            <span class="comment">// 按照table name 分割，然后分批异步发送消息</span></span><br><span class="line">            Map&lt;String,List&lt;EventData&gt;&gt; mapList = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">            <span class="keyword">for</span>(EventData eventData:rowBatch.getDatas())&#123;</span><br><span class="line">                String key = eventData.getSchemaName()+<span class="string">&quot;_&quot;</span>+eventData.getTableName();</span><br><span class="line">                List&lt;EventData&gt; list = mapList.get(key);</span><br><span class="line">                <span class="keyword">if</span>(<span class="keyword">null</span> == list)&#123;</span><br><span class="line">                    List&lt;EventData&gt; temp = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">                    temp.add(eventData);</span><br><span class="line">                    mapList.put(key,temp);</span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    list.add(eventData);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            Long pipelineId = rowBatch.getIdentity().getPipelineId();</span><br><span class="line">            Pipeline pipeline = configClientService.findPipeline(pipelineId);</span><br><span class="line">            DataMediaPair dataMediaPair = pipeline.getPairs().get(<span class="number">0</span>);</span><br><span class="line">            RocketMqDataMedia rocketMqDataMedia = (RocketMqDataMedia) dataMediaPair.getTarget();</span><br><span class="line">            RocketMqSender rocketMqSender = getRocketMqSender(pipelineId);</span><br><span class="line">            RocketMqLoadContext context = <span class="keyword">new</span> RocketMqLoadContext();</span><br><span class="line">            <span class="keyword">for</span>(Map.Entry&lt;String,List&lt;EventData&gt;&gt; temp:mapList.entrySet())&#123;</span><br><span class="line">                String topic = rocketMqDataMedia.getNamespace();</span><br><span class="line">                String tag = rocketMqDataMedia.getName();</span><br><span class="line">                String key = <span class="string">&quot;&quot;</span>;</span><br><span class="line">                String orderKey = temp.getKey();</span><br><span class="line">                List&lt;EventData&gt; eventDatas = temp.getValue();</span><br><span class="line">                futures.add(completionService.submit(<span class="keyword">new</span> Callable&lt;RocketMqLoadContext&gt;() &#123;</span><br><span class="line">                    <span class="function"><span class="keyword">public</span> RocketMqLoadContext <span class="title">call</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                        <span class="keyword">for</span>(EventData eventData:eventDatas)&#123;</span><br><span class="line">                            MqMessage mqMessage = converMqMessage(eventData);</span><br><span class="line">                            <span class="keyword">if</span>(<span class="keyword">null</span> == mqMessage)&#123;</span><br><span class="line">                                <span class="keyword">continue</span>;</span><br><span class="line">                            &#125;</span><br><span class="line">                            String message = JSON.toJSONString(mqMessage);</span><br><span class="line">                            rocketMqSender.send(topic,tag,key,message,orderKey);</span><br><span class="line">                        &#125;</span><br><span class="line">                        <span class="keyword">return</span> context;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;));</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">processStat</span><span class="params">(EventData data, Identity identity)</span> </span>&#123;</span><br><span class="line">        LoadThroughput throughput = loadStatsTracker.getStat(identity);</span><br><span class="line">        LoadCounter counter = throughput.getStat(data.getPairId());</span><br><span class="line">        EventType type = data.getEventType();</span><br><span class="line">        <span class="keyword">if</span> (type.isInsert()) &#123;</span><br><span class="line">            counter.getInsertCount().incrementAndGet();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (type.isUpdate()) &#123;</span><br><span class="line">            counter.getUpdateCount().incrementAndGet();</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (type.isDelete()) &#123;</span><br><span class="line">            counter.getDeleteCount().incrementAndGet();</span><br><span class="line">        &#125;</span><br><span class="line">        counter.getRowCount().incrementAndGet();</span><br><span class="line">        counter.getRowSize().addAndGet(data.getSize());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setExecutorService</span><span class="params">(ExecutorService executorService)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.executorService = executorService;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setConfigClientService</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        ConfigClientService configClientService)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.configClientService = configClientService;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 消息体转换</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> eventData</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> MqMessage <span class="title">converMqMessage</span><span class="params">(EventData eventData)</span></span>&#123;</span><br><span class="line">        <span class="comment">// 过滤不支持类型</span></span><br><span class="line">        <span class="keyword">if</span>(eventData.getEventType() != EventType.INSERT &amp;&amp; eventData.getEventType() != EventType.UPDATE &amp;&amp;</span><br><span class="line">            eventData.getEventType() != EventType.DELETE)&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        MqMessage mqMessage = <span class="keyword">new</span> MqMessage();</span><br><span class="line">        mqMessage.setDatabaseName(eventData.getSchemaName());</span><br><span class="line">        mqMessage.setTableName(eventData.getTableName());</span><br><span class="line">        mqMessage.setEventType(eventData.getEventType().toString());</span><br><span class="line">        mqMessage.setExecuteTime(eventData.getExecuteTime());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 主键名</span></span><br><span class="line">        List&lt;String&gt; pkNames = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="comment">// 只作用于 eventType为update类型，用于变更前的主键值,如果是insert/delete变更前和变更后的主键值是一样的.</span></span><br><span class="line">        List&lt;Map&lt;String, String&gt;&gt; oldKeys = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="comment">// 所有字段的值</span></span><br><span class="line">        List&lt;Map&lt;String, String&gt;&gt; datas = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="comment">// 字段类型,类型请参考 java.sql.Types</span></span><br><span class="line">        List&lt;Map&lt;String,Integer&gt;&gt; columnTypes = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> != eventData.getKeys() &amp;&amp; eventData.getKeys().size() &gt; <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">for</span>(EventColumn column:eventData.getKeys())&#123;</span><br><span class="line">                pkNames.add(column.getColumnName());</span><br><span class="line">                Map&lt;String, String&gt; tempData = <span class="keyword">new</span> HashMap&lt;String,String&gt;();</span><br><span class="line">                tempData.put(column.getColumnName(),column.getColumnValue());</span><br><span class="line">                datas.add(tempData);</span><br><span class="line">                Map&lt;String,Integer&gt; columnType = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">                columnType.put(column.getColumnName(),column.getColumnType());</span><br><span class="line">                columnTypes.add(columnType);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> != eventData.getColumns() &amp;&amp; eventData.getColumns().size() &gt; <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">for</span>(EventColumn column:eventData.getColumns())&#123;</span><br><span class="line">                Map&lt;String, String&gt; tempData = <span class="keyword">new</span> HashMap&lt;String,String&gt;();</span><br><span class="line">                tempData.put(column.getColumnName(),column.getColumnValue());</span><br><span class="line">                datas.add(tempData);</span><br><span class="line">                Map&lt;String,Integer&gt; columnType = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">                columnType.put(column.getColumnName(),column.getColumnType());</span><br><span class="line">                columnTypes.add(columnType);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>(<span class="keyword">null</span> != eventData.getOldKeys() &amp;&amp; eventData.getOldKeys().size() &gt; <span class="number">0</span>)&#123;</span><br><span class="line">            <span class="keyword">for</span>(EventColumn column:eventData.getOldKeys())&#123;</span><br><span class="line">                Map&lt;String, String&gt; tempData = <span class="keyword">new</span> HashMap&lt;String,String&gt;();</span><br><span class="line">                tempData.put(column.getColumnName(),column.getColumnValue());</span><br><span class="line">                oldKeys.add(tempData);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        mqMessage.setPkNames(pkNames);</span><br><span class="line">        mqMessage.setOldKeys(oldKeys);</span><br><span class="line">        mqMessage.setDatas(datas);</span><br><span class="line">        mqMessage.setColumnTypes(columnTypes);</span><br><span class="line">        <span class="keyword">return</span> mqMessage;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 销毁rocket mq 生产者</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> pipelineId</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">stopRocketMqSender</span><span class="params">(Long pipelineId)</span></span>&#123;</span><br><span class="line">        removeRocketMqSenderByPipeline(pipelineId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> LoadStatsTracker <span class="title">getLoadStatsTracker</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> loadStatsTracker;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLoadStatsTracker</span><span class="params">(LoadStatsTracker loadStatsTracker)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.loadStatsTracker = loadStatsTracker;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>经过这次改造Rocket-MQ支持，发现开发代码中其实已经有对异构介质输出做了一层扩展性，只需要重写新的扩展即可。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/otter/" rel="tag"># otter</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/" rel="prev" title="Leetcode高频题总结">
+                  <i class="fa fa-chevron-left"></i> Leetcode高频题总结
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/12/09/20201209_mysql%E7%9A%84datetime%E7%B1%BB%E5%9E%8B%E8%AE%BE%E7%BD%AE0000-00-00'%20%E5%AF%BC%E8%87%B4%E7%9A%84otter%E5%90%8C%E6%AD%A5%E5%A4%B1%E8%B4%A5/" rel="next" title="mysql的datetime类型设置'0000-00-00' 导致的otter同步失败">
+                  mysql的datetime类型设置'0000-00-00' 导致的otter同步失败 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

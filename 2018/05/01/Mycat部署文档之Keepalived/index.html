@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="keepalived 安装直接通过apt-get方式安装最简单 1234[root@bogon &#x2F;]# apt-get install libssl-dev openssl libpopt-dev[root@bogon &#x2F;]# apt-get install -y keepalived[root@bogon &#x2F;]# keepalived -v[root@bogon &amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mycat部署文档之Keepalived">
+<meta property="og:url" content="http://ppjys.cn/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BKeepalived/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="keepalived 安装直接通过apt-get方式安装最简单 1234[root@bogon &#x2F;]# apt-get install libssl-dev openssl libpopt-dev[root@bogon &#x2F;]# apt-get install -y keepalived[root@bogon &#x2F;]# keepalived -v[root@bogon &amp;">
+<meta property="og:locale">
+<meta property="article:published_time" content="2018-05-01T03:07:35.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.613Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="mycat">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BKeepalived/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Mycat部署文档之Keepalived | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#keepalived-%E5%AE%89%E8%A3%85"><span class="nav-number">1.</span> <span class="nav-text">keepalived 安装</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E5%86%99-Haproxy-%E7%8A%B6%E6%80%81%E7%9B%91%E6%B5%8B"><span class="nav-number">1.1.</span> <span class="nav-text">编写 Haproxy 状态监测</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AEkeepalived-master%E7%9A%84%E6%9C%80%E7%AE%80%E9%85%8D%E7%BD%AE"><span class="nav-number">1.2.</span> <span class="nav-text">设置keepalived master的最简配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AEkeepalived-slave%E7%9A%84%E6%9C%80%E7%AE%80%E9%85%8D%E7%BD%AE"><span class="nav-number">1.3.</span> <span class="nav-text">设置keepalived slave的最简配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8keepalived"><span class="nav-number">1.4.</span> <span class="nav-text">启动keepalived</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81Keepalived%E6%98%AF%E5%90%A6%E6%AD%A3%E5%B8%B8%E5%90%AF%E5%8A%A8"><span class="nav-number">1.5.</span> <span class="nav-text">验证Keepalived是否正常启动</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E5%9C%B0%E5%9D%80"><span class="nav-number">1.5.0.1.</span> <span class="nav-text">参考地址</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BKeepalived/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Mycat部署文档之Keepalived
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-05-01 11:07:35" itemprop="dateCreated datePublished" datetime="2018-05-01T11:07:35+08:00">2018-05-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mycat/" itemprop="url" rel="index"><span itemprop="name">mycat</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="keepalived-安装"><a href="#keepalived-安装" class="headerlink" title="keepalived 安装"></a>keepalived 安装</h2><p>直接通过apt-get方式安装最简单</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@bogon &#x2F;]# apt-get install libssl-dev openssl libpopt-dev</span><br><span class="line">[root@bogon &#x2F;]# apt-get install -y keepalived</span><br><span class="line">[root@bogon &#x2F;]# keepalived -v</span><br><span class="line">[root@bogon &#x2F;]# Keepalived v1.2.13 (08&#x2F;03,2017)</span><br></pre></td></tr></table></figure>
+<h3 id="编写-Haproxy-状态监测"><a href="#编写-Haproxy-状态监测" class="headerlink" title="编写 Haproxy 状态监测"></a>编写 Haproxy 状态监测</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@bogon &#x2F;]# vim &#x2F;etc&#x2F;keepalived&#x2F;check_haproxy.sh</span><br><span class="line">#!&#x2F;bin&#x2F;sh</span><br><span class="line">if [ $(ps -C haproxy --no-header | wc -l) -eq 0 ]; then</span><br><span class="line">    &#x2F;home&#x2F;dxy&#x2F;haproxy&#x2F;sbin&#x2F;haproxy -f &#x2F;home&#x2F;dxy&#x2F;haproxy&#x2F;conf&#x2F;haproxy.cfg</span><br><span class="line">fi</span><br><span class="line"></span><br><span class="line">sleep 2</span><br><span class="line">if [ $(ps -C haproxy --no-header | wc -l) -eq 0 ]; then</span><br><span class="line">    killall keepalived</span><br><span class="line">fi</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<h3 id="设置keepalived-master的最简配置"><a href="#设置keepalived-master的最简配置" class="headerlink" title="设置keepalived master的最简配置"></a>设置keepalived master的最简配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">! Configuration File for keepalived</span><br><span class="line"># global setting , notify email setting</span><br><span class="line">global_defs &#123;</span><br><span class="line">    #存在于同一个网段中，一组keepalived的各个节点都有不同的名字</span><br><span class="line">    #在全局设置中，我们还可以设置管理员的email信息等。</span><br><span class="line">    router_id LVS_V1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#这个是我们在上一小结讲到的haproxy检查脚本，我们保存在这个文件中（注意文件权限）</span><br><span class="line">vrrp_script chkhaproxy &#123;</span><br><span class="line">    script &quot;&#x2F;etc&#x2F;keepalived&#x2F;check_haproxy.sh&quot;</span><br><span class="line">    #每10秒钟，检查一次</span><br><span class="line">    interval 10</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#keepalived实例设置，是最重要的设置信息</span><br><span class="line">vrrp_instance VI_1 &#123;</span><br><span class="line">    #state状态MASTER表示是主要工作节点。</span><br><span class="line">    #一个keepalived组中，最多只有一个MASTER节点，当然也可以没有</span><br><span class="line">    state MASTER</span><br><span class="line">    #实例所绑定的网卡设备，我的网卡设备是ens33。您按照您自己的来</span><br><span class="line">    interface ens33</span><br><span class="line">    #同一个keepalived组，节点的设置必须一样，这样才会被识别</span><br><span class="line">    virtual_router_id 52</span><br><span class="line">    #节点优先级，BACKUP的优先级一定要比MASTER的优先级低</span><br><span class="line">    priority 100</span><br><span class="line">    #组播信息发送间隔，两个节点设置必须一样</span><br><span class="line">    advert_int 1</span><br><span class="line">    #实际的ens33上的固定ip地址</span><br><span class="line">    mcast_src_ip 192.168.1.11</span><br><span class="line">    #验证信息，只有验证信息相同，才能被加入到一个组中。</span><br><span class="line">    authentication &#123;</span><br><span class="line">        auth_type PASS</span><br><span class="line">        auth_pass 1111</span><br><span class="line">    &#125;</span><br><span class="line">    #虚拟地址和绑定的端口，如果有多个，就绑定多个</span><br><span class="line">    #dev 是指定浮动IP要绑定的网卡设备号</span><br><span class="line">    virtual_ipaddress &#123;</span><br><span class="line">        192.168.1.10 dev ens33</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    #设置的检查脚本</span><br><span class="line">    #关联上方的“vrrp_script chkhaproxy”</span><br><span class="line">    track_script &#123;</span><br><span class="line">        chkhaproxy</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="设置keepalived-slave的最简配置"><a href="#设置keepalived-slave的最简配置" class="headerlink" title="设置keepalived slave的最简配置"></a>设置keepalived slave的最简配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">! Configuration File for keepalived</span><br><span class="line"># global setting , notify email setting</span><br><span class="line">global_defs &#123;</span><br><span class="line">    #这里和master节点不同</span><br><span class="line">    router_id LVS_V2</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">#check haproxy</span><br><span class="line">vrrp_script chkhaproxy &#123;</span><br><span class="line">    script &quot;&#x2F;etc&#x2F;keepalived&#x2F;check_haproxy.sh&quot;</span><br><span class="line">    interval 10</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># instance setting</span><br><span class="line">vrrp_instance VI_1 &#123;</span><br><span class="line">    # 这里和Master节点不一样</span><br><span class="line">    state BACKUP</span><br><span class="line">    interface ens33</span><br><span class="line">    # 这里一定是一样的</span><br><span class="line">    virtual_router_id 52</span><br><span class="line">    # 这里的优先级比Master节点低</span><br><span class="line">    priority 99</span><br><span class="line">    advert_int 1</span><br><span class="line">    # 这里和Master节点不一样</span><br><span class="line">    mcast_src_ip&#x3D;192.168.1.12</span><br><span class="line">    authentication &#123;</span><br><span class="line">        auth_type PASS</span><br><span class="line">        auth_pass 1111</span><br><span class="line">    &#125;</span><br><span class="line">    virtual_ipaddress &#123;</span><br><span class="line">        192.168.1.10 dev ens33</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    track_script &#123;</span><br><span class="line">        chkhaproxy</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>以上配置中请注意几个关键点：</p>
+<ul>
+<li>注意 haproxy 状态检查的脚本的位置，根据自己创建文件的位置不一样，脚本检查的指定位置也不一样；</li>
+<li>注意优先级，MASTER节点的优先级一定要高于所有的BACKUP节点；</li>
+<li>注意局域网的组播地址，一定要可用。局域网内所有keepalived节点都是利用组播方式寻找对方；</li>
+<li>谁说BACKUP节点只能有一个！？</li>
+<li>最后，keepalived一定要注册成服务形式，您可以想象上面所有脚本、配置、命令如果重启后再来一次，会是什么情况。</li>
+</ul>
+<p>接下来，我们要开始启动 Master 节点和 Backup 节点了，为了准确的查看日志状态，您需要观察系统日志。系统日志所在的位置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tail -f &#x2F;var&#x2F;log&#x2F;messages</span><br></pre></td></tr></table></figure>
+<h3 id="启动keepalived"><a href="#启动keepalived" class="headerlink" title="启动keepalived"></a>启动keepalived</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# service keepalived start</span><br></pre></td></tr></table></figure>
+<p>如果设置和启动都是成功的，您不会在日志信息中收到任何的keepalived报错信息。接下来您就可以使用192.168.1.10这个IP访问 haproxy了.</p>
+<h3 id="验证Keepalived是否正常启动"><a href="#验证Keepalived是否正常启动" class="headerlink" title="验证Keepalived是否正常启动"></a>验证Keepalived是否正常启动</h3><p>在主备机环境中输入以下命令，查看当前系统网络配置信息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"># ip a</span><br><span class="line">1: lo: &lt;LOOPBACK,UP,LOWER_UP&gt; mtu 65536 qdisc noqueue state UNKNOWN group default</span><br><span class="line">    link&#x2F;loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00</span><br><span class="line">    inet 127.0.0.1&#x2F;8 scope host lo</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 ::1&#x2F;128 scope host</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000</span><br><span class="line">    link&#x2F;ether 08:00:27:07:f5:db brd ff:ff:ff:ff:ff:ff</span><br><span class="line">    inet 192.168.1.11&#x2F;24 brd 192.168.16.255 scope global eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet 192.168.1.10&#x2F;24 scope global secondary eth0</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br><span class="line">    inet6 fe80::a00:27ff:fe07:f5db&#x2F;64 scope link</span><br><span class="line">       valid_lft forever preferred_lft forever</span><br></pre></td></tr></table></figure>
+<p>可以发现eth0下多了inet 192.168.1.10/24，表明keepalived已正常工作。</p>
+<h5 id="参考地址"><a href="#参考地址" class="headerlink" title="参考地址"></a>参考地址</h5><ol>
+<li><a target="_blank" rel="noopener" href="http://valleylord.github.io/post/201603-mycat-haproxy/">http://valleylord.github.io/post/201603-mycat-haproxy/</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.itpux.com/thread-4668-1-1.html">http://www.itpux.com/thread-4668-1-1.html</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/u012758088/article/details/78651964">https://blog.csdn.net/u012758088/article/details/78651964</a></li>
+<li><a target="_blank" rel="noopener" href="http://kingleema.com/2015/11/14/setup-keepalived-on-ubuntu-server/">http://kingleema.com/2015/11/14/setup-keepalived-on-ubuntu-server/</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mycat/" rel="tag"># mycat</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/05/01/Mycat%E8%BF%90%E7%BB%B4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" rel="prev" title="Mycat运维部署文档">
+                  <i class="fa fa-chevron-left"></i> Mycat运维部署文档
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BHaproxy/" rel="next" title="Mycat部署文档之Haproxy">
+                  Mycat部署文档之Haproxy <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

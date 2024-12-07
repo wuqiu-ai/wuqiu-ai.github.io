@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="背景在复杂分布式系统中，往往需要对大量的数据和消息进行唯一标识。随着数据日渐增长，对数据分库分表后需要有一个唯一ID来标识一条数据或消息，数据库的自增ID显然不能满足需求，此时一个能够生成全局唯一ID的系统是非常必要的。概括下来，那业务系统对ID号的要求有哪些呢？  全局唯一性：不能出现重复的ID号，既然是唯一标识，这是最基本的要求。 趋势递增：在MySQL InnoDB引擎中使用的是聚集索引，由">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式主键调研文档">
+<meta property="og:url" content="http://ppjys.cn/2018/12/20/%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%BB%E9%94%AE%E8%B0%83%E7%A0%94%E6%96%B9%E6%A1%88/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="背景在复杂分布式系统中，往往需要对大量的数据和消息进行唯一标识。随着数据日渐增长，对数据分库分表后需要有一个唯一ID来标识一条数据或消息，数据库的自增ID显然不能满足需求，此时一个能够生成全局唯一ID的系统是非常必要的。概括下来，那业务系统对ID号的要求有哪些呢？  全局唯一性：不能出现重复的ID号，既然是唯一标识，这是最基本的要求。 趋势递增：在MySQL InnoDB引擎中使用的是聚集索引，由">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/sharding/16.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/sharding/17.png">
+<meta property="article:published_time" content="2018-12-20T15:28:28.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.616Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="分布式主键">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/sharding/16.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2018/12/20/%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%BB%E9%94%AE%E8%B0%83%E7%A0%94%E6%96%B9%E6%A1%88/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>分布式主键调研文档 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E6%96%B9%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">常见方法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SEQUENCE%E5%8C%BA%E9%97%B4%E6%96%B9%E6%A1%88"><span class="nav-number">2.1.</span> <span class="nav-text">SEQUENCE区间方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8Eredis%E7%9A%84%E6%96%B9%E6%A1%88"><span class="nav-number">2.2.</span> <span class="nav-text">基于redis的方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UUID%E6%96%B9%E6%A1%88"><span class="nav-number">2.3.</span> <span class="nav-text">UUID方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mongodb%E7%9A%84ObjectId"><span class="nav-number">2.4.</span> <span class="nav-text">mongodb的ObjectId</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IgniteAtomicSequence%E6%96%B9%E6%A1%88"><span class="nav-number">2.5.</span> <span class="nav-text">IgniteAtomicSequence方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#snowflake%E6%96%B9%E6%A1%88"><span class="nav-number">2.6.</span> <span class="nav-text">snowflake方案</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#mysql-left-segment%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%B9%E6%A1%88"><span class="nav-number">2.7.</span> <span class="nav-text">mysql-left-segment数据库方案</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/12/20/%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%BB%E9%94%AE%E8%B0%83%E7%A0%94%E6%96%B9%E6%A1%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式主键调研文档
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-12-20 23:28:28" itemprop="dateCreated datePublished" datetime="2018-12-20T23:28:28+08:00">2018-12-20</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/generate-key/" itemprop="url" rel="index"><span itemprop="name">generate key</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>在复杂分布式系统中，往往需要对大量的数据和消息进行唯一标识。随着数据日渐增长，对数据分库分表后需要有一个唯一ID来标识一条数据或消息，数据库的自增ID显然不能满足需求，此时一个能够生成全局唯一ID的系统是非常必要的。概括下来，那业务系统对ID号的要求有哪些呢？</p>
+<ol>
+<li>全局唯一性：不能出现重复的ID号，既然是唯一标识，这是最基本的要求。</li>
+<li>趋势递增：在MySQL InnoDB引擎中使用的是聚集索引，由于多数RDBMS使用B-tree的数据结构来存储索引数据，在主键的选择上面我们应该尽量使用有序的主键保证写入性能。</li>
+<li>单调递增：保证下一个ID一定大于上一个ID，例如事务版本号、IM增量消息、排序等特殊需求。</li>
+<li>信息安全：如果ID是连续的，恶意用户的扒取工作就非常容易做了，直接按照顺序下载指定URL即可；如果是订单号就更危险了，竞对可以直接知道我们一天的单量。所以在一些应用场景下，会需要ID无规则、不规则。</li>
+</ol>
+<p>上述123对应三类不同的场景，3和4需求还是互斥的，无法使用同一个方案满足。</p>
+<span id="more"></span>
+
+<h3 id="常见方法"><a href="#常见方法" class="headerlink" title="常见方法"></a>常见方法</h3><p>分布式主键的生成方式分为中心化和去中心化两大类。</p>
+<ul>
+<li>中心化方法包括SEQUENCE区间方案、基于redis的方案、基于zookeeper顺序节点；</li>
+<li>非中心化方案包括UUID、mongodb的ObjectId、snowflake方案、基于Ignite的分布式ID生成器；</li>
+</ul>
+<h4 id="SEQUENCE区间方案"><a href="#SEQUENCE区间方案" class="headerlink" title="SEQUENCE区间方案"></a>SEQUENCE区间方案</h4><p>所有应用服务器去同一个库获取可使用的sequence（乐观锁保证一致性），得到（sequence，sequence+步长]个可被这个数据源使用的id，当应用服务器插入“步长”个数据后，再次去争取新的sequence区间。</p>
+<p>以MySQL举例，利用给字段设置auto_increment_increment和auto_increment_offset来保证ID自增，每次业务使用下列SQL读写MySQL得到ID号。</p>
+<blockquote>
+<p>begin;<br>REPLACE INTO Tickets64 (stub) VALUES (‘a’);<br>SELECT LAST_INSERT_ID();<br>commit;</p>
+</blockquote>
+<p>优点：</p>
+<ul>
+<li>非常简单，利用现有数据库系统的功能实现，成本小，有DBA专业维护。</li>
+<li>ID号单调自增，可以实现一些对ID有特殊要求的业务。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>强依赖DB，当DB异常时整个系统不可用，属于致命问题。配置主从复制可以尽可能的增加可用性，但是数据一致性在特殊情况下难以保证。主从切换时的不一致可能会导致重复发号。</li>
+<li>ID发号性能瓶颈限制在单台MySQL的读写性能。</li>
+</ul>
+<h4 id="基于redis的方案"><a href="#基于redis的方案" class="headerlink" title="基于redis的方案"></a>基于redis的方案</h4><p>另一种中心化生成分布式主键的方式是采用Redis在内存中生成自增序列，通过redis的原子自增操作(incr接口)生成一个自增的序列。</p>
+<p>优点：</p>
+<ul>
+<li>生成一个 全局连续递增 的数字类型主键。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>强依赖Redis，一旦Redis不可用导致系统不可用，属于致命问题，另外Redis的单点问题也需要解决，部署复杂度较高。</li>
+</ul>
+<h4 id="UUID方案"><a href="#UUID方案" class="headerlink" title="UUID方案"></a>UUID方案</h4><p>UUID 是 通用唯一识别码（Universally Unique Identifier）的缩写，是一种软件建构的标准，亦为开放软件基金会组织在分布式计算环境领域的一部分。其目的，是让分布式系统中的所有元素，都能有唯一的辨识信息，而不需要通过中央控制端来做辨识信息的指定。UUID有很多变种实现，目前最广泛应用的UUID，是微软公司的全局唯一标识符（GUID）。</p>
+<p>UUID是一个由4个连字号(-)将32个字节长的字符串分隔后生成的字符串，总共36个字节长。算法的核心思想是结合机器的网卡、当地时间、一个随即数来生成GUID。从理论上讲，如果一台机器每秒产生10000000个GUID，则可以保证（概率意义上）3240年不重复。</p>
+<p>优点：</p>
+<ul>
+<li>全局唯一，各种语言都有UUID现成实现，Mysql也有UUID实现。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>36个字符组成，按照目前Mysql最常用的编码Utf-8，每一个字符对应的索引成本是3字节，也就是一个UUID需要108个字节的索引存储成本，是最大数字类型（8字节）的13.5倍的存储成本。</li>
+</ul>
+<h4 id="mongodb的ObjectId"><a href="#mongodb的ObjectId" class="headerlink" title="mongodb的ObjectId"></a>mongodb的ObjectId</h4><p>objectid有12个字节，包含时间信息（4字节、秒为单位）、机器标识（3字节）、进程id（2字节）、计数器（3字节，初始值随机）。其中，时间位精度（秒或者毫秒）与序列位数，二者决定了单位时间内，对于同一个进程最多可产生多少唯一的ObjectId，在MongoDB中，那每秒就是2^24（16777216）。但是机器标识与进程id一定要保证是不重复的，否则极大概率上会产生重复的ObjectId。由于ObjectId生成12个字节的16进制表示，无法用现有基础类型存储，只能转化为字符串存储，对应24个字符。objectid的组成结构如下</p>
+<table>
+<thead>
+<tr>
+<th>4字节</th>
+<th>3字节</th>
+<th>2字节</th>
+<th>3字节</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>time</td>
+<td>machine</td>
+<td>pid</td>
+<td>增量</td>
+</tr>
+</tbody></table>
+<p>优点：</p>
+<ul>
+<li>全局唯一 。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>非数字类型，24个字符，按照目前Mysql最常用的编码Utf-8，每一个字符对应的索引成本是3字节，也就是一个ObjectId需要72个字节的索引存储成本，是最大数字类型（8字节）的9倍的存储成本。</li>
+</ul>
+<h4 id="IgniteAtomicSequence方案"><a href="#IgniteAtomicSequence方案" class="headerlink" title="IgniteAtomicSequence方案"></a>IgniteAtomicSequence方案</h4><p>Ignite是apache开源的框架，IgniteAtomicSequence接口提供了分布式的原子性序列，类似于分布式原子性的Long类型，但是他的值只能增长，他特有的功能是支持预留一定范围的序列值，来避免每次序列获取下一个值时都需要的昂贵的网络消耗和缓存更新，也就是，当在一个原子性序列上执行了incrementAndGet()（或者任何其他的原子性操作），数据结构会往前预留一定范围的序列值，他会保证对于这个序列实例来说跨集群的唯一性。 这个类型的使用是非常简单的，相关代码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Ignite ignite = Ignition.start();</span><br><span class="line">IgniteAtomicSequence seq = ignite.atomicSequence(<span class="string">&quot;seqName&quot;</span>,<span class="comment">//序列名</span></span><br><span class="line"> <span class="number">0</span>, <span class="comment">//初始值</span></span><br><span class="line"><span class="keyword">true</span><span class="comment">//如果序列不存在则创建</span></span><br><span class="line">);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">20</span>; i++) &#123;</span><br><span class="line">  <span class="keyword">long</span> currentValue = seq.get();<span class="comment">//获取当前值</span></span><br><span class="line">  <span class="keyword">long</span> newValue = seq.incrementAndGet();<span class="comment">//先加1再取值</span></span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>按照前述，直接按照初始值0创建IgniteAtomicSequence，是有很大风险的，无法在生产环境下使用，而且存在长度不固定问题，所以还需要进一步想办法，研究的重点在于解决初始值的问题。 因为IgniteAtomicSequence的值为long型，而在Java中long类型的最大值是9223372036854775807，这个数值长度为19位，对于实际应用来说，是一个很大的值，但是对于常见的没有环境依赖的ID生成器来说，还是比较短的。因此我们打算在这方面做文章。 因为系统重置的一个重要指标就是时间，那么我们以时间作为参照，然后加上一个扩展，可能是一个比较理想的选择，我们以如下的规则作为初始值： 时间的yyyyMMddHHmmss+00000 这个长度正好是19位，然后每次加1，因为现在是2018年，这个规则在常规应用场景中，是不会超过long类型的最大值的。 但是，这个规则存在一个风险，就是假设不考虑实际应用和实际性能，如果增加操作业务量特别大，会使这个序列值快速进位，如果某个时间节点宕机后瞬间重启，是有可能存在重启后的初始值小于原来的最大值的，这时就无法保证唯一性了。</p>
+<p>优点：</p>
+<ul>
+<li>简单，初始值从0开始递增</li>
+<li>带时间值，方便阅读</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>强依赖服务器时间，时钟回拨问题</li>
+</ul>
+<h4 id="snowflake方案"><a href="#snowflake方案" class="headerlink" title="snowflake方案"></a>snowflake方案</h4><p>Snowflake算法产生是为了满足Twitter每秒上万条消息的请求，每条消息都必须分配一条唯一的id，这些id还需要一些大致的顺序（方便客户端排序），并且在分布式系统中不同机器产生的id必须不同。Snowflake算法把时间戳，工作机器id，序列号组合在一起。生产Id的结构如下：</p>
+<table>
+<thead>
+<tr>
+<th>63</th>
+<th>62-22</th>
+<th>21-12</th>
+<th>11-0</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1位：2</td>
+<td>41位：支持69.7年（单位ms）</td>
+<td>10位：1024</td>
+<td>12位：4096</td>
+</tr>
+</tbody></table>
+<p>默认情况下41bit的时间戳可以支持该算法使用到2018+69年，10bit的工作机器id可以支持1023台机器，序列号支持1毫秒产生4095个自增序列id。</p>
+<p>优点：</p>
+<ul>
+<li>在服务器规模不是很大（不超过1024条件） 全局唯一 ，单机递增 ，是数字类型，存储索引成本低。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>机器规模大于1024无法支持，需要运维配合解决单机部署多个同服务进程问题。</li>
+</ul>
+<h4 id="mysql-left-segment数据库方案"><a href="#mysql-left-segment数据库方案" class="headerlink" title="mysql-left-segment数据库方案"></a>mysql-left-segment数据库方案</h4><p>基于第一种SEQUENCE区间方案，做了如下改变：</p>
+<ul>
+<li>原方案每次获取ID都得读写一次数据库，造成数据库压力大。改为利用proxy server批量获取，每次获取一个segment(step决定大小)号段的值。用完之后再去数据库获取新的号段，可以大大的减轻数据库的压力。</li>
+<li>各个业务不同的发号需求用biz_tag字段来区分，每个biz-tag的ID获取相互隔离，互不影响。如果以后有性能需求需要对数据库扩容，不需要上述描述的复杂的扩容操作，只需要对biz_tag分库分表就行。</li>
+<li>取号段的时机是在号段消耗完的时候进行的，也就意味着号段临界点的ID下发时间取决于下一次从DB取回号段的时间，并且在这期间进来的请求也会因为DB号段没有取回来，导致线程阻塞。为此，我们设置了一个消费进度阈值，用于当号段消费到某个点时就异步的把下一个号段加载到内存中。</li>
+</ul>
+<hr>
+<p>test_tag在第一台Leaf机器上是1<del>1000的号段，当这个号段用完时，会去加载另一个长度为step=1000的号段，假设另外两台号段都没有更新，这个时候第一台机器新加载的号段就应该是3001</del>4000。同时数据库对应的biz_tag这条数据的max_id会从3000被更新成4000</p>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/sharding/16.png"/>
+
+<hr>
+<p>采用双buffer的方式，Leaf服务内部有两个号段缓存区segment。当前号段已下发10%时，如果下一个号段未更新，则另启一个更新线程去更新下一个号段。当前号段全部下发完后，如果下个号段准备好了则切换到下个号段为当前segment接着下发，循环往复。</p>
+<ul>
+<li>每个biz-tag都有消费速度监控，通常推荐segment长度设置为服务高峰期发号QPS的600倍（10分钟），这样即使DB宕机，Leaf仍能持续发号10-20分钟不受影响。</li>
+<li>每次请求来临时都会判断下个号段的状态，从而更新此号段，所以偶尔的网络抖动不会影响下个号段的更新。</li>
+</ul>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/sharding/17.png"/>
+
+<hr>
+<p>数据库表设计如下：</p>
+<p><strong>left_segment: 号段存储表</strong><br>Field | Type | Null | Default | Extra | Desc |<br>—|—|—|—|—|—|<br>id | bigint(20) | NO | | | 主键id |<br>biz_tag | varchar(128) | NO | | 唯一索引 | 业务标识 |<br>max_id | bigint(20) | NO | 1 | | 该业务所被分配的ID号段的最大值 |<br>step | int(22) | NO | | 1000 | 表示每次分配的号段长度 |<br>desc | varchar(256) | YES | Null | | 备注信息 |<br>create_time | timestamp | NO | CURRENT_TIMESTAMP | | 创建时间 |<br>update_time | timestamp | NO | Null | on update CURRENT_TIMESTAMP | 更新时间 |</p>
+<p><strong>left_segment_log: 号段更新日志表</strong><br>Field | Type | Null | Default | Extra | Desc |<br>—|—|—|—|—|—|<br>id | bigint(20) | NO | | 主键id | |<br>min_id | bigint(20) | NO | 1 | | 初始号段 |<br>max_id | bigint(20) | NO | 1 | | 更新后号段 |<br>ip | varchar(20) | YES | Null | | 更新应用ip |<br>create_time | timestamp | NO | CURRENT_TIMESTAMP | | 创建时间 |</p>
+<p>优点：</p>
+<ul>
+<li>Leaf服务可以很方便的线性扩展，性能完全能够支撑大多数业务场景。</li>
+<li>ID号码是趋势递增的8byte的64位数字，满足上述数据库存储的主键要求。</li>
+<li>容灾性高：Leaf服务内部有号段缓存，即使DB宕机，短时间内Leaf仍能正常对外提供服务。</li>
+<li>可以自定义max_id的大小，非常方便业务从原有的ID方式上迁移过来。</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>ID号码不够随机，能够泄露发号数量的信息，不太安全。</li>
+<li>DB宕机会造成整个系统不可用。</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>由于公司业务复杂度，最终选择去中心化的雪花算法分布式主键和中心化的mysql-left-segment数据库方案。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E4%B8%BB%E9%94%AE/" rel="tag"># 分布式主键</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/12/20/Hystrix%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3/" rel="prev" title="Hystrix参数详解">
+                  <i class="fa fa-chevron-left"></i> Hystrix参数详解
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/06/12/Otter%E6%94%B9%E9%80%A0%E5%AE%9E%E8%B7%B5/" rel="next" title="Otter改造实践">
+                  Otter改造实践 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

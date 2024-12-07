@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="TCC简介在2PC（两阶段提交）协议中，事务管理器分两阶段协调资源管理，资源管理器对外提供了3个操作，分别是一阶段的准备操作，二阶段的提交操作和回滚操作； TCC服务作为一种事务资源，遵循两阶段提交协议，由业务层面自定义，需要用户根据业务逻辑编码实现；其包含Try、Confirm 和 Cancel 3个操作，其中Try操作对应分布式事务一阶段的准备，Confirm操作对应分布式事务二阶段提交，Ca">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Seata-TCC模式接入">
+<meta property="og:url" content="http://ppjys.cn/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="TCC简介在2PC（两阶段提交）协议中，事务管理器分两阶段协调资源管理，资源管理器对外提供了3个操作，分别是一阶段的准备操作，二阶段的提交操作和回滚操作； TCC服务作为一种事务资源，遵循两阶段提交协议，由业务层面自定义，需要用户根据业务逻辑编码实现；其包含Try、Confirm 和 Cancel 3个操作，其中Try操作对应分布式事务一阶段的准备，Confirm操作对应分布式事务二阶段提交，Ca">
+<meta property="og:locale">
+<meta property="article:published_time" content="2021-05-24T08:51:47.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.609Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="seata">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Seata-TCC模式接入 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#TCC%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">TCC简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#seata-tcc%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">seata tcc实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#springCloud-Feign-seata-local-tcc%E6%8E%A5%E5%85%A5%E6%8C%87%E5%8D%97"><span class="nav-number">3.</span> <span class="nav-text">springCloud-Feign seata local tcc接入指南</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BC%95%E5%85%A5jar%E5%8C%85"><span class="nav-number">3.1.</span> <span class="nav-text">1. 引入jar包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-seata-%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83%E9%85%8D%E7%BD%AE"><span class="nav-number">3.2.</span> <span class="nav-text">2. seata 注册中心配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-seata-%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E9%85%8D%E7%BD%AE"><span class="nav-number">3.3.</span> <span class="nav-text">3. seata 配置中心配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-RM-%E9%85%8D%E7%BD%AE%E6%9C%8D%E5%8A%A1%E5%88%86%E7%BB%84%E5%90%8D"><span class="nav-number">3.4.</span> <span class="nav-text">4. RM 配置服务分组名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-RM-%E9%85%8D%E7%BD%AElocal-tcc"><span class="nav-number">3.5.</span> <span class="nav-text">5. RM 配置local tcc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-TM-%E5%85%A8%E5%B1%80%E4%BA%8B%E7%89%A9%E9%85%8D%E7%BD%AE"><span class="nav-number">3.6.</span> <span class="nav-text">6. TM 全局事物配置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TCC-%E6%9C%8D%E5%8A%A1%E8%AE%BE%E8%AE%A1%E7%9A%84%E5%AE%9E%E8%B7%B5%E7%BB%8F%E9%AA%8C"><span class="nav-number">4.</span> <span class="nav-text">TCC 服务设计的实践经验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E9%97%AE%E9%A2%98"><span class="nav-number">4.1.</span> <span class="nav-text">一、问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%BC%82%E5%B8%B8%E6%8E%A7%E5%88%B6%E5%AE%9E%E7%8E%B0"><span class="nav-number">4.2.</span> <span class="nav-text">二、异常控制实现</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Seata-TCC模式接入
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-05-24 16:51:47" itemprop="dateCreated datePublished" datetime="2021-05-24T16:51:47+08:00">2021-05-24</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="TCC简介"><a href="#TCC简介" class="headerlink" title="TCC简介"></a>TCC简介</h2><p>在2PC（两阶段提交）协议中，事务管理器分两阶段协调资源管理，资源管理器对外提供了3个操作，分别是一阶段的准备操作，二阶段的提交操作和回滚操作；</p>
+<p>TCC服务作为一种事务资源，遵循两阶段提交协议，由业务层面自定义，需要用户根据业务逻辑编码实现；其包含Try、Confirm 和 Cancel 3个操作，其中Try操作对应分布式事务一阶段的准备，Confirm操作对应分布式事务二阶段提交，Cancel对应分布式事务二阶段回滚：</p>
+<ul>
+<li><p>Try：资源的检查和预留；</p>
+</li>
+<li><p>Comfirm：使用预留的资源，完成真正的业务操作；要求Try成功Confirm 一定要能成功；</p>
+</li>
+<li><p>Cancel：释放预留资源；</p>
+</li>
+</ul>
+<p>TCC的3个方法均由用户根据业务场景编码实现，并对外发布成微服务，供事务管理器调用；事务管理器在一阶段调用TCC的Try方法，在二阶段提交时调用Confirm方法，在二阶段回滚时调用Cancel方法。</p>
+<h2 id="seata-tcc实现"><a href="#seata-tcc实现" class="headerlink" title="seata tcc实现"></a>seata tcc实现</h2><p>TCC服务由用户编码实现并对外发布成微服务，目前支持3种形式的TCC微服务，分别是：</p>
+<ul>
+<li>SofaRpc服务-蚂蚁开源：用户将实现的TCC操作对外发布成 SofaRpc 服务，事务管理器通过订阅SofaRpc服务，来协调TCC资源；</li>
+<li>Dubbo服务：将TCC发布成dubbo服务，事务管理器订阅dubbo服务，来协调TCC资源；</li>
+<li>Local TCC：本地普通的TCC Bean，非远程服务；事务管理器通过本地方法调用，来协调TCC 资源；</li>
+</ul>
+<p>目前荐于我司使用的微服务是spring cloud组件，微服务调用的rpc是feign(http协议)，故tcc选取用<strong>local tcc模式</strong>即可！！！</p>
+<span id="more"></span>
+
+<h2 id="springCloud-Feign-seata-local-tcc接入指南"><a href="#springCloud-Feign-seata-local-tcc接入指南" class="headerlink" title="springCloud-Feign seata local tcc接入指南"></a>springCloud-Feign seata local tcc接入指南</h2><h3 id="1-引入jar包"><a href="#1-引入jar包" class="headerlink" title="1. 引入jar包"></a>1. 引入jar包</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--seata组件包--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.seata<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>seata-all<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;seata.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--spring cloud 相关定制--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-alibaba-seata<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>x.y.z<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>注意：<a target="_blank" rel="noopener" href="https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E">seata兼容版本说明</a></p>
+<h3 id="2-seata-注册中心配置"><a href="#2-seata-注册中心配置" class="headerlink" title="2. seata 注册中心配置"></a>2. seata 注册中心配置</h3><p>registry.conf配置文件，euraka中的application是指seata的服务端的服务器，这边要注意seata server有事物分组的概念，用于不同业务方的集群分区。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">registry &#123;</span><br><span class="line">  # 注册中心支持file 、nacos 、eureka、redis、zk,推荐eureka做负载均衡</span><br><span class="line">  type &#x3D; &quot;eureka&quot;</span><br><span class="line"></span><br><span class="line">  eureka &#123;</span><br><span class="line">    serviceUrl &#x3D; &quot;http:&#x2F;&#x2F;192.168.202.137:8761&#x2F;eureka&quot;</span><br><span class="line">    # seata server注册中心的服务名</span><br><span class="line">    application &#x3D; &quot;seata-server-default-group&quot;</span><br><span class="line">    weight &#x3D; &quot;1&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">config &#123;</span><br><span class="line">  # 配置中心支持file、nacos 、apollo、zk,推荐apollo</span><br><span class="line">  type &#x3D; &quot;file&quot;</span><br><span class="line"></span><br><span class="line">  file &#123;</span><br><span class="line">    name &#x3D; &quot;file.conf&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-seata-配置中心配置"><a href="#3-seata-配置中心配置" class="headerlink" title="3. seata 配置中心配置"></a>3. seata 配置中心配置</h3><p>file.conf配置文件，这里需要注意service中的vgroup_mapping配置，其中vgroup_mapping.my_test_tx_group的my_test_tx_group是表示逻辑服务分组，值表示seata server的实际服务分组，一定要存在seata serve的分组名</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">transport &#123;</span><br><span class="line">  # tcp udt unix-domain-socket</span><br><span class="line">  type &#x3D; &quot;TCP&quot;</span><br><span class="line">  #NIO NATIVE</span><br><span class="line">  server &#x3D; &quot;NIO&quot;</span><br><span class="line">  #enable heartbeat</span><br><span class="line">  heartbeat &#x3D; true</span><br><span class="line">  #thread factory for netty</span><br><span class="line">  thread-factory &#123;</span><br><span class="line">    boss-thread-prefix &#x3D; &quot;NettyBoss&quot;</span><br><span class="line">    worker-thread-prefix &#x3D; &quot;NettyServerNIOWorker&quot;</span><br><span class="line">    server-executor-thread-prefix &#x3D; &quot;NettyServerBizHandler&quot;</span><br><span class="line">    share-boss-worker &#x3D; false</span><br><span class="line">    client-selector-thread-prefix &#x3D; &quot;NettyClientSelector&quot;</span><br><span class="line">    client-selector-thread-size &#x3D; 1</span><br><span class="line">    client-worker-thread-prefix &#x3D; &quot;NettyClientWorkerThread&quot;</span><br><span class="line">    # netty boss thread size,will not be used for UDT</span><br><span class="line">    boss-thread-size &#x3D; 1</span><br><span class="line">    #auto default pin or 8</span><br><span class="line">    worker-thread-size &#x3D; 8</span><br><span class="line">  &#125;</span><br><span class="line">  shutdown &#123;</span><br><span class="line">    # when destroy server, wait seconds</span><br><span class="line">    wait &#x3D; 3</span><br><span class="line">  &#125;</span><br><span class="line">  serialization &#x3D; &quot;seata&quot;</span><br><span class="line">  compressor &#x3D; &quot;none&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">service &#123;</span><br><span class="line">  #vgroup-&gt;rgroup</span><br><span class="line">  vgroup_mapping.my_test_tx_group &#x3D; &quot;seata-server-default-group&quot;</span><br><span class="line">  #only support single node</span><br><span class="line">  default.grouplist &#x3D; &quot;127.0.0.1:8091&quot;</span><br><span class="line">  #degrade current not support</span><br><span class="line">  enableDegrade &#x3D; false</span><br><span class="line">  #disable</span><br><span class="line">  disable &#x3D; false</span><br><span class="line">  #unit ms,s,m,h,d represents milliseconds, seconds, minutes, hours, days, default permanent</span><br><span class="line">  max.commit.retry.timeout &#x3D; &quot;-1&quot;</span><br><span class="line">  max.rollback.retry.timeout &#x3D; &quot;-1&quot;</span><br><span class="line">  disableGlobalTransaction &#x3D; false</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">client &#123;</span><br><span class="line">  async.commit.buffer.limit &#x3D; 10000</span><br><span class="line">  lock &#123;</span><br><span class="line">    retry.internal &#x3D; 10</span><br><span class="line">    retry.times &#x3D; 30</span><br><span class="line">  &#125;</span><br><span class="line">  report.retry.count &#x3D; 5</span><br><span class="line">  tm.commit.retry.count &#x3D; 1</span><br><span class="line">  tm.rollback.retry.count &#x3D; 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">transaction &#123;</span><br><span class="line">  undo.data.validation &#x3D; true</span><br><span class="line">  undo.log.serialization &#x3D; &quot;jackson&quot;</span><br><span class="line">  undo.log.save.days &#x3D; 7</span><br><span class="line">  #schedule delete expired undo_log in milliseconds</span><br><span class="line">  undo.log.delete.period &#x3D; 86400000</span><br><span class="line">  undo.log.table &#x3D; &quot;undo_log&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">support &#123;</span><br><span class="line">  ## spring</span><br><span class="line">  spring &#123;</span><br><span class="line">    # auto proxy the DataSource bean</span><br><span class="line">    datasource.autoproxy &#x3D; false</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-RM-配置服务分组名"><a href="#4-RM-配置服务分组名" class="headerlink" title="4. RM 配置服务分组名"></a>4. RM 配置服务分组名</h3><p>application.yml配置文件</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">alibaba:</span></span><br><span class="line">      <span class="attr">seata:</span></span><br><span class="line">        <span class="comment">## 该服务分组名一定要和file.conf配置文件中的service.vgroup_mapping一致，不然找不到对应的seata server集群名</span></span><br><span class="line">        <span class="attr">tx-service-group:</span> <span class="string">my_test_tx_group</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-RM-配置local-tcc"><a href="#5-RM-配置local-tcc" class="headerlink" title="5. RM 配置local tcc"></a>5. RM 配置local tcc</h3><p>注解@LocalTCC 和 @TwoPhaseBusinessAction 一定要配置在接口中，不能写在实现类!!!</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span>: peijiepang</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2019-11-11</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@Description</span>:</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@LocalTCC</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TccActionOne</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Prepare boolean.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> actionContext the action context</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> a             the a</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span> the boolean</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@TwoPhaseBusinessAction(name = &quot;TccActionOne&quot; , commitMethod = &quot;commit&quot;, rollbackMethod = &quot;rollback&quot;)</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">prepare</span><span class="params">(BusinessActionContext actionContext, <span class="keyword">int</span> a)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Commit boolean.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> actionContext the action context</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span> the boolean</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">commit</span><span class="params">(BusinessActionContext actionContext)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Rollback boolean.</span></span><br><span class="line"><span class="comment">   *</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> actionContext the action context</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span> the boolean</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">rollback</span><span class="params">(BusinessActionContext actionContext)</span></span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-TM-全局事物配置"><a href="#6-TM-全局事物配置" class="headerlink" title="6. TM 全局事物配置"></a>6. TM 全局事物配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="keyword">private</span> RmOneApi rmOneApi; <span class="comment">// rm tcc接口</span></span><br><span class="line"></span><br><span class="line">  <span class="meta">@Autowired</span></span><br><span class="line">  <span class="keyword">private</span> RmTwoApi rmTwoApi; <span class="comment">// rm tcc接口</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">// 全局事物开启</span></span><br><span class="line">  <span class="meta">@GlobalTransactional</span></span><br><span class="line">  <span class="meta">@GetMapping(&quot;/tm/test&quot;)</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">test</span><span class="params">()</span></span>&#123;</span><br><span class="line">    String result = rmOneApi.rmOnetest();</span><br><span class="line">    System.out.println(<span class="string">&quot;result:&quot;</span>+result);</span><br><span class="line">    result = rmTwoApi.rmTwotest();</span><br><span class="line">    System.out.println(<span class="string">&quot;result:&quot;</span>+result);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;ok&quot;</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="7">
+<li>观察日志</li>
+</ol>
+<p>TM端启动日志发现有tcc注册成功的日志，即可说明配置成功！</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">2019-11-13 14:41:00.230  INFO 34664 --- [imeoutChecker_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.202.149:8091</span><br><span class="line">2019-11-13 14:41:00.231  INFO 34664 --- [imeoutChecker_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:TMROLE,address:192.168.202.149:8091,msg:&lt; RegisterTMRequest&#123;applicationId&#x3D;&#39;tcc-rm-one&#39;, transactionServiceGroup&#x3D;&#39;my_test_tx_group&#39;&#125; &gt;</span><br><span class="line">2019-11-13 14:41:00.243  INFO 34664 --- [imeoutChecker_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 9 ms, version:0.9.0,role:TMROLE,channel:[id: 0x17bbaf41, L:&#x2F;192.168.202.149:50519 - R:&#x2F;192.168.202.149:8091]</span><br></pre></td></tr></table></figure>
+
+<p>测试Demo成功日志如下</p>
+<p>TM端日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2019-11-13 14:48:16.621  INFO 34796 --- [nio-8082-exec-7] i.seata.tm.api.DefaultGlobalTransaction  : Begin new global transaction [192.168.202.149:8091:2027355158]</span><br><span class="line">2019-11-13 14:48:16.800  INFO 34796 --- [nio-8082-exec-7] i.seata.tm.api.DefaultGlobalTransaction  : [192.168.202.149:8091:2027355158] commit status:Committed</span><br></pre></td></tr></table></figure>
+
+<p>RM端日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">TccActionOne prepare, xid:192.168.202.149:8091:2027355166</span><br><span class="line">2019-11-13 14:49:21.446  INFO 34790 --- [atch_RMROLE_4_8] i.s.core.rpc.netty.RmMessageListener     : onMessage:xid&#x3D;192.168.202.149:8091:2027355166,branchId&#x3D;2027355171,branchType&#x3D;TCC,resourceId&#x3D;TccActionTwo,applicationData&#x3D;&#123;&quot;actionContext&quot;:&#123;&quot;sys::rollback&quot;:&quot;rollback&quot;,&quot;sys::commit&quot;:&quot;commit&quot;,&quot;action-start-time&quot;:1573627761160,&quot;host-name&quot;:&quot;192.168.202.149&quot;,&quot;sys::prepare&quot;:&quot;prepare&quot;,&quot;actionName&quot;:&quot;TccActionTwo&quot;&#125;&#125;</span><br><span class="line">2019-11-13 14:49:21.446  INFO 34790 --- [atch_RMROLE_4_8] io.seata.rm.AbstractRMHandler            : Branch committing: 192.168.202.149:8091:2027355166 2027355171 TccActionTwo &#123;&quot;actionContext&quot;:&#123;&quot;sys::rollback&quot;:&quot;rollback&quot;,&quot;sys::commit&quot;:&quot;commit&quot;,&quot;action-start-time&quot;:1573627761160,&quot;host-name&quot;:&quot;192.168.202.149&quot;,&quot;sys::prepare&quot;:&quot;prepare&quot;,&quot;actionName&quot;:&quot;TccActionTwo&quot;&#125;&#125;</span><br><span class="line">TccActionOne commit, xid:192.168.202.149:8091:2027355166</span><br><span class="line">2019-11-13 14:49:21.446  INFO 34790 --- [atch_RMROLE_4_8] io.seata.rm.AbstractResourceManager      : TCC resource commit result :true, xid:192.168.202.149:8091:2027355166, branchId:2027355171, resourceId:TccActionTwo</span><br><span class="line">2019-11-13 14:49:21.446  INFO 34790 --- [atch_RMROLE_4_8] io.seata.rm.AbstractRMHandler            : Branch commit result: PhaseTwo_Committed</span><br></pre></td></tr></table></figure>
+
+<p>TC端日志：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">2019-11-13 14:49:53.138 INFO [batchLoggerPrint_1]io.seata.core.rpc.DefaultServerMessageListenerImpl.run:198 -SeataMergeMessage timeout&#x3D;60000,transactionName&#x3D;test()</span><br><span class="line">,clientIp:192.168.202.149,vgroup:my_test_tx_group</span><br><span class="line">2019-11-13 14:49:53.145 INFO [ServerHandlerThread_33_500]io.seata.server.coordinator.DefaultCore.begin:145 -Successfully begin global transaction xid &#x3D; 192.168.202.149:8091:2027355175</span><br><span class="line">2019-11-13 14:49:53.157 INFO [batchLoggerPrint_1]io.seata.core.rpc.DefaultServerMessageListenerImpl.run:198 -SeataMergeMessage xid&#x3D;192.168.202.149:8091:2027355175,branchType&#x3D;TCC,resourceId&#x3D;TccActionOne,lockKey&#x3D;null</span><br><span class="line">,clientIp:192.168.202.149,vgroup:my_test_tx_group</span><br><span class="line">2019-11-13 14:49:53.205 INFO [ServerHandlerThread_34_500]io.seata.server.coordinator.DefaultCore.lambda$branchRegister$0:94 -Successfully register branch xid &#x3D; 192.168.202.149:8091:2027355175, branchId &#x3D; 2027355178</span><br><span class="line">2019-11-13 14:49:53.226 INFO [batchLoggerPrint_1]io.seata.core.rpc.DefaultServerMessageListenerImpl.run:198 -SeataMergeMessage xid&#x3D;192.168.202.149:8091:2027355175,branchType&#x3D;TCC,resourceId&#x3D;TccActionTwo,lockKey&#x3D;null</span><br><span class="line">,clientIp:192.168.202.149,vgroup:my_test_tx_group</span><br><span class="line">2019-11-13 14:49:53.252 INFO [ServerHandlerThread_35_500]io.seata.server.coordinator.DefaultCore.lambda$branchRegister$0:94 -Successfully register branch xid &#x3D; 192.168.202.149:8091:2027355175, branchId &#x3D; 2027355180</span><br><span class="line">2019-11-13 14:49:53.259 INFO [batchLoggerPrint_1]io.seata.core.rpc.DefaultServerMessageListenerImpl.run:198 -SeataMergeMessage xid&#x3D;192.168.202.149:8091:2027355175,extraData&#x3D;null</span><br><span class="line">,clientIp:192.168.202.149,vgroup:my_test_tx_group</span><br><span class="line">2019-11-13 14:49:53.376 INFO [ServerHandlerThread_36_500]io.seata.server.coordinator.DefaultCore.doGlobalCommit:303 -Global[192.168.202.149:8091:2027355175] committing is successfully done.</span><br></pre></td></tr></table></figure>
+
+<h2 id="TCC-服务设计的实践经验"><a href="#TCC-服务设计的实践经验" class="headerlink" title="TCC 服务设计的实践经验"></a>TCC 服务设计的实践经验</h2><h3 id="一、问题"><a href="#一、问题" class="headerlink" title="一、问题"></a>一、问题</h3><ul>
+<li>空回滚：Try未执行，Canal执行了<ul>
+<li>出现原因：<ol>
+<li>try网络超时(丢包)</li>
+<li>分布式事物回滚，触发Canal</li>
+<li>未收到try，直接收到Canal</li>
+</ol>
+</li>
+<li>解决方案：<ol>
+<li>关键就是要识别出这个空回滚。思路很简单就是需要知道一阶段是否执行，如果执行了，那就是正常回滚；如果没执行，那就是空回滚。因此，需要一张额外的事务控制表，其中有分布式事务 ID 和分支事务 ID，第一阶段 Try 方法里会插入一条记录，表示一阶段执行了。Cancel 接口里读取该记录，如果该记录存在，则正常回滚；如果该记录不存在，则是空回滚。</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>幂等：对于同一个分布式事务的同一个分支事务，重复去调用该分支事务的第二阶段接口，因此，要求 TCC 的二阶段 Confirm 和 Cancel 接口保证幂等，不会重复使用或者释放资源。如果幂等控制没有做好，很有可能导致资损等严重问题。<ul>
+<li>出现原因：<ol>
+<li>提交或回滚是一次 TC 到参与者的网络调用，网络故障、参与者宕机等都有可能造成参与者 TCC 资源实际执行了二阶段防范，但是 TC 没有收到返回结果的情况，这时，TC 就会重复调用，直至调用成功，整个分布式事务结束。</li>
+</ol>
+</li>
+<li>解决方案：<ol>
+<li>一个简单的思路就是记录每个分支事务的执行状态。在执行前状态，如果已执行，那就不再执行；否则，正常执行。前面在讲空回滚的时候，已经有一张事务控制表了，事务控制表的每条记录关联一个分支事务，那我们完全可以在这张事务控制表上加一个状态字段，用来记录每个分支事务的执行状态。</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>防悬挂：悬挂就是对于一个分布式事务，其二阶段 Cancel 接口比 Try 接口先执行。因为允许空回滚的原因，Cancel 接口认为 Try 接口没执行，空回滚直接返回成功，对于 Seata 框架来说，认为分布式事务的二阶段接口已经执行成功，整个分布式事务就结束了。但是这之后 Try 方法才真正开始执行，预留业务资源，前面提到事务并发控制的业务加锁，对于一个 Try 方法预留的业务资源，只有该分布式事务才能使用，然而 Seata 框架认为该分布式事务已经结束，也就是说，当出现这种情况时，该分布式事务第一阶段预留的业务资源就再也没有人能够处理了，对于这种情况，我们就称为悬挂，即业务资源预留后没法继续处理。<ul>
+<li>出现的原因：<ol>
+<li>在 RPC 调用时，先注册分支事务，再执行 RPC 调用，如果此时 RPC 调用的网络发生拥堵，通常 RPC 调用是有超时时间的，RPC 超时以后，发起方就会通知 TC 回滚该分布式事务，可能回滚完成后，RPC 请求才到达参与者，真正执行，从而造成悬挂。</li>
+</ol>
+</li>
+<li>解决方案：</li>
+</ul>
+<ol>
+<li>根据悬挂出现的条件先来分析下，悬挂是指二阶段 Cancel 执行完后，一阶段才执行。也就是说，为了避免悬挂，如果二阶段执行完成，那一阶段就不能再继续执行。因此，当一阶段执行时，需要先检查二阶段是否已经执行完成，如果已经执行，则一阶段不再执行；否则可以正常执行。那怎么检查二阶段是否已经执行呢？大家是否想到了刚才解决空回滚和幂等时用到的事务控制表，可以在二阶段执行时插入一条事务控制记录，状态为已回滚，这样当一阶段执行时，先读取该记录，如果记录存在，就认为二阶段已经执行；否则二阶段没执行。</li>
+</ol>
+</li>
+</ul>
+<h3 id="二、异常控制实现"><a href="#二、异常控制实现" class="headerlink" title="二、异常控制实现"></a>二、异常控制实现</h3><p>在分析完空回滚、幂等、悬挂等异常 Case 的成因以及解决方案以后，下面我们就综合起来考虑，一个 TCC 接口如何完整的解决这三个问题。 </p>
+<ol>
+<li>首先是 Try 方法。结合前面讲到空回滚和悬挂异常，Try 方法主要需要考虑两个问题，一个是 Try 方法需要能够告诉二阶段接口，已经预留业务资源成功。第二个是需要检查第二阶段是否已经执行完成，如果已完成，则不再执行。</li>
+<li>接下来是 Confirm 方法。因为 Confirm 方法不允许空回滚，也就是说，Confirm 方法一定要在 Try 方法之后执行。因此，Confirm 方法只需要关注重复提交的问题。可以先锁定事务记录，如果事务记录为空，则说明是一个空提交，不允许，终止执行。如果事务记录不为空，则继续检查状态是否为初始化，如果是，则说明一阶段正确执行，那二阶段正常执行即可。如果状态是已提交，则认为是重复提交，直接返回成功即可；如果状态是已回滚，也是一个异常，一个已回滚的事务，不能重新提交，需要能够拦截到这种异常情况，并报警。</li>
+<li>最后是 Cancel 方法。因为 Cancel 方法允许空回滚，并且要在先执行的情况下，让 Try 方法感知到 Cancel 已经执行，所以和 Confirm 方法略有不同。首先依然是锁定事务记录。如果事务记录为空，则认为 Try 方法还没执行，即是空回滚。空回滚的情况下，应该先插入一条事务记录，确保后续的 Try 方法不会再执行。如果插入成功，则说明 Try 方法还没有执行，空回滚继续执行。如果插入失败，则认为Try 方法正再执行，等待 TC 的重试即可。如果一开始读取事务记录不为空，则说明 Try 方法已经执行完毕，再检查状态是否为初始化，如果是，则还没有执行过其他二阶段方法，正常执行 Cancel 逻辑。如果状态为已回滚，则说明这是重复调用，允许幂等，直接返回成功即可。如果状态为已提交，则同样是一个异常，一个已提交的事务，不能再次回滚。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/seata/" rel="tag"># seata</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/24/20210524-seata-AT%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/" rel="prev" title="seata-AT模式接入">
+                  <i class="fa fa-chevron-left"></i> seata-AT模式接入
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/" rel="next" title="Seata-SAGA模式接入">
+                  Seata-SAGA模式接入 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

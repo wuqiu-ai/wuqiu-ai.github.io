@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="问题来源在使用otter数据同步项目的时候，由于业务方使用了XA事物，预发环境又是mysql5.7版本，导致XA命令不支持，当改造完otter支持XA命令解析测试的时候，测试发现XA的Rollback数据居然也同步成功了，最终定位到原来mysql在5.7版本之后，增加了在XA Prepare之后就会将binlog生成，发生XA Rollback只是发送命令，无法得知需要更新的数据信息，这就导致到o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mysql5.7 XA事物的改进">
+<meta property="og:url" content="http://ppjys.cn/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="问题来源在使用otter数据同步项目的时候，由于业务方使用了XA事物，预发环境又是mysql5.7版本，导致XA命令不支持，当改造完otter支持XA命令解析测试的时候，测试发现XA的Rollback数据居然也同步成功了，最终定位到原来mysql在5.7版本之后，增加了在XA Prepare之后就会将binlog生成，发生XA Rollback只是发送命令，无法得知需要更新的数据信息，这就导致到o">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-09-05T06:38:45.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.608Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="XA事物">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Mysql5.7 XA事物的改进 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E6%9D%A5%E6%BA%90"><span class="nav-number">1.</span> <span class="nav-text">问题来源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFXA"><span class="nav-number">2.</span> <span class="nav-text">什么是XA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MySQL-5-7-XA%E5%8F%AF%E9%9D%A0%E6%80%A7%E6%94%B9%E8%BF%9B"><span class="nav-number">3.</span> <span class="nav-text">MySQL 5.7 XA可靠性改进</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%AD%E5%BC%80%E8%BF%9E%E6%8E%A5%E5%AF%B9xa-prepare%E7%9A%84%E4%BA%8B%E5%8A%A1%E5%BD%B1%E5%93%8D"><span class="nav-number">3.1.</span> <span class="nav-text">断开连接对xa prepare的事务影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XA-%E4%BA%8B%E5%8A%A1%E7%9A%84-Binlog-events-%E5%BC%82%E5%90%8C"><span class="nav-number">3.2.</span> <span class="nav-text">XA 事务的 Binlog events 异同</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E7%89%A9%E7%9B%B8%E5%85%B3%E5%91%BD%E4%BB%A4"><span class="nav-number">4.</span> <span class="nav-text">事物相关命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%99%AE%E9%80%9A%E4%BA%8B%E7%89%A9%E5%91%BD%E4%BB%A4"><span class="nav-number">4.1.</span> <span class="nav-text">普通事物命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XA%E4%BA%8B%E7%89%A9%E5%91%BD%E4%BB%A4"><span class="nav-number">4.2.</span> <span class="nav-text">XA事物命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#binlog%E7%9B%B8%E5%85%B3%E5%91%BD%E4%BB%A4"><span class="nav-number">4.3.</span> <span class="nav-text">binlog相关命令</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Mysql5.7 XA事物的改进
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-09-05 14:38:45" itemprop="dateCreated datePublished" datetime="2020-09-05T14:38:45+08:00">2020-09-05</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mysql/" itemprop="url" rel="index"><span itemprop="name">mysql</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="问题来源"><a href="#问题来源" class="headerlink" title="问题来源"></a>问题来源</h2><p>在使用otter数据同步项目的时候，由于业务方使用了XA事物，预发环境又是mysql5.7版本，导致XA命令不支持，当改造完otter支持XA命令解析测试的时候，测试发现XA的Rollback数据居然也同步成功了，最终定位到原来mysql在5.7版本之后，增加了在XA Prepare之后就会将binlog生成，发生XA Rollback只是发送命令，无法得知需要更新的数据信息，这就导致到otter数据不一致问题。以下是整理的关于mysql 5.7关于XA的知识点。</p>
+<h2 id="什么是XA"><a href="#什么是XA" class="headerlink" title="什么是XA"></a>什么是XA</h2><p>XA(分布式事务)规范主要定义了(全局)事务管理器(TM: Transaction Manager)和(局部)资源管理器(RM: Resource Manager)之间的接口。XA为了实现分布式事务，将事务的提交分成了两个阶段：也就是2PC (tow phase commit)，XA协议就是通过将事务的提交分为两个阶段来实现分布式事务。</p>
+<p><strong>两阶段</strong><br><strong>1）prepare 阶段</strong><br>事务管理器向所有涉及到的数据库服务器发出prepare”准备提交”请求，数据库收到请求后执行数据修改和日志记录等处理，处理完成后只是把事务的状态改成”可以提交”,然后把结果返回给事务管理器。即：为prepare阶段，TM向RM发出prepare指令，RM进行操作，然后返回成功与否的信息给TM。<br><strong>2）commit 阶段</strong><br>事务管理器收到回应后进入第二阶段，如果在第一阶段内有任何一个数据库的操作发生了错误，或者事务管理器收不到某个数据库的回应，则认为事务失败，回撤所有数据库的事务。数据库服务器收不到第二阶段的确认提交请求，也会把”可以提交”的事务回撤。如果第一阶段中所有数据库都提交成功，那么事务管理器向数据库服务器发出”确认提交”请求，数据库服务器把事务的”可以提交”状态改为”提交完成”状态，然后返回应答。即：为事务提交或者回滚阶段，如果TM收到所有RM的成功消息，则TM向RM发出提交指令；不然则发出回滚指令。</p>
+<p><strong>外部与内部XA</strong><br>MySQL中的XA实现分为：外部XA和内部XA。前者是指我们通常意义上的分布式事务实现；后者是指单台MySQL服务器中，Server层作为TM(事务协调者，通常由binlog模块担当)，而服务器中的多个数据库实例作为RM，而进行的一种分布式事务，也就是MySQL跨库事务；也就是一个事务涉及到同一条MySQL服务器中的两个innodb数据库(目前似乎只有innodb支持XA)。内部XA也可以用来保证redo和binlog的一致性问题。</p>
+<p><strong>2.2. redo与binlog的一致性问题</strong><br>我们MySQL为了兼容其它非事务引擎的复制，在server层面引入了 binlog, 它可以记录所有引擎中的修改操作，因而可以对所有的引擎使用复制功能； 然而这种情况会导致redo log与binlog的一致性问题；MySQL通过内部XA机制解决这种一致性的问题。<br>第一阶段：InnoDB prepare， write/sync redo log；binlog不作任何操作；<br>第二阶段：包含两步，1&gt; write/sync Binlog； 2&gt; InnoDB commit (commit in memory)；<br>当然在5.6之后引入了组提交的概念，可以在IO性能上进行一些提升，但总体的执行顺序不会改变。<br>当第二阶段的第1步执行完成之后，binlog已经写入，MySQL会认为事务已经提交并持久化了(在这一步binlog就已经ready并且可以发送给订阅者了)。在这个时刻，就算数据库发生了崩溃，那么重启MySQL之后依然能正确恢复该事务。在这一步之前包含这一步任何操作的失败都会引起事务的rollback。<br>第二阶段的第2大部分都是内存操作，比如释放锁，释放mvcc相关的read view等等。MySQL认为这一步不会发生任何错误，一旦发生了错误那就是数据库的崩溃，MySQL自身无法处理。这个阶段没有任何导致事务rollback的逻辑。在程序运行层面，只有这一步完成之后，事务导致变更才能通过API或者客户端查询体现出来。</p>
+<span id="more"></span>
+
+
+
+<h2 id="MySQL-5-7-XA可靠性改进"><a href="#MySQL-5-7-XA可靠性改进" class="headerlink" title="MySQL 5.7 XA可靠性改进"></a>MySQL 5.7 XA可靠性改进</h2><p>MySQL 5.7解决了 xa prepare了的事务的严格持久化问题，也就是在session断开和实例崩溃重启情况下这些事务不丢，同时在 xa prepare ‘xid1’返回之前XA事务也会同步到备库。下面将通过在5.6和5.7上分别执行xa prepare并对binlog event进行分析 来演示这个改进。</p>
+<h3 id="断开连接对xa-prepare的事务影响"><a href="#断开连接对xa-prepare的事务影响" class="headerlink" title="断开连接对xa prepare的事务影响"></a>断开连接对xa prepare的事务影响</h3><p>在5.6和5.7上分别执行如下sql然后断开连接，再重新连接使用的xa recover验证 XA 事务是否回滚了。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xa <span class="keyword">start</span> <span class="string">&#x27;xid1&#x27;</span>;</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test <span class="keyword">values</span>(<span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">xa <span class="keyword">end</span> <span class="string">&#x27;xid1&#x27;</span>;</span><br><span class="line">xa <span class="keyword">prepare</span> <span class="string">&#x27;xid1&#x27;</span>;</span><br><span class="line"><span class="comment">-- 这里断开再连上新连接执行 xa recover</span></span><br></pre></td></tr></table></figure>
+
+<p>在 5.6 的版本上将返回空的结果，在 5.7 的版本上返回：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; xa recover;</span><br><span class="line">+----------+--------------+--------------+------+</span><br><span class="line">| formatID | gtrid_length | bqual_length | data |</span><br><span class="line">+----------+--------------+--------------+------+</span><br><span class="line">|        1 |            4 |            0 | xid1 |</span><br><span class="line">+----------+--------------+--------------+------+</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<p>说明断开连接后 5.7的prepare了的xa事务没有丢失。</p>
+<h3 id="XA-事务的-Binlog-events-异同"><a href="#XA-事务的-Binlog-events-异同" class="headerlink" title="XA 事务的 Binlog events 异同"></a>XA 事务的 Binlog events 异同</h3><p>在5.6和5.7上分别执行如下事务，然后用 show binlog events 查看两者binlog的不同：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">xa <span class="keyword">start</span> <span class="string">&#x27;xid1&#x27;</span>;</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> test <span class="keyword">values</span>(<span class="number">1</span>, <span class="number">1</span>);</span><br><span class="line">xa <span class="keyword">end</span> <span class="string">&#x27;xid1&#x27;</span>;</span><br><span class="line">xa <span class="keyword">prepare</span> <span class="string">&#x27;xid1&#x27;</span>;</span><br><span class="line">xa <span class="keyword">commit</span> <span class="string">&#x27;xid1&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>5.6的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql-bin.000001 | 304 | Gtid           |      3706 |         352 | SET @@SESSION.GTID_NEXT&#x3D; &#39;uuid:2&#39;</span><br><span class="line">mysql-bin.000001 | 352 | Query          |      3706 |         424 | BEGIN</span><br><span class="line">mysql-bin.000001 | 424 | Table_map      |      3706 |         472 | table_id: 71 (test.test)</span><br><span class="line">mysql-bin.000001 | 472 | Write_rows     |      3706 |         516 | table_id: 71 flags: STMT_END_F</span><br><span class="line">mysql-bin.000001 | 516 | Query          |      3706 |         589 | COMMIT</span><br></pre></td></tr></table></figure>
+
+<p>5.7的结果：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mysql-bin.000001 |  544 | Gtid           |      3707 |         592 | SET @@SESSION.GTID_NEXT&#x3D; &#39;uuid:3&#39;</span><br><span class="line">mysql-bin.000001 |  592 | Query          |      3707 |         685 | XA START X&#39;78696431&#39;,X&#39;&#39;,1</span><br><span class="line">mysql-bin.000001 |  685 | Table_map      |      3707 |         730 | table_id: 74 (test.t) </span><br><span class="line">mysql-bin.000001 |  730 | Write_rows     |      3707 |         774 | table_id: 74 flags: STMT_END_F</span><br><span class="line">mysql-bin.000001 |  774 | Query          |      3707 |         865 | XA END X&#39;78696431&#39;,X&#39;&#39;,1 </span><br><span class="line">mysql-bin.000001 |  865 | XA_prepare     |      3707 |         905 | XA PREPARE X&#39;78696431&#39;,X&#39;&#39;,1</span><br><span class="line">mysql-bin.000001 |  905 | Gtid           |      3707 |         953 | SET @@SESSION.GTID_NEXT&#x3D; &#39;uuid:4&#39; |</span><br><span class="line">mysql-bin.000001 |  953 | Query          |      3707 |        1047 | XA COMMIT X&#39;78696431&#39;,X&#39;&#39;,1</span><br></pre></td></tr></table></figure>
+
+<p>可以看到 MySQL 5.6 XA 事务和普通事务的binlog是一样的，并没有体现 xa prepare。而到了 MySQL 5.7 XA 事务的binlog和 普通的事务是完全不同的，XA Prepare有单独的Log event类型，有自己的Gtid，当开启semi-sync的情况下，MySQL 5.7 执行 XA prepare 时会等备库回复后才返回结果给客户端，这样XA prepare执行完就是安全的。</p>
+<p>通过以上分析可以看出 MySQL 5.7在XA事务安全性方面做了很大的改进。</p>
+<h2 id="事物相关命令"><a href="#事物相关命令" class="headerlink" title="事物相关命令"></a>事物相关命令</h2><h3 id="普通事物命令"><a href="#普通事物命令" class="headerlink" title="普通事物命令"></a>普通事物命令</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> autocommit <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"><span class="keyword">begin</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> `test_message`(`traceId`, `status`, `userId`, `createTime`, `modifyTime`) <span class="keyword">VALUES</span> (<span class="number">1004641211555425604490</span>, <span class="string">&#x27;test&#x27;</span>, <span class="string">&#x27;dxy_810axyp8&#x27;</span>, <span class="string">&#x27;2019-04-16 22:40:04&#x27;</span>, <span class="string">&#x27;2018-07-19 11:05:48&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">commit</span>;</span><br><span class="line"><span class="keyword">rollback</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="XA事物命令"><a href="#XA事物命令" class="headerlink" title="XA事物命令"></a>XA事物命令</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">like</span> <span class="string">&#x27;%support_xa%&#x27;</span>;</span><br><span class="line">xa <span class="keyword">start</span> <span class="string">&#x27;xid&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> `push_message_01`.`test_message_1` ( `traceId`, `status`, `userId`, `createTime`, `modifyTime` )</span><br><span class="line"><span class="keyword">VALUES</span></span><br><span class="line">    ( <span class="number">10000315554324112057</span>, <span class="string">&#x27;test&#x27;</span>, <span class="string">&#x27;dxy_810axyp8&#x27;</span>, <span class="string">&#x27;2019-04-17 01:01:52&#x27;</span>, <span class="string">&#x27;2018-07-19 11:05:48&#x27;</span> );</span><br><span class="line">    </span><br><span class="line">XA <span class="keyword">END</span> <span class="string">&#x27;xid&#x27;</span>;</span><br><span class="line">xa <span class="keyword">prepare</span> <span class="string">&#x27;xid&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- mysql启动恢复执行的命令，用于恢复XA提交</span></span><br><span class="line">xa RECOVER;</span><br><span class="line"></span><br><span class="line">xa <span class="keyword">commit</span> <span class="string">&#x27;xid&#x27;</span>;</span><br><span class="line">xa <span class="keyword">ROLLBACK</span> <span class="string">&#x27;xid&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="binlog相关命令"><a href="#binlog相关命令" class="headerlink" title="binlog相关命令"></a>binlog相关命令</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 查看当前的binlog信息</span></span><br><span class="line"><span class="keyword">show</span> master status;</span><br><span class="line"><span class="comment">-- 查看所有的binlog事件</span></span><br><span class="line"><span class="keyword">show</span> binlog events;</span><br><span class="line"><span class="keyword">show</span> binlog events <span class="keyword">in</span> <span class="string">&#x27;mysql-bin.000095&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/XA%E4%BA%8B%E7%89%A9/" rel="tag"># XA事物</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/" rel="prev" title="Lettuce超时问题">
+                  <i class="fa fa-chevron-left"></i> Lettuce超时问题
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/" rel="next" title="线上故障排查总结">
+                  线上故障排查总结 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="背景目前公司业务高速发展，各种业务数据呈井喷的态势，单表数据量急剧膨胀，随之而来是单表读写性能和吞吐量呈下降趋势而且无法应对业务高速增长产生的数据。因此需要使用分库分表机制保证高性能同时支撑和驱动业务发展，选择一款功能强大支持分库分表的中间件就成为当务之急。开源的数据库中间件众多，需要从中挑选一个适合的，并能作为映客长期演进的中间件，因此需要从多个维度对中间件进行相关测试。 分库分表方案针对数据量">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分库分表方案对比">
+<meta property="og:url" content="http://ppjys.cn/2018/04/26/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="背景目前公司业务高速发展，各种业务数据呈井喷的态势，单表数据量急剧膨胀，随之而来是单表读写性能和吞吐量呈下降趋势而且无法应对业务高速增长产生的数据。因此需要使用分库分表机制保证高性能同时支撑和驱动业务发展，选择一款功能强大支持分库分表的中间件就成为当务之急。开源的数据库中间件众多，需要从中挑选一个适合的，并能作为映客长期演进的中间件，因此需要从多个维度对中间件进行相关测试。 分库分表方案针对数据量">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/mycat/1.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/mycat/2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/mycat/3.png">
+<meta property="article:published_time" content="2018-04-26T02:07:35.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.617Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="mycat">
+<meta property="article:tag" content="分库分表">
+<meta property="article:tag" content="sharding-jdbc">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/mycat/1.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2018/04/26/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>分库分表方案对比 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E6%96%B9%E6%A1%88"><span class="nav-number">2.</span> <span class="nav-text">分库分表方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E9%97%AE%E9%A2%98"><span class="nav-number">3.</span> <span class="nav-text">分库分表问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%BA%93-%E5%88%86%E8%A1%A8%E7%AD%96%E7%95%A5"><span class="nav-number">4.</span> <span class="nav-text">分库&#x2F;分表策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%BA%93%E6%95%B0%E9%87%8F"><span class="nav-number">5.</span> <span class="nav-text">分库数量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A7%E5%93%81%E8%B0%83%E7%A0%94"><span class="nav-number">6.</span> <span class="nav-text">产品调研</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E8%BE%83"><span class="nav-number">7.</span> <span class="nav-text">比较</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mycat%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E5%90%8E%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84sql%E8%AF%AD%E6%B3%95"><span class="nav-number">8.</span> <span class="nav-text">Mycat分库分表后不支持的sql语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sharding-Jdbc%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E5%90%8E%E4%B8%8D%E6%94%AF%E6%8C%81%E7%9A%84sql%E8%AF%AD%E6%B3%95"><span class="nav-number">9.</span> <span class="nav-text">Sharding-Jdbc分库分表后不支持的sql语法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#mycat-%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B"><span class="nav-number">10.</span> <span class="nav-text">mycat 使用教程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sharding-jdbc-%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B"><span class="nav-number">11.</span> <span class="nav-text">sharding-jdbc 使用教程</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/04/26/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分库分表方案对比
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-04-26 10:07:35" itemprop="dateCreated datePublished" datetime="2018-04-26T10:07:35+08:00">2018-04-26</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mycat/" itemprop="url" rel="index"><span itemprop="name">mycat</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>目前公司业务高速发展，各种业务数据呈井喷的态势，单表数据量急剧膨胀，随之而来是单表读写性能和吞吐量呈下降趋势而且无法应对业务高速增长产生的数据。因此需要使用分库分表机制保证高性能同时支撑和驱动业务发展，选择一款功能强大支持分库分表的中间件就成为当务之急。开源的数据库中间件众多，需要从中挑选一个适合的，并能作为映客长期演进的中间件，因此需要从多个维度对中间件进行相关测试。</p>
+<h3 id="分库分表方案"><a href="#分库分表方案" class="headerlink" title="分库分表方案"></a>分库分表方案</h3><p>针对数据量过大出现的性能问题，通过分库分表将数据量保持在阀值以下，可以有效分散高并发量和缓解大数据量。</p>
+<p>分库分表一般分垂直拆分和水平拆分，根据业务将单库（表）拆分为多库（表），常用的字段和不常用的字段拆分至不同的库（表）中，可适当缓解并发量和数据量，但不能根治；垂直拆分之后依然超过单节点所能承载的阈值，则需要水平拆分来进一步处理。 水平拆分则是根据分片算法将一个库（表）拆分为多个库（表）。</p>
+<p>分表虽然可以解决海量数据导致的性能问题，但无法解决过多请求访问同一数据库，导致其响应变慢的问题。所以水平拆分通常要采取分库的方式(合理的配合使用分库+分表)，一并解决数据量和访问量巨大的问题。</p>
+<h3 id="分库分表问题"><a href="#分库分表问题" class="headerlink" title="分库分表问题"></a>分库分表问题</h3><ol>
+<li>事物问题<br>在执行分库分表之后，由于数据存储到了不同的库上，数据库事务管理出现了困难。如果依赖数据库本身的分布式事务管理功能去执行事务，将付出高昂的性能代价；如果由应用程序去协助控制，形成程序逻辑上的事务，又会造成编程方面的负担。<blockquote>
+<p>解决方案：分布式事物(缺点：随着分片数量越来越多，性能代价越来越大)</p>
+</blockquote>
+</li>
+<li>跨库跨表的join问题<br>在执行了分库分表之后，难以避免会将原本逻辑关联性很强的数据划分到不同的表、不同的库上，这时，表的关联操作将受到限制，我们无法join位于不同分库的表，也无法join分表粒度不同的表，结果原本一次查询能够完成的业务，可能需要多次查询才能完成。<blockquote>
+<p>解决方案：解决这一问题的普遍做法是分两次查询实现。在第一次查询的结果集中找出关联数据的id,根据这些id发起第二次请求得到关联数据。</p>
+</blockquote>
+</li>
+<li>跨库跨表的count,order by,group by以及聚合函数问题<br>这些是一类问题，因为它们都需要基于全部数据集合进行计算。多数的代理都不会自动处理合并工作。<blockquote>
+<p>解决方案：与解决跨节点join问题的类似，分别在各个节点上得到结果后在应用程序端进行合并。和join不同的是每个结点的查询可以并行执行，因此很多时候它的速度要比单一大表快很多。但如果结果集很大，对应用程序内存的消耗是一个问题。</p>
+</blockquote>
+</li>
+<li>数据迁移，扩容等问题<br>业界常用做法利用对2的倍数取余具有向前兼容的特性（如对4取余得1的数对2取余也是1）来分配数据，避免了行级别的数据迁移，但是依然需要进行表级别的迁移，同时对扩容规模和分表数量都有限制。总得来说，这些方案都不是十分的理想，多多少少都存在一些缺点，这也从一个侧面反映出了Sharding扩容的难度。<blockquote>
+<p>解决方案：目前业务没有比较成熟的方案</p>
+</blockquote>
+</li>
+<li>分布式主键问题<br>一旦数据库被切分到多个物理结点上，我们将不能再依赖数据库自身的主键生成机制。一方面，某个分区数据库自生成的ID无法保证在全局上是唯一的；另一方面，应用程序在插入数据之前需要先获得ID,以便进行SQL路由。<blockquote>
+<p>解决方案：UUID、Snowflake、数据库序列等</p>
+</blockquote>
+</li>
+</ol>
+<h3 id="分库-分表策略"><a href="#分库-分表策略" class="headerlink" title="分库/分表策略"></a>分库/分表策略</h3><p>分库/分表维度确定后，一般常用有两种方式：</p>
+<ol>
+<li>根据数值范围，比如用户Id为1-9999的记录分到第一个库，10000-20000的分到第二个库，以此类推。</li>
+<li>根据数值取模，比如用户Id mod n，余数为0的记录放到第一个库，余数为1的放到第二个库，以此类推。</li>
+</ol>
+<p><strong>优劣比较</strong></p>
+<table>
+<thead>
+<tr>
+<th>对比点</th>
+<th>范围</th>
+<th>取模</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>库数量</td>
+<td>库数量前期数目比较小，可以随用户/业务按需增长</td>
+<td>前期即根据mode因子确定库数量，数目一般比较大</td>
+</tr>
+<tr>
+<td>扩容</td>
+<td>调整库数量比较容易，一般只需为新用户增加库</td>
+<td>需要数据迁移</td>
+</tr>
+<tr>
+<td>热点数据</td>
+<td>有单库热点数据问题</td>
+<td>无热点数据，均分数据</td>
+</tr>
+</tbody></table>
+<h3 id="分库数量"><a href="#分库数量" class="headerlink" title="分库数量"></a>分库数量</h3><p>分库数量首先和单库能处理的记录数有关，一般来说，Mysql 单库超过5000万条记录，DB压力就很大(当然处理能力和字段数量/访问模式/记录长度有进一步关系)。</p>
+<p>在满足上述前提下，如果分库数量少，达不到分散存储和减轻DB性能压力的目的；如果分库的数量多，好处是每个库记录少，单库访问性能好，但对于跨多个库的访问，应用程序需要访问多个库，如果是并发模式，要消耗宝贵的线程资源；如果是串行模式，执行时间会急剧增加。</p>
+<p>最后分库数量还直接影响硬件的投入，一般每个分库跑在单独物理机上，多一个库意味多一台设备。所以具体分多少个库，要综合评估，一般初次分库建议分4-8个库。</p>
+<h3 id="产品调研"><a href="#产品调研" class="headerlink" title="产品调研"></a>产品调研</h3><p>调研分析后Mycat和Sharding-jdbc功能上比较稳定成熟，支持分库分表、读写分离、分布式主键等。Tidb目前整体比较新，成本方面高，稳定性方面待考察。</p>
+<p><strong>Sharding-jdbc</strong>：类似TDDL，基于JDBC协议的数据库中间件产品，使用客户端直连数据库，以jar包形式提供服务，兼容JDBC和各种ORM框架，使系统在数据访问层直接具有分片化和分布式治理的能力。</p>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/mycat/1.png" width="500px"/>
+
+<p>特性：</p>
+<ul>
+<li>轻量级框架， 直接封装的jdbc协议，jar包形式提供服务，旧代码迁移、新代码开发成本低</li>
+<li>无需额外部署和依赖，客户端直连数据库，无需二次转发，性能高</li>
+<li>运维层面不改动，无需关注中间件本身的 HA</li>
+</ul>
+<p><strong>mycat</strong>：基于阿里开源的Cobar研发，对代码进行了彻底重构，使用NIO重构了网络模块，并优化了Buffer内核，增强了聚合，Join等基本特性.主要原理是拦截用户发送过来的SQL语句，对SQL语句做了特定的分析：如分<br>片分析、路由分析、读写分离分析、缓存分析等，然后将此SQL发往后端的真实数据库，并将返回的结果做适当的处理，最后返回给用户。</p>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/mycat/2.png" width="500px"/>
+
+<p>特性：</p>
+<ul>
+<li>可以负责更多的内容，将数据迁移，分布式事务等纳入 Proxy 的范畴</li>
+<li>针对mycat和mysql有较全性能监控项统计支持</li>
+<li>可结合Storm等分布式实时流引擎，实现数据分析和数据聚合</li>
+</ul>
+<p><strong>Tidb</strong>：实现了自动的水平伸缩，强一致性的分布式事务，基于 Raft 算法的多副本复制等重要 NewSQL 特性。 TiDB 结合了 RDBMS 和 NoSQL 的优点，部署简单，在线弹性扩容和异步表结构变更不影响业务， 真正的异地多活及自动故障恢复保障数据安全，同时兼容 MySQL 协议，使迁移使用成本降到极低。  </p>
+<p>特性：</p>
+<ul>
+<li>SQL支持 （TiDB 是 MySQL 兼容的）</li>
+<li>水平线性弹性扩展</li>
+<li>分布式事务</li>
+<li>跨数据中心数据强一致性保证</li>
+<li>故障自恢复的高可用</li>
+</ul>
+<p>架构：  </p>
+<img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/mycat/3.png" width="500px"/>
+
+<p>TiDB 集群主要分为三个组件：</p>
+<ul>
+<li><p>TiDB Server</p>
+<blockquote>
+<p>TiDB Server 负责接收 SQL 请求，处理 SQL 相关的逻辑，并通过 PD 找到存储计算所需数据的 TiKV 地址，与 TiKV 交互获取数据，最终返回结果。 TiDB Server 是无状态的，其本身并不存储数据，只负责计算，可以无限水平扩展，可以通过负载均衡组件（如LVS、HAProxy 或 F5）对外提供统一的接入地址。</p>
+</blockquote>
+</li>
+<li><p>PD Server</p>
+<blockquote>
+<p>Placement Driver (简称 PD) 是整个集群的管理模块，其主要工作有三个： 一是存储集群的元信息（某个 Key 存储在哪个 TiKV 节点）；二是对 TiKV 集群进行调度和负载均衡（如数据的迁移、Raft group leader 的迁移等）；三是分配全局唯一且递增的事务 ID。<br>PD 是一个集群，需要部署奇数个节点，一般线上推荐至少部署 3 个节点。</p>
+</blockquote>
+</li>
+<li><p>TiKV Server</p>
+<blockquote>
+<p>TiKV Server 负责存储数据，从外部看 TiKV 是一个分布式的提供事务的 Key-Value 存储引擎。存储数据的基本单位是 Region（区域），每个 Region 负责存储一个 Key Range （从 StartKey 到 EndKey 的左闭右开区间）的数据，每个 TiKV 节点会负责多个 Region 。TiKV 使用 Raft 协议做复制，保持数据的一致性和容灾。副本以 Region 为单位进行管理，不同节点上的多个 Region 构成一个 Raft Group，互为副本。数据在多个 TiKV 之间的负载均衡由 PD 调度，这里也是以 Region 为单位进行调度。</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="比较"><a href="#比较" class="headerlink" title="比较"></a>比较</h3><p>本次对比不是对MySQL数据库进行极限或压力性能测试，而是在同等软硬件环境下对选取的数据库中间件在软件/物理架构、功能特性、扩展性、SQL支持程度、容灾/容错、可用性、可维护性、接入成本等进行综合衡量。</p>
+<table>
+<thead>
+<tr>
+<th>对比点</th>
+<th>mycat</th>
+<th>sharding-jdbc</th>
+<th>Tidb</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分库分表功能</td>
+<td>支持部分分库分表（支持单库分表，多库单表，但是不支持同时多库分表）</td>
+<td>支持</td>
+<td>支持</td>
+</tr>
+<tr>
+<td>读写分离功能</td>
+<td>支持，支持读写延时切换，支持多主模式，支持心跳监测</td>
+<td>只支持简单的读写分离</td>
+<td>待定</td>
+</tr>
+<tr>
+<td>分布式事物</td>
+<td>弱XA</td>
+<td>当前版本不支持，未来版本支持XA事物和Base事物</td>
+<td>完全ACID</td>
+</tr>
+<tr>
+<td>跨库跨表的join和聚合问题</td>
+<td>支持分页、排序、分组、聚合，内部通过堆外内存计算合并</td>
+<td>支持分页、排序、分组、聚合,内部集成<strong>内存分组归并</strong>和<strong>流式分组归并</strong></td>
+<td>无</td>
+</tr>
+<tr>
+<td>数据迁移，扩容等问题</td>
+<td>提供迁移脚本工具（经过测试发现大数据量的时候会出现报错问题，导致迁移中断）</td>
+<td>无</td>
+<td>无</td>
+</tr>
+<tr>
+<td>SQL解析</td>
+<td>Druid解析器</td>
+<td>自研解析器(性能高),后期规划ANTLR解析</td>
+<td>待定</td>
+</tr>
+<tr>
+<td>数据库连接</td>
+<td>自研数据库连接池，存在占用连接数过大问题</td>
+<td>SS自动选择内存限制模式和连接限制模式模式</td>
+<td>无</td>
+</tr>
+<tr>
+<td>数据治理</td>
+<td>支持zk</td>
+<td>支持zk和etcd</td>
+<td>待定</td>
+</tr>
+<tr>
+<td>APM监控</td>
+<td>无</td>
+<td>只支持sql解析和路由相关</td>
+<td>待定</td>
+</tr>
+<tr>
+<td>分布式主键</td>
+<td>雪花算法、数据库序列、zk序列</td>
+<td>雪花算法</td>
+<td>区间分段（可能出现重复主键）</td>
+</tr>
+<tr>
+<td>分片规则</td>
+<td>基本支持，可自定义</td>
+<td>基本支持，可自定义，支持多分片项</td>
+<td>内部实现机制，无需业务制定</td>
+</tr>
+<tr>
+<td>支持数据库</td>
+<td>mysql、nosql(monogdb)</td>
+<td>mysql</td>
+<td>本身就是数据库</td>
+</tr>
+<tr>
+<td>HA</td>
+<td>haproxy+keeplive</td>
+<td>无</td>
+<td>水平扩展+高可用</td>
+</tr>
+<tr>
+<td>语言</td>
+<td>java</td>
+<td>java</td>
+<td>go</td>
+</tr>
+<tr>
+<td>可维护性</td>
+<td>较高（提供管控台）</td>
+<td>较高</td>
+<td>低（虽然提供管控台，但是由于开发语言限制与团队技术栈不一致）</td>
+</tr>
+<tr>
+<td>接入成本</td>
+<td>低</td>
+<td>较高(业务方需配合)</td>
+<td>高(业务数据需要全部迁移tidb)</td>
+</tr>
+<tr>
+<td>社区活跃度</td>
+<td>低</td>
+<td>高（最近加入Apache孵化器）</td>
+<td>高</td>
+</tr>
+<tr>
+<td>优点</td>
+<td>有效解决了数据库链接数多的问题，因为各工程应用只连接中间件，中间件代理了真实的物理链接，并且与后端mysql物理链接是复用型的所有的分库分表等规则集中配置在中间件上，更可控</td>
+<td>性能高</td>
+<td>产品较新</td>
+</tr>
+<tr>
+<td>缺点</td>
+<td>1.计算过程只能单节点计算，单机扩展只能调优，但是集群可以做负载均衡；</br> 2.相对sharding-jdbc来说，由于增加一层中间代理，性能稍微降低;</br>  3.需要保证中间件的可用性，会增加运维成本及复杂度；</br>4.代码排查问题弱，需要熟悉mysql协议和nio相关知识；</td>
+<td>1.业务方需要配置多数据源，分库分表走sharding数据源，其他走主数据源（目前不支持全部数据源都走sharding，由于每次sql路由都需要做sql解析，sql解析这步会检查sql的支持项）;</br>2.sharding-jdbc目前不支持分布式事物，和社区沟通，下个版本会支持XA和Base解决方案，目前只有sharding-proxy支持XA事物;</br>3.分布式主键采用雪花算法，但是没有考虑时间回拨问题（闰秒），还有业务方需要手动设置workid（这点确实不人性化）; </br>4.客户端业务复杂，如wechat项目</td>
+<td>1.业务数据需要全部迁移，并且生产环境配置要求较高 </br> 2.成本高</td>
+</tr>
+</tbody></table>
+<p>综合考虑，shardjdbc整体优于mycat，tidb由于太过新颖，在加上成本问题，可以暂不考虑。</p>
+<h3 id="Mycat分库分表后不支持的sql语法"><a href="#Mycat分库分表后不支持的sql语法" class="headerlink" title="Mycat分库分表后不支持的sql语法"></a>Mycat分库分表后不支持的sql语法</h3><ul>
+<li><p>SELECT不支持的语法  </p>
+<ol>
+<li>不支持跨分片的交叉查询</li>
+<li>跨节点的联合查询，不支持union all，union</li>
+<li>mycat支持跨库2张表的join</li>
+</ol>
+</li>
+<li><p>INSERT不支持的语法  </p>
+<ol>
+<li>插入的字段不包含分片字段 </li>
+<li>插入的分片字段找不到对应分片</li>
+<li>复制插入 insert into…select… </li>
+<li>多行插入 insert into tab_a(c1,c2) values(v1,v2),(v11,v21)… </li>
+</ol>
+</li>
+<li><p>UPDATE不支持的语法  </p>
+<ol>
+<li>更新的列包含分片列</li>
+<li>多表更新 update a, b set a.nation=’China’, b.pwd=’123456’ where a.id=b.id </li>
+<li>复杂多表关联更新 update a, b set a.nation=’China’ where a.id=b.id; 但支持子查询方式 update a set a.nation=’China’ where id in (select id from b);</li>
+</ol>
+</li>
+<li><p>DELETE不支持语法  </p>
+<ol>
+<li>复杂删除sql delete a from a join b on a.id=b.id;  支持子查询方式 delete from a where a.id in (select id from b), 但表不能起别名</li>
+</ol>
+</li>
+<li><p>其他  </p>
+<ol>
+<li>Call procedure()   MyCat未支持存储过程定义, 因而不允许调用存储过程，但可通过注解来调用各个分片上的存储过程</li>
+<li>Select func(); 不支持这种方式直接调用自定义函数， 但支持 select id, func() from employee 只需employee所在的所有分片上存在这个函数。MySql自带函数可随意使用。</li>
+</ol>
+</li>
+</ul>
+<h3 id="Sharding-Jdbc分库分表后不支持的sql语法"><a href="#Sharding-Jdbc分库分表后不支持的sql语法" class="headerlink" title="Sharding-Jdbc分库分表后不支持的sql语法"></a>Sharding-Jdbc分库分表后不支持的sql语法</h3><table>
+<thead>
+<tr>
+<th>SQL项</th>
+<th>不支持原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>INSERT INTO tbl_name (col1, col2, …) SELECT col1, col2, … FROM tbl_name WHERE col3 = ?</td>
+<td>insert into … select …</td>
+</tr>
+<tr>
+<td>INSERT INTO tbl_name SET col1 = ?</td>
+<td>insert … set …</td>
+</tr>
+<tr>
+<td>SELECT DISTINCT * FROM tbl_name WHERE column1 = ?</td>
+<td>distince</td>
+</tr>
+<tr>
+<td>SELECT COUNT(col1) as count_alias FROM tbl_name GROUP BY col1 HAVING count_alias &gt; ?</td>
+<td>having</td>
+</tr>
+<tr>
+<td>SELECT * FROM tbl_name1 UNION SELECT * FROM tbl_name2</td>
+<td>union</td>
+</tr>
+<tr>
+<td>SELECT * FROM tbl_name1 UNION ALL SELECT * FROM tbl_name2</td>
+<td>union all</td>
+</tr>
+<tr>
+<td>SELECT * FROM tbl_name1 WHERE (val1=?) AND (val1=?)</td>
+<td>只支持一级冗余括号</td>
+</tr>
+<tr>
+<td>SELECT * FROM ds.tbl_name1</td>
+<td>不支持seheme</td>
+</tr>
+</tbody></table>
+<h3 id="mycat-使用教程"><a href="#mycat-使用教程" class="headerlink" title="mycat 使用教程"></a>mycat 使用教程</h3><p>mycat分库分表规则主要是修改server.xml、schema.xml和rule.xml。</p>
+<ul>
+<li>server.xml：是Mycat服务器参数调整和用户授权的配置文件。</li>
+<li>schema.xml：是逻辑库定义和表以及分片定义的配置文件。</li>
+<li>rule.xml：是分片规则的配置文件，分片规则的具体一些参数信息单独存放为文件，也在这个目录下，配置文件修改需要重启MyCAT。</li>
+</ul>
+<ol>
+<li><p>mycat服务端server.xml配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mycat:server</span> <span class="attr">xmlns:mycat</span>=<span class="string">&quot;http://io.mycat/&quot;</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">system</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 0为需要密码登陆、1为不需要密码登陆 ,默认为0，设置为1则需要指定默认账户--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;nonePasswordLogin&quot;</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 1为开启实时统计、0为关闭 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;useSqlStat&quot;</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 1为开启全加班一致性检测、0为关闭 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;useGlobleTableCheck&quot;</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 用来指定Mycat全局序列类型，0为本地文件，1为数据库方式，2为时间戳列方式，默认使用本地文件方式，文件方式主要用于测试--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;sequnceHandlerType&quot;</span>&gt;</span>2<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--默认为type 0: DirectByteBufferPool | type 1 ByteBufferArena--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;processorBufferPoolType&quot;</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--分布式事务开关，0为不过滤分布式事务，1为过滤分布式事务（如果分布式事务内只涉及全局表，则不过滤），2为不过滤分布式事务,但是记录分布式事务日志--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;handleDistributedTransactions&quot;</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 配置是否启用非堆内存跨分片结果集，1为开启，0为关闭，mycat1.6开始支持该属性--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;useOffHeapForMerge&quot;</span>&gt;</span>1<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--单位为m--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;memoryPageSize&quot;</span>&gt;</span>64k<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--单位为k--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;spillsFileBufferSize&quot;</span>&gt;</span>1k<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;useStreamOutput&quot;</span>&gt;</span>0<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--单位为m--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;systemReserveMemorySize&quot;</span>&gt;</span>384m<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--是否采用zookeeper协调切换  --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;useZKSwitch&quot;</span>&gt;</span>false<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 定义mycat使用的端口，默认值为8066 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;serverPort&quot;</span>&gt;</span>3307<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 定义mycat管理的端口，默认值为9066 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;managerPort&quot;</span>&gt;</span>9066<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">system</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- 定义登录mycat对的用户权限 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">user</span> <span class="attr">name</span>=<span class="string">&quot;root&quot;</span> <span class="attr">defaultAccount</span>=<span class="string">&quot;true&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;password&quot;</span>&gt;</span>123456<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 若要访问TESTDB 必须现在server.xml 中定义，否则无法访问TESTDB--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;schemas&quot;</span>&gt;</span>dbtest<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 配置是否允许只读 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;readOnly&quot;</span>&gt;</span>true<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 定义限制前端整体的连接数，如果其值为0，或者不设置，则表示不限制连接数量 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;benchmark&quot;</span>&gt;</span>11111<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 设置是否开启密码加密功能，默认为0不开启加密，为1则表示开启加密 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;usingDecrypt&quot;</span>&gt;</span>1<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">user</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mycat:server</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>分库分表schema.xml配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mycat:schema</span> <span class="attr">xmlns:mycat</span>=<span class="string">&quot;http://io.mycat/&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- schema 定义mycat中的逻辑库，可以有多个逻辑库,</span></span><br><span class="line"><span class="comment">		1）dataNode属性：绑定逻辑库到具体的Database上面，</span></span><br><span class="line"><span class="comment">		2）checkSQLschema：如果为true，则会替换掉schema，如果为false则不会；</span></span><br><span class="line"><span class="comment">		3）sqlMaxLimit：如果带了该属性，则每次执行sql的时候如果sql没有limit则会带上这个limit，如果schema为非拆分库，则该属性不会生效。--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">schema</span> <span class="attr">name</span>=<span class="string">&quot;dbtest&quot;</span> <span class="attr">checkSQLschema</span>=<span class="string">&quot;true&quot;</span> <span class="attr">sqlMaxLimit</span>=<span class="string">&quot;100&quot;</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- table标签定义了MyCat中的逻辑表，所有拆分的表都需要在table标签中定义。 --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 1）name属性：定义逻辑表的名称--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 2）dataNode属性：定义逻辑表所属的dataNode，如果需要引用多个dataNode,则可以用dataNode=&quot;dn$0-99&quot; 来代表dn0到dn99的数据库--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 3）rule属性：用来指定逻辑表使用的规则名字，规则名字在rule.xml中定义。--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 4）ruleRequired属性：该属性用于指定表是否绑定分片规则，如果配置为true,但是没有具体的分片规则，则会报错。--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 5）type属性：定义逻辑表的类型，分为&quot;全局表（global）&quot;和&quot;普通表&quot;两种类型,不设置该值的时候未global的所有表。--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 6）autoIncrement属性：使用该值的时候需要定义auto_increment，使用的时候最好配合数据库模式的全局序列。--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 7）subTables属性：dataNode在分表的条件下只能配置一个，不支持各种条件的Join关联查询。--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 8）primaryKey属性:逻辑表对应真实表的主键。--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 9）needAddLimit属性：指定表是否需要字段再每个语句的后面加上limit限制。--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">table</span> <span class="attr">name</span>=<span class="string">&quot;travelrecord&quot;</span> <span class="attr">dataNode</span>=<span class="string">&quot;dn1,dn2&quot;</span> <span class="attr">primaryKey</span>=<span class="string">&quot;id&quot;</span> <span class="attr">rule</span>=<span class="string">&quot;rule1&quot;</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--childTable标签用于定义E-R分片的子表，通过标签上的属性与浮表进行关联--&gt;</span></span><br><span class="line">      <span class="comment">&lt;!-- 1)name属性：定义子表的名称--&gt;</span></span><br><span class="line">      <span class="comment">&lt;!-- 2）joinKey属性：插入子表时，回使用这个值查找浮表存贮的数据节点--&gt;</span></span><br><span class="line">      <span class="comment">&lt;!-- 3）parentKey属性：与父表建立关联关系的列名，程序首先获取joinKey的值，然后通过parentKey属性指定的列名产生查询语句，通过执行语句得知父表存储在哪个分片上，从而确定子表存贮的位置。--&gt;</span></span><br><span class="line">      <span class="comment">&lt;!-- 4）primaryKey：和table标签一样--&gt;</span></span><br><span class="line">      <span class="comment">&lt;!-- 5）needAddLimit：和table标签一样--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">table</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">schema</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- dataNode标签定义了mycat中的数据节点，这也就是我们通常所说的数据分片，一个单独的dataNode就是一个独立的数据分片--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--1）name属性：定义数据节点的唯一名字--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--2）dataHost属性：定义该分片所属的数据库实例，属性引用自dataHost标签上定义的name属性--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--3）database属性：定义该分片所属的数据库实例上的具体数据库。--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dataNode</span> <span class="attr">name</span>=<span class="string">&quot;dn1&quot;</span> <span class="attr">dataHost</span>=<span class="string">&quot;localhost1&quot;</span> <span class="attr">database</span>=<span class="string">&quot;db01&quot;</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dataNode</span> <span class="attr">name</span>=<span class="string">&quot;dn2&quot;</span> <span class="attr">dataHost</span>=<span class="string">&quot;localhost1&quot;</span> <span class="attr">database</span>=<span class="string">&quot;db02&quot;</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!-- 定义数据库实例，读写分离和心跳语句--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--1)那么属性：标识唯一的dataHost,--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!-- 2)maxCon属性：指定每个读写实例连接池的最大连接数。内嵌writeHost、readHost标签会使用这个属性的值来实例化连接池的最大连接数--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--3)minCon属性：指定每个读写实例连接池的最小连接数。初始化连接池的大小的属性。--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--4）balance属性：负债均衡类型，有四种--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   balance=&quot;0&quot; : 不开启读写分离机制，所有的读操作都发送到当前可以用的writeHost上--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   balance=&quot;1&quot; : 全部的readHost与stand by writeHost（双主从模式下的master） 都参与select语句的负债均衡--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   balance=&quot;2&quot; : 所有的读操作都随机的往writeHost和readHost上分发--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   balance=&quot;3&quot; : 所有的读分发到readHost上，writeHost负责写--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--5）writeType属性：负载均衡目前的取值有两种：--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   writeType=&quot;0&quot;：所有的写操作都发送到第一个writeHost,writeHost1挂了，则切换到writeHost2上，重新恢复writeHost1后，还是以writeHost2为准--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--   writeType=&quot;1&quot;：所有的写操作都随机的发送到配置的writeHost上，1.5版本以后不推荐使用该值。--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--6）dbType属性：制定后端后端数据的类型：mysql，oracle、mongoDB--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--7）dbDriver属性：制定后端数据库使用的Driver.目前可选的值为native和JDBC。--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--8）switchType属性：默认值为1，自动切换。--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--                  -1表示不自动切换--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--                   2表示基于mysql主从同步的状态决定是否切换。--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--                  3表示基于mysql galaxy cluster 的切换机制--&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--9）tempReadHostAvailable属性：如果配置了writeHost属性，下面的readHost依旧可以使用，默认为0--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">dataHost</span> <span class="attr">name</span>=<span class="string">&quot;localhost1&quot;</span> <span class="attr">maxCon</span>=<span class="string">&quot;1000&quot;</span> <span class="attr">minCon</span>=<span class="string">&quot;10&quot;</span> <span class="attr">balance</span>=<span class="string">&quot;0&quot;</span></span></span><br><span class="line"><span class="tag">			  <span class="attr">writeType</span>=<span class="string">&quot;0&quot;</span> <span class="attr">dbType</span>=<span class="string">&quot;mysql&quot;</span> <span class="attr">dbDriver</span>=<span class="string">&quot;native&quot;</span> <span class="attr">switchType</span>=<span class="string">&quot;1&quot;</span> <span class="attr">slaveThreshold</span>=<span class="string">&quot;100&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">heartbeat</span>&gt;</span>select user()<span class="tag">&lt;/<span class="name">heartbeat</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">writeHost</span> <span class="attr">host</span>=<span class="string">&quot;hostM1&quot;</span> <span class="attr">url</span>=<span class="string">&quot;127.0.0.1:3306&quot;</span> <span class="attr">user</span>=<span class="string">&quot;root&quot;</span> <span class="attr">password</span>=<span class="string">&quot;123456&quot;</span>&gt;</span> <span class="comment">&lt;!-- url、user、password 设置成你的数据库 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">writeHost</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">dataHost</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">mycat:schema</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>分库分表规则rule.xml配置</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mycat:rule</span> <span class="attr">xmlns:mycat</span>=<span class="string">&quot;http://io.mycat/&quot;</span>&gt;</span></span><br><span class="line">  <span class="comment">&lt;!--name 属性指定唯一的名字，用于标识不同的表规则</span></span><br><span class="line"><span class="comment">     1）内嵌的 rule 标签则指定对物理表中的哪一列进行拆分和使用什么路由算法。</span></span><br><span class="line"><span class="comment">     2）columns 内指定要拆分的列名字。</span></span><br><span class="line"><span class="comment">	 3)algorithm 使用 function 标签中的 name 属性。连接表规则和具体路由算法。当然，多个表规则可以连接到同一个路由算法上。 table 标签内使用。让逻辑表使用这个规则进行分片。</span></span><br><span class="line"><span class="comment">	 --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">tableRule</span> <span class="attr">name</span>=<span class="string">&quot;rule1&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">columns</span>&gt;</span>id<span class="tag">&lt;/<span class="name">columns</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">algorithm</span>&gt;</span>func1<span class="tag">&lt;/<span class="name">algorithm</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">tableRule</span>&gt;</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">&lt;!--name 指定算法的名字。</span></span><br><span class="line"><span class="comment">	1)class 制定路由算法具体的类名字。</span></span><br><span class="line"><span class="comment">	2)property 为具体算法需要用到的一些属性。</span></span><br><span class="line"><span class="comment">	--&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">function</span> <span class="attr">name</span>=<span class="string">&quot;func1&quot;</span> <span class="attr">class</span>=<span class="string">&quot;io.mycat.route.function.PartitionByLong&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;partitionCount&quot;</span>&gt;</span>2<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;partitionLength&quot;</span>&gt;</span>512<span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">function</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">mycat:rule</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<h3 id="sharding-jdbc-使用教程"><a href="#sharding-jdbc-使用教程" class="headerlink" title="sharding-jdbc 使用教程"></a>sharding-jdbc 使用教程</h3><ol>
+<li>maven依赖包<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;io.shardingsphere&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;sharding-jdbc&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;$&#123;sharding-sphere.version&#125;&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+<span id="more"></span></li>
+</ol>
+<ol start="2">
+<li>JPA 集成sharding-jdbc配置  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnablePlatformJpaRepositories(</span></span><br><span class="line"><span class="meta">        entityManagerFactoryRef = &quot;shardingEntityManagerFactory&quot;,</span></span><br><span class="line"><span class="meta">        transactionManagerRef = &quot;shardingTransactionManager&quot;,</span></span><br><span class="line"><span class="meta">        basePackages = &#123;&quot;com.dxy.platform.push.sharding.dao&quot;&#125;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShardingAutoConfiguration</span> <span class="keyword">extends</span> <span class="title">PlatformModuleConfigurerAdapter</span> <span class="keyword">implements</span> <span class="title">EnvironmentAware</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Environment environment;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(prefix = &quot;dxy.datasource.ds01&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PlatformDataSourceProperties <span class="title">sharding01PooledDataSourceProperties</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PlatformDataSourceProperties();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;sharding01DataSource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">sharding01DataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> buildPooledDataSource(sharding01PooledDataSourceProperties());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(prefix = &quot;dxy.datasource.ds02&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PlatformDataSourceProperties <span class="title">sharding02PooledDataSourceProperties</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PlatformDataSourceProperties();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;sharding02DataSource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">sharding02DataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> buildPooledDataSource(sharding02PooledDataSourceProperties());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(prefix = &quot;dxy.datasource.ds03&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PlatformDataSourceProperties <span class="title">sharding03PooledDataSourceProperties</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PlatformDataSourceProperties();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;sharding01DataSource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">sharding03DataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> buildPooledDataSource(sharding03PooledDataSourceProperties());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(prefix = &quot;dxy.datasource.ds04&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PlatformDataSourceProperties <span class="title">sharding04PooledDataSourceProperties</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> PlatformDataSourceProperties();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;sharding04DataSource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">sharding04DataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> buildPooledDataSource(sharding04PooledDataSourceProperties());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * sharding 主数据源</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> SQLException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean(name = &quot;shardingDataSource&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">shardingDataSource</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        <span class="comment">// 配置真实数据源</span></span><br><span class="line">        Map&lt;String, DataSource&gt; dataSourceMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds0&quot;</span>,sharding01DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds1&quot;</span>,sharding02DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds2&quot;</span>,sharding03DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds3&quot;</span>,sharding04DataSource());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 配置Order表规则</span></span><br><span class="line">        TableRuleConfiguration orderTableRuleConfig = <span class="keyword">new</span> TableRuleConfiguration();</span><br><span class="line">        orderTableRuleConfig.setLogicTable(<span class="string">&quot;push_message&quot;</span>);</span><br><span class="line">        orderTableRuleConfig.setActualDataNodes(<span class="string">&quot;ds$&#123;0..3&#125;.push_message&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//分布式主键</span></span><br><span class="line">        orderTableRuleConfig.setKeyGeneratorColumnName(<span class="string">&quot;id&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 配置分库 + 分表策略</span></span><br><span class="line">        orderTableRuleConfig.setDatabaseShardingStrategyConfig(<span class="keyword">new</span> InlineShardingStrategyConfiguration(<span class="string">&quot;traceId&quot;</span>, <span class="string">&quot;ds$&#123;traceId % 4&#125;&quot;</span>));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 配置分片规则</span></span><br><span class="line">        ShardingRuleConfiguration shardingRuleConfig = <span class="keyword">new</span> ShardingRuleConfiguration();</span><br><span class="line">        shardingRuleConfig.getTableRuleConfigs().add(orderTableRuleConfig);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//配置项</span></span><br><span class="line">        Properties properties = <span class="keyword">new</span> Properties();</span><br><span class="line">        properties.setProperty(<span class="string">&quot;sql.show&quot;</span>,<span class="string">&quot;true&quot;</span>);</span><br><span class="line">        DataSource dataSource = ShardingDataSourceFactory.createDataSource(</span><br><span class="line">                dataSourceMap, shardingRuleConfig, <span class="keyword">new</span> ConcurrentHashMap(), properties);</span><br><span class="line">        <span class="keyword">return</span> dataSource;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;shardingEntityManagerFactory&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> LocalContainerEntityManagerFactoryBean <span class="title">shardingEntityManagerFactory</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        HibernateJpaVendorAdapter vendorAdapter = <span class="keyword">new</span> HibernateJpaVendorAdapter();</span><br><span class="line">        vendorAdapter.setShowSql(<span class="keyword">false</span>);</span><br><span class="line">        vendorAdapter.setGenerateDdl(<span class="keyword">false</span>);</span><br><span class="line">        vendorAdapter.setDatabase(Database.MYSQL);</span><br><span class="line">        LocalContainerEntityManagerFactoryBean factoryBean = <span class="keyword">new</span> LocalContainerEntityManagerFactoryBean();</span><br><span class="line">        factoryBean.setDataSource(shardingDataSource());</span><br><span class="line">        factoryBean.setJpaVendorAdapter(vendorAdapter);</span><br><span class="line">        factoryBean.setPackagesToScan(<span class="string">&quot;com.dxy.platform.push.sharding.domain&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> factoryBean;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(&quot;shardingJdbcTemplate&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> JdbcTemplate <span class="title">shardingJdbcTemplate</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> JdbcTemplate(shardingDataSource());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setEnvironment</span><span class="params">(Environment environment)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.environment = environment;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li>Mybatis 集成sharding-jdbc配置<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAutoConfiguration</span></span><br><span class="line"><span class="meta">@MapperScan(&quot;com.fly.dao&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ShardingDruidDataSourceAutoConfig</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Primary</span></span><br><span class="line">    <span class="meta">@Bean(name = &quot;mainDataSource&quot;,autowire = Autowire.BY_NAME)</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(prefix = &quot;dxy.datasource.main-data-source&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DruidDataSource <span class="title">mainDataSource</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> DruidDataSourceBuilder.create().build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;ds0DataSource&quot;,autowire = Autowire.BY_NAME)</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(&quot;dxy.datasource.ds0&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DruidDataSource <span class="title">ds0DataSource</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> DruidDataSourceBuilder.create().build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;ds1DataSource&quot;,autowire = Autowire.BY_NAME)</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(&quot;dxy.datasource.ds1&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DruidDataSource <span class="title">ds1DataSource</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> DruidDataSourceBuilder.create().build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;ds2DataSource&quot;,autowire = Autowire.BY_NAME)</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(&quot;dxy.datasource.ds2&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DruidDataSource <span class="title">ds2DataSource</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> DruidDataSourceBuilder.create().build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(name = &quot;ds3DataSource&quot;,autowire = Autowire.BY_NAME)</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(&quot;dxy.datasource.ds3&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DruidDataSource <span class="title">ds3DataSource</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> DruidDataSourceBuilder.create().build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 分库分表-模式</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> SQLException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean(name = &quot;dataSource&quot;,autowire = Autowire.BY_NAME)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        <span class="comment">// 配置真实数据源</span></span><br><span class="line">        Map&lt;String, DataSource&gt; dataSourceMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;main&quot;</span>,mainDataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds0&quot;</span>,ds0DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds1&quot;</span>,ds1DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds2&quot;</span>,ds2DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds3&quot;</span>,ds3DataSource());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 配置Order表规则</span></span><br><span class="line">        TableRuleConfiguration orderTableRuleConfig = <span class="keyword">new</span> TableRuleConfiguration();</span><br><span class="line">        orderTableRuleConfig.setLogicTable(<span class="string">&quot;push_message&quot;</span>);</span><br><span class="line">        orderTableRuleConfig.setActualDataNodes(<span class="string">&quot;ds$&#123;0..3&#125;.push_message&quot;</span>);</span><br><span class="line"></span><br><span class="line">        DefaultKeyGenerator defaultKeyGenerator = <span class="keyword">new</span> DefaultKeyGenerator();</span><br><span class="line">        defaultKeyGenerator.setWorkerId(<span class="number">21L</span>);</span><br><span class="line">        orderTableRuleConfig.setKeyGenerator(defaultKeyGenerator);</span><br><span class="line">        orderTableRuleConfig.setKeyGeneratorColumnName(<span class="string">&quot;id&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 配置分库 + 分表策略</span></span><br><span class="line">        orderTableRuleConfig.setDatabaseShardingStrategyConfig(<span class="keyword">new</span> InlineShardingStrategyConfiguration(<span class="string">&quot;traceId&quot;</span>, <span class="string">&quot;ds$&#123;traceId % 4&#125;&quot;</span>));</span><br><span class="line">        <span class="comment">//orderTableRuleConfig.setTableShardingStrategyConfig(new InlineShardingStrategyConfiguration(&quot;order_id&quot;, &quot;t_order$&#123;order_id % 2&#125;&quot;));</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 配置分片规则</span></span><br><span class="line">        ShardingRuleConfiguration shardingRuleConfig = <span class="keyword">new</span> ShardingRuleConfiguration();</span><br><span class="line">        shardingRuleConfig.getTableRuleConfigs().add(orderTableRuleConfig);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//默认数据源</span></span><br><span class="line">        shardingRuleConfig.setDefaultDataSourceName(<span class="string">&quot;main&quot;</span>);</span><br><span class="line">        <span class="comment">// 获取数据源对象</span></span><br><span class="line"><span class="comment">//        DataSource dataSource = ShardingDataSourceFactory.createDataSource(dataSourceMap, shardingRuleConfig, new ConcurrentHashMap(), new Properties());</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//数据治理功能</span></span><br><span class="line">        <span class="comment">// 配置注册中心</span></span><br><span class="line">        RegistryCenterConfiguration regConfig = <span class="keyword">new</span> RegistryCenterConfiguration();</span><br><span class="line">        regConfig.setServerLists(<span class="string">&quot;zk1.host.dxy:2181,zk2.host.dxy:2181,zk3.host.dxy:2181&quot;</span>);</span><br><span class="line">        regConfig.setNamespace(<span class="string">&quot;sharding-sphere-orchestration&quot;</span>);</span><br><span class="line">        <span class="comment">// 配置数据治理</span></span><br><span class="line">        OrchestrationConfiguration orchConfig = <span class="keyword">new</span> OrchestrationConfiguration(<span class="string">&quot;orchestration-sharding-data-source&quot;</span>, regConfig, <span class="keyword">false</span>);</span><br><span class="line"></span><br><span class="line">        Properties properties = <span class="keyword">new</span> Properties();</span><br><span class="line">        properties.setProperty(<span class="string">&quot;sql.show&quot;</span>,<span class="string">&quot;true&quot;</span>);</span><br><span class="line"></span><br><span class="line">        DataSource dataSource = OrchestrationShardingDataSourceFactory.createDataSource(</span><br><span class="line">                dataSourceMap, shardingRuleConfig, <span class="keyword">new</span> ConcurrentHashMap(), properties, orchConfig);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">//        DataSource dataSource = OrchestrationShardingDataSourceFactory.createDataSource(dataSourceMap, shardingRuleConfig, new ConcurrentHashMap(), new Properties(), orchConfig);</span></span><br><span class="line">        <span class="keyword">return</span> dataSource;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 读写分离模式</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> SQLException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean(name = &quot;dataSource1&quot;,autowire = Autowire.BY_NAME)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource1</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        <span class="comment">// 配置真实数据源</span></span><br><span class="line">        Map&lt;String, DataSource&gt; dataSourceMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;main&quot;</span>,mainDataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds0&quot;</span>,ds0DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds1&quot;</span>,ds1DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds2&quot;</span>,ds2DataSource());</span><br><span class="line">        dataSourceMap.put(<span class="string">&quot;ds3&quot;</span>,ds3DataSource());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 配置分库 + 分表策略</span></span><br><span class="line">        MasterSlaveRuleConfiguration masterSlaveRuleConfiguration = <span class="keyword">new</span> MasterSlaveRuleConfiguration(<span class="string">&quot;test&quot;</span>,<span class="string">&quot;main&quot;</span>,</span><br><span class="line">                Arrays.asList(<span class="string">&quot;ds0&quot;</span>,<span class="string">&quot;ds1&quot;</span>,<span class="string">&quot;ds2&quot;</span>,<span class="string">&quot;ds3&quot;</span>));</span><br><span class="line">        DataSource dataSource = MasterSlaveDataSourceFactory.createDataSource(dataSourceMap,masterSlaveRuleConfiguration,</span><br><span class="line">                <span class="keyword">new</span> HashMap&lt;&gt;(),<span class="keyword">new</span> Properties());</span><br><span class="line">        <span class="keyword">return</span> dataSource;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="meta">@ConfigurationProperties(prefix = &quot;mybatis&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> SqlSessionFactoryBean <span class="title">sqlSessionFactoryBean</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        SqlSessionFactoryBean sqlSessionFactoryBean = <span class="keyword">new</span> SqlSessionFactoryBean();</span><br><span class="line">        <span class="comment">// 配置数据源，此处配置为关键配置，如果没有将 dynamicDataSource 作为数据源则不能实现切换</span></span><br><span class="line">        sqlSessionFactoryBean.setDataSource(dataSource());</span><br><span class="line">        <span class="keyword">return</span> sqlSessionFactoryBean;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mycat/" rel="tag"># mycat</a>
+              <a href="/tags/%E5%88%86%E5%BA%93%E5%88%86%E8%A1%A8/" rel="tag"># 分库分表</a>
+              <a href="/tags/sharding-jdbc/" rel="tag"># sharding-jdbc</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/04/24/otter%E5%9F%BA%E7%A1%80%E4%BB%8B%E7%BB%8D/" rel="prev" title="otter">
+                  <i class="fa fa-chevron-left"></i> otter
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/05/01/Mycat%E8%BF%90%E7%BB%B4%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/" rel="next" title="Mycat运维部署文档">
+                  Mycat运维部署文档 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

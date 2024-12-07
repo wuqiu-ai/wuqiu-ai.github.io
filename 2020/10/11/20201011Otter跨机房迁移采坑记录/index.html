@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="背景前几周给insgin团队业做跨机房数据迁移过程中，出现了一系列的数据，主要问题如下：  部分表未同步&#x2F;增量丢失问题；   那有些人可能会问为什么不是全量迁移导致数据不一致问题？那是因为我们的数据迁移操作流程，是增量数据和全量数据同时开启更新的，当全量迁移完成时候，我们通过增量通道的偏移量追赶到最新binlog偏移量时候，会触发全量数据校验过程，在校验完成一致后，我们会修复不一致的数据，直到数据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Otter跨机房迁移采坑记录">
+<meta property="og:url" content="http://ppjys.cn/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="背景前几周给insgin团队业做跨机房数据迁移过程中，出现了一系列的数据，主要问题如下：  部分表未同步&#x2F;增量丢失问题；   那有些人可能会问为什么不是全量迁移导致数据不一致问题？那是因为我们的数据迁移操作流程，是增量数据和全量数据同时开启更新的，当全量迁移完成时候，我们通过增量通道的偏移量追赶到最新binlog偏移量时候，会触发全量数据校验过程，在校验完成一致后，我们会修复不一致的数据，直到数据">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-10-11T09:01:35.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.609Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="Otter">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://ppjys.cn/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Otter跨机房迁移采坑记录 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8E%9F%E5%9B%A0"><span class="nav-number">2.</span> <span class="nav-text">原因</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A2%9E%E9%87%8F%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98"><span class="nav-number">2.1.</span> <span class="nav-text">增量丢失问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#pb%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%A4%B1%E8%B4%A5%E9%97%AE%E9%A2%98"><span class="nav-number">2.2.</span> <span class="nav-text">pb反序列化失败问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#aria2c%E4%B8%8B%E8%BD%BD502%E9%97%AE%E9%A2%98"><span class="nav-number">2.3.</span> <span class="nav-text">aria2c下载502问题</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A2%9E%E9%87%8F%E5%90%8C%E6%AD%A5%E6%9B%B4%E6%96%B0%E6%97%B6%E9%97%B4%E4%B8%8D%E4%B8%80%E8%87%B4%E9%97%AE%E9%A2%98"><span class="nav-number">2.4.</span> <span class="nav-text">增量同步更新时间不一致问题</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Otter跨机房迁移采坑记录
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-10-11 17:01:35" itemprop="dateCreated datePublished" datetime="2020-10-11T17:01:35+08:00">2020-10-11</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/otter/" itemprop="url" rel="index"><span itemprop="name">otter</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h3 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h3><p>前几周给insgin团队业做跨机房数据迁移过程中，出现了一系列的数据，主要问题如下：</p>
+<ol>
+<li><p><strong>部分表未同步/增量丢失问题</strong>；</p>
+<blockquote>
+<p> 那有些人可能会问为什么不是全量迁移导致数据不一致问题？那是因为我们的数据迁移操作流程，是增量数据和全量数据同时开启更新的，当全量迁移完成时候，我们通过增量通道的偏移量追赶到最新binlog偏移量时候，会触发全量数据校验过程，在校验完成一致后，我们会修复不一致的数据，直到数据准实时一致。数据修复完成后，接下来就是每天数据校验，我们会每天晚上自动开启数据校验流程，然后持续观察数据是否一致。我们出现的现象就是某几张表一致增量丢失现象。</p>
+</blockquote>
+</li>
+<li><p>跨机房传输RPC是采用Http协议多线程下载问题，下载过程中出现pb反序列化问题和下载502问题；</p>
+<blockquote>
+<p>pb反序列化问题主要是2.6版本的pb反序列化有大小64m限制，由于某些表存在大字段问题，批量读取binlog可能导致序列化生成的文件过大导致反序列化问题。下载502报错采用多线程下载器aria2c在下载文件比较大的情况下经常出现下载失败问题。</p>
+</blockquote>
+</li>
+<li><p>数据同步更新时间不一致问题；</p>
+<blockquote>
+<p>发现更新频繁的表经常出现更新时间不一致问题。</p>
+</blockquote>
+</li>
+<li><p>数据校验出现超时校验导致校验失败问题；</p>
+<blockquote>
+<p>某一些表，数据量在50w左右，但是出现了校验超时失败问题。</p>
+</blockquote>
+</li>
+</ol>
+<!---more--->
+
+<h3 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h3><h4 id="增量丢失问题"><a href="#增量丢失问题" class="headerlink" title="增量丢失问题"></a>增量丢失问题</h4><p>针对2张表增量丢失更新问题，我们差不多定位了1周左右，中间连周末都去加班找问题了。由于线下环境一直模拟不出来问题，线上由于otter定于的表差不多400多张，同步量还是挺大的，debug日志也不好开启。所以最终我们只能通过针对问题表的日志输出具体canal解析到的binlog信息。从SelectTask开始加日志，到MessageParse加日志，最终定位到，出问题的binlog信息没有rowchange信息，导致无法解析到数据变更前和变更后的信息，然后通过binlog的偏移量去查mysql的binlog信息，发现给binlog信息居然真的只有sql语句，没有变更前和变更后的数据。</p>
+<p><code>com.alibaba.otter.node.etl.select.selector.MessageParser#internParse(com.alibaba.otter.shared.common.model.config.pipeline.Pipeline, com.alibaba.otter.canal.protocol.CanalEntry.Entry)</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">private</span> List&lt;EventData&gt; <span class="title">internParse</span><span class="params">(Pipeline pipeline, Entry entry)</span> </span>&#123;</span><br><span class="line">        RowChange rowChange = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            rowChange = RowChange.parseFrom(entry.getStoreValue());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> SelectException(<span class="string">&quot;parser of canal-event has an error , data:&quot;</span> + entry.toString(), e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//        //线下环境</span></span><br><span class="line"><span class="comment">//        if(19 == pipeline.getId() &amp;&amp; (&quot;global_drug_relate_indication&quot;.equalsIgnoreCase(entry.getHeader().getTableName())</span></span><br><span class="line"><span class="comment">//                || &quot;drug_indications_relation&quot;.equalsIgnoreCase(entry.getHeader().getTableName()) )) &#123;</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//            parseFromDesc(entry);</span></span><br><span class="line"><span class="comment">//            logger.warn(&quot;binlogdebug-interparse rowChange object:&#123;&#125;&quot;, rowChange);</span></span><br><span class="line"><span class="comment">//        &#125;</span></span><br><span class="line"><span class="comment">//        //线上环境</span></span><br><span class="line"><span class="comment">//        if(23 == pipeline.getId() &amp;&amp; (&quot;global_drug_relate_indication&quot;.equalsIgnoreCase(entry.getHeader().getTableName())</span></span><br><span class="line"><span class="comment">//            || &quot;drug_indications_relation&quot;.equalsIgnoreCase(entry.getHeader().getTableName()) )) &#123;</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//            logger.warn(&quot;binlogdebug-interparse entryposition:&#123;&#125;&quot;, entry.getHeader().getLogfileOffset());</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">//            if (null == rowChange.getRowDatasList() || rowChange.getRowDatasList().size() == 0) &#123;</span></span><br><span class="line"><span class="comment">//                logger.warn(&quot;binlogdebug-interparse storeValue parseFrom(), dataList of rowChange is null&quot;);</span></span><br><span class="line"><span class="comment">//                logger.warn(&quot;binlogdebug-interparse rowChange object:&#123;&#125;&quot;, rowChange);</span></span><br><span class="line"><span class="comment">//                parseFromDesc(entry);</span></span><br><span class="line"><span class="comment">//            &#125; else &#123;</span></span><br><span class="line"><span class="comment">//                logger.warn(&quot;binlogdebug-interparse storeValue parseFrom(), dataList of rowChange is not null, rowDatasList: &#123;&#125;&quot;, rowChange.getRowDatasList());</span></span><br><span class="line"><span class="comment">//            &#125;</span></span><br><span class="line"><span class="comment">//        &#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (rowChange == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        String schemaName = entry.getHeader().getSchemaName();</span><br><span class="line">        String tableName = entry.getHeader().getTableName();</span><br><span class="line">        EventType eventType = EventType.valueOf(rowChange.getEventType().name());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 处理下DDL操作</span></span><br><span class="line">        <span class="keyword">if</span> (eventType.isQuery()) &#123;</span><br><span class="line">            <span class="comment">// 直接忽略query事件</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 首先判断是否为系统表</span></span><br><span class="line">        <span class="keyword">if</span> (StringUtils.equalsIgnoreCase(pipeline.getParameters().getSystemSchema(), schemaName)) &#123;</span><br><span class="line">            <span class="comment">// do noting</span></span><br><span class="line">            <span class="keyword">if</span> (eventType.isDdl()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (StringUtils.equalsIgnoreCase(pipeline.getParameters().getSystemDualTable(), tableName)) &#123;</span><br><span class="line">                <span class="comment">// 心跳表数据直接忽略</span></span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (eventType.isDdl()) &#123;</span><br><span class="line">                <span class="keyword">boolean</span> notExistReturnNull = <span class="keyword">false</span>;</span><br><span class="line">                <span class="keyword">if</span> (eventType.isRename()) &#123;</span><br><span class="line">                    notExistReturnNull = <span class="keyword">true</span>;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                DataMedia dataMedia = ConfigHelper.findSourceDataMedia(pipeline,</span><br><span class="line">                    schemaName,</span><br><span class="line">                    tableName,</span><br><span class="line">                    notExistReturnNull);</span><br><span class="line">                <span class="comment">// 如果EventType是CREATE/ALTER，需要reload</span></span><br><span class="line">                <span class="comment">// DataMediaInfo;并且把CREATE/ALTER类型的事件丢弃掉.</span></span><br><span class="line">                <span class="keyword">if</span> (dataMedia != <span class="keyword">null</span> &amp;&amp; (eventType.isCreate() || eventType.isAlter() || eventType.isRename())) &#123;</span><br><span class="line">                    DbDialect dbDialect = dbDialectFactory.getDbDialect(pipeline.getId(),</span><br><span class="line">                        (DbMediaSource) dataMedia.getSource());</span><br><span class="line">                    dbDialect.reloadTable(schemaName, tableName);<span class="comment">// 更新下meta信息</span></span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//                if(23 == pipeline.getId() &amp;&amp; (&quot;global_drug_relate_indication&quot;.equalsIgnoreCase(entry.getHeader().getTableName())</span></span><br><span class="line"><span class="comment">//                        || &quot;drug_indications_relation&quot;.equalsIgnoreCase(entry.getHeader().getTableName()) )) &#123;</span></span><br><span class="line"><span class="comment">//                    logger.warn(&quot;binlogdebug-interparse ddlSync return&quot;);</span></span><br><span class="line"><span class="comment">//                &#125;</span></span><br><span class="line"></span><br><span class="line">                <span class="keyword">boolean</span> ddlSync = pipeline.getParameters().getDdlSync();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (ddlSync) &#123;</span><br><span class="line">                    <span class="comment">// 处理下ddl操作</span></span><br><span class="line">                    EventData eventData = <span class="keyword">new</span> EventData();</span><br><span class="line">                    eventData.setSchemaName(schemaName);</span><br><span class="line">                    eventData.setTableName(tableName);</span><br><span class="line">                    eventData.setEventType(eventType);</span><br><span class="line">                    eventData.setExecuteTime(entry.getHeader().getExecuteTime());</span><br><span class="line">                    eventData.setSql(rowChange.getSql());</span><br><span class="line">                    eventData.setDdlSchemaName(rowChange.getDdlSchemaName());</span><br><span class="line">                    eventData.setTableId(dataMedia.getId());</span><br><span class="line">                    <span class="keyword">return</span> Arrays.asList(eventData);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        List&lt;EventData&gt; eventDatas = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">for</span> (RowData rowData : rowChange.getRowDatasList()) &#123;</span><br><span class="line"><span class="comment">//            if(23 == pipeline.getId() &amp;&amp; (&quot;global_drug_relate_indication&quot;.equalsIgnoreCase(entry.getHeader().getTableName())</span></span><br><span class="line"><span class="comment">//                    || &quot;drug_indications_relation&quot;.equalsIgnoreCase(entry.getHeader().getTableName()) )) &#123;</span></span><br><span class="line"><span class="comment">//                logger.warn(&quot;binlogdebug-interparse internParse execute start&quot;);</span></span><br><span class="line"><span class="comment">//            &#125;</span></span><br><span class="line"></span><br><span class="line">            EventData eventData = internParse(pipeline, entry, rowChange, rowData);</span><br><span class="line"></span><br><span class="line"><span class="comment">//            if(23 == pipeline.getId() &amp;&amp; (&quot;global_drug_relate_indication&quot;.equalsIgnoreCase(entry.getHeader().getTableName())</span></span><br><span class="line"><span class="comment">//                    || &quot;drug_indications_relation&quot;.equalsIgnoreCase(entry.getHeader().getTableName()) )) &#123;</span></span><br><span class="line"><span class="comment">//                logger.warn(&quot;binlogdebug-interparse internParse execute end, eventData: &#123;&#125;&quot;, eventData);</span></span><br><span class="line"><span class="comment">//            &#125;</span></span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (eventData != <span class="keyword">null</span>) &#123;</span><br><span class="line">                eventDatas.add(eventData);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> eventDatas;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这下开始茫然了，DBA那边查看binlog format确实是row模式，但是只有几张表出现这个问题。然后通过分析DBA修改binlog-format的操作过程，发现DBA原来是修改global session方式去修改配置，这种操作理论上是需要业务方重启业务的，然后咨询了业务放是否有无重启业务，发现数据迁移的数据库有好几个应用在用，业务方均没有主动重启。这才确定了应该是没有重启导致的问题。但是为什么只有几张表才出现这个现象呢，涉及数据迁移的几个库涉及到了好几个业务应用，php应用的数据库连接池每天会重连，但是java应用是有连接池的，数据库连接没有重连导致部分连接format未生效。</p>
+<h4 id="pb反序列化失败问题"><a href="#pb反序列化失败问题" class="headerlink" title="pb反序列化失败问题"></a>pb反序列化失败问题</h4><p>通过阅读pb的源码，发现新版本已经调整了这个限制大小，所以我们通过升级pb即可解决。</p>
+<h4 id="aria2c下载502问题"><a href="#aria2c下载502问题" class="headerlink" title="aria2c下载502问题"></a>aria2c下载502问题</h4><p>针对数据传输失败问题，查看了aria2c的github的issue，发现有些开发者也出现了这个问题，推荐调整多线程下载的线程数和重试次数可以降低报错。最终我们通过优化参数和调整canal的读取binlog的读取时间和读取大小限制来降低生成文件的大小，但是由于canal调整的参数如果读取大小设置为10，并不能精准的限制大小，只能大概可以减低读取的binlog数量。所以后期我们计划搞一个可以动态根据吞吐量来自动调整canal限制。</p>
+<h4 id="增量同步更新时间不一致问题"><a href="#增量同步更新时间不一致问题" class="headerlink" title="增量同步更新时间不一致问题"></a>增量同步更新时间不一致问题</h4><p>该问题定位到是由于数据更新频率太快的原因导致的，比如源库在同一时间新增一条数据，又马上对该数据更新，导致canal解析到更新时间字段为没有update，然后同步的时候去除了该更新时间字段，但是该字段又配置了自动更新，导致目标库更新的时候数据库主动将更新时间字段更新了，最终出现的更新时间不一致的问题。虽然otter本身是为了节省同步的数据量，但是由于我们公司需要对数据强一致要求，我们这边就改造了判断时间类型，强制同步。</p>
+<p><code>com.alibaba.otter.node.etl.select.selector.MessageParser#internParse(com.alibaba.otter.shared.common.model.config.pipeline.Pipeline, com.alibaba.otter.canal.protocol.CanalEntry.Entry, com.alibaba.otter.canal.protocol.CanalEntry.RowChange, com.alibaba.otter.canal.protocol.CanalEntry.RowData)</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (Column column : afterColumns) &#123;</span><br><span class="line">  <span class="keyword">if</span> (isKey(tableHolder, tableName, column)) &#123;</span><br><span class="line">    <span class="comment">// 获取变更后的主键</span></span><br><span class="line">    keyColumns.put(column.getName(), copyEventColumn(column, <span class="keyword">true</span>, tableHolder));</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (needAllColumns || entry.getHeader().getSourceType() == CanalEntry.Type.ORACLE</span><br><span class="line">             || column.getUpdated() || (!StringUtils.isEmpty(column.getMysqlType()) &amp;&amp; <span class="string">&quot;datetime&quot;</span>.equalsIgnoreCase(column.getMysqlType()))) &#123;</span><br><span class="line">    <span class="comment">// 在update操作时，oracle和mysql存放变更的非主键值的方式不同,oracle只有变更的字段;</span></span><br><span class="line">    <span class="comment">// mysql会把变更前和变更后的字段都发出来，只需要取有变更的字段.</span></span><br><span class="line">    <span class="comment">// 如果是oracle库，after里一定为对应的变更字段</span></span><br><span class="line">    <span class="comment">// 增加如果字段类型是datetime,</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">boolean</span> isUpdate = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">if</span> (entry.getHeader().getSourceType() == CanalEntry.Type.MYSQL) &#123;</span><br><span class="line">      <span class="comment">// mysql的after里部分数据为未变更,oracle里after里为变更字段</span></span><br><span class="line">      isUpdate = column.getUpdated();</span><br><span class="line">      <span class="keyword">if</span>(!StringUtils.isEmpty(column.getMysqlType()) &amp;&amp; <span class="string">&quot;datetime&quot;</span>.equalsIgnoreCase(column.getMysqlType()))&#123;</span><br><span class="line">        isUpdate = <span class="keyword">true</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    notKeyColumns.put(column.getName(), copyEventColumn(column, isRowMode || isUpdate, tableHolder));<span class="comment">// 如果是rowMode，所有字段都为updated</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>针对这次数据迁移出现的问题，增量丢失数据闹了一个大乌龙，经过这次事件，让我们对我们的数据迁移平台更加有信心保证数据安全和高效传输。目前跨机房问题我们差不多有1-3s的同步延时问题，这块计划考虑增加grpc协议优化传输性能问题。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Otter/" rel="tag"># Otter</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/" rel="prev" title="Mysql binlog知识">
+                  <i class="fa fa-chevron-left"></i> Mysql binlog知识
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/" rel="next" title="Leetcode高频题总结">
+                  Leetcode高频题总结 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>

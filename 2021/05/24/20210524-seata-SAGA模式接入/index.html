@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="Saga简介Saga 是一种补偿协议，在 Saga 模式下，分布式事务内有多个参与者，每一个参与者都是一个冲正补偿服务，需要用户根据业务场景实现其正向操作和逆向回滚操作。 分布式事务执行过程中，依次执行各参与者的正向操作，如果所有正向操作均执行成功，那么分布式事务提交。如果任何一个正向操作执行失败，那么分布式事务会退回去执行前面各参与者的逆向回滚操作，回滚已提交的参与者，使分布式事务回到初始状态。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Seata-SAGA模式接入">
+<meta property="og:url" content="http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="Saga简介Saga 是一种补偿协议，在 Saga 模式下，分布式事务内有多个参与者，每一个参与者都是一个冲正补偿服务，需要用户根据业务场景实现其正向操作和逆向回滚操作。 分布式事务执行过程中，依次执行各参与者的正向操作，如果所有正向操作均执行成功，那么分布式事务提交。如果任何一个正向操作执行失败，那么分布式事务会退回去执行前面各参与者的逆向回滚操作，回滚已提交的参与者，使分布式事务回到初始状态。">
+<meta property="og:locale">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/seata/2.jpg">
+<meta property="og:image" content="http://seata.io/img/saga/demo_statelang.png?raw=true">
+<meta property="og:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/seata/3.png">
+<meta property="article:published_time" content="2021-05-24T08:51:56.000Z">
+<meta property="article:modified_time" content="2022-06-15T10:16:58.609Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="seata">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/ppj19891020/pictures/master/seata/2.jpg">
+
+
+<link rel="canonical" href="http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>Seata-SAGA模式接入 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Saga%E7%AE%80%E4%BB%8B"><span class="nav-number">1.</span> <span class="nav-text">Saga简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E7%8A%B6%E6%80%81%E6%9C%BA%E5%BC%95%E6%93%8E%E7%9A%84-Saga-%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.</span> <span class="nav-text">基于状态机引擎的 Saga 实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#springCloud-seata-saga%E6%8E%A5%E5%85%A5%E6%8C%87%E5%8D%97"><span class="nav-number">3.</span> <span class="nav-text">springCloud seata saga接入指南</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%BC%95%E5%85%A5jar%E5%8C%85"><span class="nav-number">3.1.</span> <span class="nav-text">1. 引入jar包</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-seata-%E6%B3%A8%E5%86%8C%E4%B8%AD%E5%BF%83%E9%85%8D%E7%BD%AE"><span class="nav-number">3.2.</span> <span class="nav-text">2. seata 注册中心配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-seata-%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E9%85%8D%E7%BD%AE"><span class="nav-number">3.3.</span> <span class="nav-text">3. seata 配置中心配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-TM%E9%85%8D%E7%BD%AE%E6%9C%8D%E5%8A%A1%E5%88%86%E7%BB%84%E5%90%8D"><span class="nav-number">3.4.</span> <span class="nav-text">4. TM配置服务分组名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-TM%E9%85%8D%E7%BD%AE%E7%8A%B6%E6%80%81%E6%9C%BA"><span class="nav-number">3.5.</span> <span class="nav-text">5. TM配置状态机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-sagaAutoConfig%E9%85%8D%E7%BD%AE"><span class="nav-number">3.6.</span> <span class="nav-text">6. sagaAutoConfig配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E7%8A%B6%E6%80%81%E6%9C%BA%E6%89%A7%E8%A1%8C"><span class="nav-number">3.7.</span> <span class="nav-text">7. 状态机执行</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">46</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Seata-SAGA模式接入
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-05-24 16:51:56" itemprop="dateCreated datePublished" datetime="2021-05-24T16:51:56+08:00">2021-05-24</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="Saga简介"><a href="#Saga简介" class="headerlink" title="Saga简介"></a>Saga简介</h2><p>Saga 是一种补偿协议，在 Saga 模式下，分布式事务内有多个参与者，每一个参与者都是一个冲正补偿服务，需要用户根据业务场景实现其正向操作和逆向回滚操作。</p>
+<p>分布式事务执行过程中，依次执行各参与者的正向操作，如果所有正向操作均执行成功，那么分布式事务提交。如果任何一个正向操作执行失败，那么分布式事务会退回去执行前面各参与者的逆向回滚操作，回滚已提交的参与者，使分布式事务回到初始状态。<br>状态图如下：</p>
+<p><img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/seata/2.jpg" alt="状态图"></p>
+<p>Saga 模式下分布式事务通常是由事件驱动的，各个参与者之间是异步执行的，Saga 模式是一种长事务解决方案。</p>
+<p>事务参与者可能是其它公司的服务或者是遗留系统的服务，无法进行改造和提供 TCC 要求的接口，可以使用 Saga 模式。</p>
+<p>Saga模式的优势是：</p>
+<ul>
+<li>一阶段提交本地数据库事务，无锁，高性能；</li>
+<li>参与者可以采用事务驱动异步执行，高吞吐；</li>
+<li>补偿服务即正向服务的“反向”，易于理解，易于实现；</li>
+</ul>
+<p>Saga模式缺点：</p>
+<blockquote>
+<p>Saga 模式由于一阶段已经提交本地数据库事务，且没有进行“预留”动作，所以不能保证隔离性。</p>
+</blockquote>
+<h2 id="基于状态机引擎的-Saga-实现"><a href="#基于状态机引擎的-Saga-实现" class="headerlink" title="基于状态机引擎的 Saga 实现"></a>基于状态机引擎的 Saga 实现</h2><p>基本原理：</p>
+<ol>
+<li>基于json格式定义服务调用状态图；</li>
+<li>状态图的一个节点可以是一个服务，节点可以配置补偿节点；</li>
+<li>状态图json由状态机执行引擎驱动执行，当出现异常状态时状态机引擎执行反向补偿任务将事物回滚；</li>
+<li>异常状态发生时是否进行补偿由用户自定义决定；</li>
+<li>可以实现服务编排的需求，支持单项选择、并发、异步、子状态机调用、参数转换、参数映射、服务执行状态判断、异常捕获等功能；</li>
+</ol>
+<p><img src="http://seata.io/img/saga/demo_statelang.png?raw=true" alt="状态图"></p>
+<span id="more"></span>
+
+<h2 id="springCloud-seata-saga接入指南"><a href="#springCloud-seata-saga接入指南" class="headerlink" title="springCloud seata saga接入指南"></a>springCloud seata saga接入指南</h2><h3 id="1-引入jar包"><a href="#1-引入jar包" class="headerlink" title="1. 引入jar包"></a>1. 引入jar包</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--seata组件包--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.seata<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>seata-all<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;seata.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!--spring cloud 相关定制--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-alibaba-seata<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>x.y.z<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>注意：<a target="_blank" rel="noopener" href="https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E">seata兼容版本说明</a></p>
+<h3 id="2-seata-注册中心配置"><a href="#2-seata-注册中心配置" class="headerlink" title="2. seata 注册中心配置"></a>2. seata 注册中心配置</h3><p>registry.conf配置文件，euraka中的application是指seata的服务端的服务器，这边要注意seata server有事物分组的概念，用于不同业务方的集群分区。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">registry &#123;</span><br><span class="line">  # 注册中心支持file 、nacos 、eureka、redis、zk,推荐eureka做负载均衡</span><br><span class="line">  type &#x3D; &quot;eureka&quot;</span><br><span class="line"></span><br><span class="line">  eureka &#123;</span><br><span class="line">    serviceUrl &#x3D; &quot;http:&#x2F;&#x2F;192.168.202.137:8761&#x2F;eureka&quot;</span><br><span class="line">    # seata server注册中心的服务名</span><br><span class="line">    application &#x3D; &quot;seata-server-default-group&quot;</span><br><span class="line">    weight &#x3D; &quot;1&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">config &#123;</span><br><span class="line">  # 配置中心支持file、nacos 、apollo、zk,推荐apollo</span><br><span class="line">  type &#x3D; &quot;file&quot;</span><br><span class="line"></span><br><span class="line">  file &#123;</span><br><span class="line">    name &#x3D; &quot;file.conf&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-seata-配置中心配置"><a href="#3-seata-配置中心配置" class="headerlink" title="3. seata 配置中心配置"></a>3. seata 配置中心配置</h3><p>file.conf配置文件，这里需要注意service中的vgroup_mapping配置，其中vgroup_mapping.my_test_tx_group的my_test_tx_group是表示逻辑服务分组，值表示seata server的实际服务分组，一定要存在seata serve的分组名</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line">transport &#123;</span><br><span class="line">  # tcp udt unix-domain-socket</span><br><span class="line">  type &#x3D; &quot;TCP&quot;</span><br><span class="line">  #NIO NATIVE</span><br><span class="line">  server &#x3D; &quot;NIO&quot;</span><br><span class="line">  #enable heartbeat</span><br><span class="line">  heartbeat &#x3D; true</span><br><span class="line">  #thread factory for netty</span><br><span class="line">  thread-factory &#123;</span><br><span class="line">    boss-thread-prefix &#x3D; &quot;NettyBoss&quot;</span><br><span class="line">    worker-thread-prefix &#x3D; &quot;NettyServerNIOWorker&quot;</span><br><span class="line">    server-executor-thread-prefix &#x3D; &quot;NettyServerBizHandler&quot;</span><br><span class="line">    share-boss-worker &#x3D; false</span><br><span class="line">    client-selector-thread-prefix &#x3D; &quot;NettyClientSelector&quot;</span><br><span class="line">    client-selector-thread-size &#x3D; 1</span><br><span class="line">    client-worker-thread-prefix &#x3D; &quot;NettyClientWorkerThread&quot;</span><br><span class="line">    # netty boss thread size,will not be used for UDT</span><br><span class="line">    boss-thread-size &#x3D; 1</span><br><span class="line">    #auto default pin or 8</span><br><span class="line">    worker-thread-size &#x3D; 8</span><br><span class="line">  &#125;</span><br><span class="line">  shutdown &#123;</span><br><span class="line">    # when destroy server, wait seconds</span><br><span class="line">    wait &#x3D; 3</span><br><span class="line">  &#125;</span><br><span class="line">  serialization &#x3D; &quot;seata&quot;</span><br><span class="line">  compressor &#x3D; &quot;none&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">service &#123;</span><br><span class="line">  #vgroup-&gt;rgroup</span><br><span class="line">  vgroup_mapping.my_test_tx_group &#x3D; &quot;seata-server-default-group&quot;</span><br><span class="line">  #only support single node</span><br><span class="line">  default.grouplist &#x3D; &quot;127.0.0.1:8091&quot;</span><br><span class="line">  #degrade current not support</span><br><span class="line">  enableDegrade &#x3D; false</span><br><span class="line">  #disable</span><br><span class="line">  disable &#x3D; false</span><br><span class="line">  #unit ms,s,m,h,d represents milliseconds, seconds, minutes, hours, days, default permanent</span><br><span class="line">  max.commit.retry.timeout &#x3D; &quot;-1&quot;</span><br><span class="line">  max.rollback.retry.timeout &#x3D; &quot;-1&quot;</span><br><span class="line">  disableGlobalTransaction &#x3D; false</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">client &#123;</span><br><span class="line">  async.commit.buffer.limit &#x3D; 10000</span><br><span class="line">  lock &#123;</span><br><span class="line">    retry.internal &#x3D; 10</span><br><span class="line">    retry.times &#x3D; 30</span><br><span class="line">  &#125;</span><br><span class="line">  report.retry.count &#x3D; 5</span><br><span class="line">  tm.commit.retry.count &#x3D; 1</span><br><span class="line">  tm.rollback.retry.count &#x3D; 1</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">transaction &#123;</span><br><span class="line">  undo.data.validation &#x3D; true</span><br><span class="line">  undo.log.serialization &#x3D; &quot;jackson&quot;</span><br><span class="line">  undo.log.save.days &#x3D; 7</span><br><span class="line">  #schedule delete expired undo_log in milliseconds</span><br><span class="line">  undo.log.delete.period &#x3D; 86400000</span><br><span class="line">  undo.log.table &#x3D; &quot;undo_log&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">support &#123;</span><br><span class="line">  ## spring</span><br><span class="line">  spring &#123;</span><br><span class="line">    # auto proxy the DataSource bean</span><br><span class="line">    datasource.autoproxy &#x3D; false</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-TM配置服务分组名"><a href="#4-TM配置服务分组名" class="headerlink" title="4. TM配置服务分组名"></a>4. TM配置服务分组名</h3><p>application.yml配置文件</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">alibaba:</span></span><br><span class="line">      <span class="attr">seata:</span></span><br><span class="line">        <span class="comment">## 该服务分组名一定要和file.conf配置文件中的service.vgroup_mapping一致，不然找不到对应的seata server集群名</span></span><br><span class="line">        <span class="attr">tx-service-group:</span> <span class="string">my_test_tx_group</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-TM配置状态机"><a href="#5-TM配置状态机" class="headerlink" title="5. TM配置状态机"></a>5. TM配置状态机</h3><p>这个例子就配置下单服务的saga流程，具体的参数请参考：<a target="_blank" rel="noopener" href="http://seata.io/zh-cn/docs/user/saga.html">http://seata.io/zh-cn/docs/user/saga.html</a></p>
+<p><img src="https://raw.githubusercontent.com/ppj19891020/pictures/master/seata/3.png" alt="状态机"></p>
+<p>json状态图格式如下：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;Name&quot;</span>: <span class="string">&quot;purchaseProcess&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;用户下单流程-saga流程&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;StartState&quot;</span>: <span class="string">&quot;CreateOrderNo&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;Version&quot;</span>: <span class="string">&quot;1.0.0&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;States&quot;</span>: &#123;</span><br><span class="line">    <span class="attr">&quot;CreateOrderNo&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;生成订单号服务&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;com.fly.seata.api.OrderApi&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;createOrderNo&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;CompensateState&quot;</span>: <span class="string">&quot;CompensationCanalOrder1&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Catch&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">          <span class="attr">&quot;Exceptions&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;java.lang.Throwable&quot;</span></span><br><span class="line">          ],</span><br><span class="line">          <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;CompensationTrigger&quot;</span></span><br><span class="line">        &#125;],</span><br><span class="line">      <span class="attr">&quot;Output&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;orderNo&quot;</span>:<span class="string">&quot;$.#root&quot;</span></span><br><span class="line">      &#125;,</span><br><span class="line">      <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;CreateOrder&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Status&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;$Exception&#123;java.lang.Throwable&#125;&quot;</span>: <span class="string">&quot;UN&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;#root != null&quot;</span>: <span class="string">&quot;SU&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;#root == null&quot;</span>: <span class="string">&quot;FA&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;CreateOrder&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;创建订单服务&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;com.fly.seata.api.OrderApi&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;createOrder&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;CompensateState&quot;</span>: <span class="string">&quot;CompensationCanalOrder2&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;ReduceStorage&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Input&quot;</span>: [&#123;</span><br><span class="line">          <span class="attr">&quot;orderNo&quot;</span>: <span class="string">&quot;$.[orderNo]&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;userId&quot;</span>: <span class="string">&quot;$.[order].userId&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;productId&quot;</span>: <span class="string">&quot;$.[order].productId&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;count&quot;</span>: <span class="string">&quot;$.[order].count&quot;</span>,</span><br><span class="line">          <span class="attr">&quot;price&quot;</span>: <span class="string">&quot;$.[order].price&quot;</span></span><br><span class="line">        &#125;],</span><br><span class="line">      <span class="attr">&quot;Catch&quot;</span>: [&#123;</span><br><span class="line">          <span class="attr">&quot;Exceptions&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;java.lang.Throwable&quot;</span></span><br><span class="line">          ],</span><br><span class="line">          <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;CompensationTrigger&quot;</span></span><br><span class="line">        &#125;],</span><br><span class="line">      <span class="attr">&quot;Status&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;$Exception&#123;java.lang.Throwable&#125;&quot;</span>: <span class="string">&quot;UN&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;#root != null&quot;</span>: <span class="string">&quot;SU&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;#root == null&quot;</span>: <span class="string">&quot;FA&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;ReduceStorage&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;扣减库存服务&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;com.fly.seata.api.StorageApi&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;reduce&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;CompensateState&quot;</span>: <span class="string">&quot;CompensatingReduceStorage&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Next&quot;</span>:<span class="string">&quot;Succeed&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Input&quot;</span>: [&#123;</span><br><span class="line">        <span class="attr">&quot;orderNo&quot;</span>: <span class="string">&quot;$.[orderNo]&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;productId&quot;</span>: <span class="string">&quot;$.[order].productId&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;count&quot;</span>: <span class="string">&quot;$.[order].count&quot;</span></span><br><span class="line">      &#125;],</span><br><span class="line">      <span class="attr">&quot;Catch&quot;</span>: [&#123;</span><br><span class="line">        <span class="attr">&quot;Exceptions&quot;</span>: [</span><br><span class="line">          <span class="string">&quot;java.lang.Throwable&quot;</span></span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">&quot;Next&quot;</span>: <span class="string">&quot;CompensationTrigger&quot;</span></span><br><span class="line">      &#125;]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;CompensationCanalOrder1&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;取消订单补偿服务1--用于订单号生成失败&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;com.fly.seata.api.OrderApi&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;canalOrder&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Input&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;$.[orderNo]&quot;</span>,</span><br><span class="line">        <span class="number">1</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;CompensationCanalOrder2&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;取消订单补偿服务2--用于订单生成失败&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;com.fly.seata.api.OrderApi&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;canalOrder&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Input&quot;</span>: [</span><br><span class="line">        <span class="string">&quot;$.[orderNo]&quot;</span>,</span><br><span class="line">        <span class="number">2</span></span><br><span class="line">      ]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;CompensatingReduceStorage&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;库存补偿服务&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Comment&quot;</span>: <span class="string">&quot;扣减库存服务&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;ServiceTask&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceName&quot;</span>: <span class="string">&quot;com.fly.seata.api.StorageApi&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ServiceMethod&quot;</span>: <span class="string">&quot;compensateReduce&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Input&quot;</span>: [&#123;</span><br><span class="line">        <span class="attr">&quot;orderNo&quot;</span>: <span class="string">&quot;$.[orderNo]&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;productId&quot;</span>: <span class="string">&quot;$.[order].productId&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;count&quot;</span>: <span class="string">&quot;$.[order].count&quot;</span></span><br><span class="line">      &#125;]</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;CompensationTrigger&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>: <span class="string">&quot;CompensationTrigger&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;Succeed&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>:<span class="string">&quot;Succeed&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;Fail&quot;</span>: &#123;</span><br><span class="line">      <span class="attr">&quot;Type&quot;</span>:<span class="string">&quot;Fail&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;ErrorCode&quot;</span>: <span class="string">&quot;STORAGE_FAILED&quot;</span>,</span><br><span class="line">      <span class="attr">&quot;Message&quot;</span>: <span class="string">&quot;purchase failed&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-sagaAutoConfig配置"><a href="#6-sagaAutoConfig配置" class="headerlink" title="6. sagaAutoConfig配置"></a>6. sagaAutoConfig配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SagaConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@ConfigurationProperties(&quot;spring.datasource.saga&quot;)</span></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> DruidDataSource();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> DbStateMachineConfig <span class="title">dbStateMachineConfig</span><span class="params">()</span></span>&#123;</span><br><span class="line">    DbStateMachineConfig dbStateMachineConfig = <span class="keyword">new</span> DbStateMachineConfig();</span><br><span class="line">    dbStateMachineConfig.setDataSource(dataSource());</span><br><span class="line">    Resource[] resources = &#123;<span class="keyword">new</span> ClassPathResource(<span class="string">&quot;statelang/purchase.json&quot;</span>)&#125;;</span><br><span class="line">    dbStateMachineConfig.setResources(resources);</span><br><span class="line">    dbStateMachineConfig.setEnableAsync(<span class="keyword">true</span>);</span><br><span class="line">    dbStateMachineConfig.setThreadPoolExecutor(threadPoolExecutor());</span><br><span class="line">    dbStateMachineConfig.setApplicationId(<span class="string">&quot;sage-tm&quot;</span>);</span><br><span class="line">    dbStateMachineConfig.setTxServiceGroup(<span class="string">&quot;my_test_tx_group&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> dbStateMachineConfig;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * saga状态图执行引擎</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> StateMachineEngine <span class="title">processCtrlStateMachineEngine</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ProcessCtrlStateMachineEngine stateMachineEngine = <span class="keyword">new</span> ProcessCtrlStateMachineEngine();</span><br><span class="line">    stateMachineEngine.setStateMachineConfig(dbStateMachineConfig());</span><br><span class="line">    <span class="keyword">return</span> stateMachineEngine;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> StateMachineEngineHolder <span class="title">stateMachineEngineHolder</span><span class="params">()</span></span>&#123;</span><br><span class="line">    StateMachineEngineHolder stateMachineEngineHolder = <span class="keyword">new</span> StateMachineEngineHolder();</span><br><span class="line">    stateMachineEngineHolder.setStateMachineEngine(processCtrlStateMachineEngine());</span><br><span class="line">    <span class="keyword">return</span> stateMachineEngineHolder;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@Bean</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> ThreadPoolExecutor <span class="title">threadPoolExecutor</span><span class="params">()</span></span>&#123;</span><br><span class="line">    ThreadPoolExecutorFactoryBean threadPoolExecutorFactoryBean = <span class="keyword">new</span> ThreadPoolExecutorFactoryBean();</span><br><span class="line">    threadPoolExecutorFactoryBean.setCorePoolSize(<span class="number">1</span>);</span><br><span class="line">    threadPoolExecutorFactoryBean.setMaxPoolSize(<span class="number">20</span>);</span><br><span class="line">    threadPoolExecutorFactoryBean.setThreadNamePrefix(<span class="string">&quot;saga_&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> (ThreadPoolExecutor)threadPoolExecutorFactoryBean.getObject();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="7-状态机执行"><a href="#7-状态机执行" class="headerlink" title="7. 状态机执行"></a>7. 状态机执行</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(&quot;/tm&quot;)</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TmController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 模拟购买商品流程</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="meta">@GlobalTransactional</span></span><br><span class="line">  <span class="meta">@GetMapping(&quot;/purchase&quot;)</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">purchase</span><span class="params">()</span></span>&#123;</span><br><span class="line">    Map&lt;String, Object&gt; startParams = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    OrderDTO orderDTO = <span class="keyword">new</span> OrderDTO();</span><br><span class="line">    orderDTO.setUserId(<span class="number">1l</span>);</span><br><span class="line">    orderDTO.setCount(<span class="number">1</span>);</span><br><span class="line">    orderDTO.setPrice(<span class="keyword">new</span> BigDecimal(<span class="number">19</span>));</span><br><span class="line">    orderDTO.setProductId(<span class="number">1l</span>);</span><br><span class="line">    startParams.put(<span class="string">&quot;order&quot;</span>,orderDTO);</span><br><span class="line">    StateMachineInstance stateMachineInstance = stateMachineEngine.start(<span class="string">&quot;purchaseProcess&quot;</span>,<span class="keyword">null</span>,startParams);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;执行状态:&quot;</span>+stateMachineInstance.getStatus().getStatusString();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/seata/" rel="tag"># seata</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/" rel="prev" title="Seata-TCC模式接入">
+                  <i class="fa fa-chevron-left"></i> Seata-TCC模式接入
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/09/20210709-mysql%E6%AD%BB%E9%94%81%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/" rel="next" title="mysql死锁日志分析">
+                  mysql死锁日志分析 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>
