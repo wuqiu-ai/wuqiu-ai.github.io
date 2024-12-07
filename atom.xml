@@ -43,7 +43,7 @@
     <link href="http://ppjys.cn/2021/08/18/20210818%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95ID%E5%88%B0%E5%89%8D%E7%AB%AF%E4%B9%8B%E5%90%8E%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/"/>
     <id>http://ppjys.cn/2021/08/18/20210818%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95ID%E5%88%B0%E5%89%8D%E7%AB%AF%E4%B9%8B%E5%90%8E%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1%E9%97%AE%E9%A2%98/</id>
     <published>2021-08-18T04:32:44.000Z</published>
-    <updated>2022-06-15T10:16:58.610Z</updated>
+    <updated>2024-12-07T05:54:41.131Z</updated>
     
     
     <summary type="html">&lt;h3 id=&quot;现象&quot;&gt;&lt;a href=&quot;#现象&quot; class=&quot;headerlink&quot; title=&quot;现象&quot;&gt;&lt;/a&gt;现象&lt;/h3&gt;&lt;p&gt;下面我把异常的现象给大家描述一下，小伙伴建了一张表，表的主键是id BigINT，用来存储雪花算法生成的ID，嗯，这个没有问题！&lt;/p&gt;
@@ -69,7 +69,7 @@
     <link href="http://ppjys.cn/2021/07/15/20210715Jedis%E5%92%8CLettuce%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/"/>
     <id>http://ppjys.cn/2021/07/15/20210715Jedis%E5%92%8CLettuce%E6%80%A7%E8%83%BD%E5%AF%B9%E6%AF%94/</id>
     <published>2021-07-15T07:32:45.000Z</published>
-    <updated>2022-06-15T10:16:58.610Z</updated>
+    <updated>2024-12-07T05:54:41.130Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-背景&quot;&gt;&lt;a href=&quot;#1-背景&quot; class=&quot;headerlink&quot; title=&quot;1.背景&quot;&gt;&lt;/a&gt;1.背景&lt;/h2&gt;&lt;p&gt;Jedis 是一个很老牌的 Redis 的 Java 开发包，使用很稳定，使用范围最广的 Redis 开发包。但是 Jedis 比较推出时间比较早，整个设计思路比较传统，例如不支持异步操作，接口设计比较繁琐老套（相比其他开发包而已），使用连接池占用很多的物理连接资源。当然，这个是可以理解的，比较一个比较早期的开发包，相对其做大的结构调整是很难的，而且用户也不一定会接受。&lt;/p&gt;
@@ -102,7 +102,7 @@
     <link href="http://ppjys.cn/2021/07/09/20210709-mysql%E6%AD%BB%E9%94%81%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/"/>
     <id>http://ppjys.cn/2021/07/09/20210709-mysql%E6%AD%BB%E9%94%81%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/</id>
     <published>2021-07-09T03:39:09.000Z</published>
-    <updated>2022-06-15T10:16:58.610Z</updated>
+    <updated>2024-12-07T05:54:41.130Z</updated>
     
     
     <summary type="html">&lt;h3 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h3&gt;&lt;p&gt;在给业务方用otter做数据迁移时，发现数据库经常出现死锁问题，数据迁移Load阶段的同步性能比较低下，每隔几批就会出现load阶段执行时间超过3s。&lt;/p&gt;
@@ -121,7 +121,7 @@
     <link href="http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
     <id>http://ppjys.cn/2021/05/24/20210524-seata-SAGA%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
     <published>2021-05-24T08:51:56.000Z</published>
-    <updated>2022-06-15T10:16:58.609Z</updated>
+    <updated>2024-12-07T05:54:41.129Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;Saga简介&quot;&gt;&lt;a href=&quot;#Saga简介&quot; class=&quot;headerlink&quot; title=&quot;Saga简介&quot;&gt;&lt;/a&gt;Saga简介&lt;/h2&gt;&lt;p&gt;Saga 是一种补偿协议，在 Saga 模式下，分布式事务内有多个参与者，每一个参与者都是一个冲正补偿服务，需要用户根据业务场景实现其正向操作和逆向回滚操作。&lt;/p&gt;
@@ -161,7 +161,7 @@
     <link href="http://ppjys.cn/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
     <id>http://ppjys.cn/2021/05/24/20210524-seata-TCC%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
     <published>2021-05-24T08:51:47.000Z</published>
-    <updated>2022-06-15T10:16:58.609Z</updated>
+    <updated>2024-12-07T05:54:41.129Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;TCC简介&quot;&gt;&lt;a href=&quot;#TCC简介&quot; class=&quot;headerlink&quot; title=&quot;TCC简介&quot;&gt;&lt;/a&gt;TCC简介&lt;/h2&gt;&lt;p&gt;在2PC（两阶段提交）协议中，事务管理器分两阶段协调资源管理，资源管理器对外提供了3个操作，分别是一阶段的准备操作，二阶段的提交操作和回滚操作；&lt;/p&gt;
@@ -195,7 +195,7 @@
     <link href="http://ppjys.cn/2021/05/24/20210524-seata-AT%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/"/>
     <id>http://ppjys.cn/2021/05/24/20210524-seata-AT%E6%A8%A1%E5%BC%8F%E6%8E%A5%E5%85%A5/</id>
     <published>2021-05-24T08:51:41.000Z</published>
-    <updated>2022-06-15T10:16:58.609Z</updated>
+    <updated>2024-12-07T05:54:41.129Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;seata-AT模式简介&quot;&gt;&lt;a href=&quot;#seata-AT模式简介&quot; class=&quot;headerlink&quot; title=&quot;seata AT模式简介&quot;&gt;&lt;/a&gt;seata AT模式简介&lt;/h2&gt;&lt;p&gt;AT模式是 Seata 主推的分布式事务解决方案,它使得应用代码可以像使用本地事物一样使用分布式事物，完全屏蔽了底层细节，主要有以下几点：&lt;/p&gt;
@@ -220,7 +220,7 @@
     <link href="http://ppjys.cn/2021/03/25/20210325_Mysql8-0-jdbc%E9%A9%B1%E5%8A%A8%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/"/>
     <id>http://ppjys.cn/2021/03/25/20210325_Mysql8-0-jdbc%E9%A9%B1%E5%8A%A8%E6%97%B6%E5%8C%BA%E9%97%AE%E9%A2%98/</id>
     <published>2021-03-25T12:28:50.000Z</published>
-    <updated>2022-06-15T10:16:58.609Z</updated>
+    <updated>2024-12-07T05:54:41.128Z</updated>
     
     
     <summary type="html">&lt;h3 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h3&gt;&lt;p&gt;我们公司在升级Apollo1.8.1版本之后，发Item表的创建时间和更新时间字段与portal上展示差了13个小时，现象如下：&lt;/p&gt;
@@ -247,7 +247,7 @@
     <link href="http://ppjys.cn/2020/12/09/20201209_mysql%E7%9A%84datetime%E7%B1%BB%E5%9E%8B%E8%AE%BE%E7%BD%AE0000-00-00&#39;%20%E5%AF%BC%E8%87%B4%E7%9A%84otter%E5%90%8C%E6%AD%A5%E5%A4%B1%E8%B4%A5/"/>
     <id>http://ppjys.cn/2020/12/09/20201209_mysql%E7%9A%84datetime%E7%B1%BB%E5%9E%8B%E8%AE%BE%E7%BD%AE0000-00-00&#39;%20%E5%AF%BC%E8%87%B4%E7%9A%84otter%E5%90%8C%E6%AD%A5%E5%A4%B1%E8%B4%A5/</id>
     <published>2020-12-09T11:45:17.000Z</published>
-    <updated>2022-06-15T10:16:58.609Z</updated>
+    <updated>2024-12-07T05:54:41.128Z</updated>
     
     
       
@@ -270,7 +270,7 @@
     <link href="http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/"/>
     <id>http://ppjys.cn/2020/11/06/Otter%E8%BE%93%E5%87%BARocket-MQ%E6%94%B9%E9%80%A0/</id>
     <published>2020-11-06T11:45:17.000Z</published>
-    <updated>2022-06-15T10:16:58.613Z</updated>
+    <updated>2024-12-07T05:54:41.139Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;最近业务团队需要实时同步Mysql—&amp;gt;ES数据的需求，本来想基于canal-adapter直接开发业务，后来觉得业务方可能有对binlog的订阅共性，最终我们决定还是在otter上做改造，支持Rocket-Mq输出。&lt;/p&gt;
@@ -301,7 +301,7 @@
     <link href="http://ppjys.cn/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/"/>
     <id>http://ppjys.cn/2020/10/13/Leetcode%E9%AB%98%E9%A2%91%E9%A2%98%E6%80%BB%E7%BB%93/</id>
     <published>2020-10-13T04:02:06.000Z</published>
-    <updated>2022-06-15T10:16:58.612Z</updated>
+    <updated>2024-12-07T05:54:41.136Z</updated>
     
     
       
@@ -324,7 +324,7 @@
     <link href="http://ppjys.cn/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/"/>
     <id>http://ppjys.cn/2020/10/11/20201011Otter%E8%B7%A8%E6%9C%BA%E6%88%BF%E8%BF%81%E7%A7%BB%E9%87%87%E5%9D%91%E8%AE%B0%E5%BD%95/</id>
     <published>2020-10-11T09:01:35.000Z</published>
-    <updated>2022-06-15T10:16:58.609Z</updated>
+    <updated>2024-12-07T05:54:41.128Z</updated>
     
     
       
@@ -348,7 +348,7 @@
     <link href="http://ppjys.cn/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/"/>
     <id>http://ppjys.cn/2020/09/18/20200918Mysql-binlog%E7%9F%A5%E8%AF%86/</id>
     <published>2020-09-18T10:39:28.000Z</published>
-    <updated>2022-06-15T10:16:58.609Z</updated>
+    <updated>2024-12-07T05:54:41.127Z</updated>
     
     
     <summary type="html">&lt;p&gt;由于定制的Otter出现增量丢数据的问题，底层用到了canal，用来解析binlog数据，这篇文章就详细的讲些binlog相关的知识点。&lt;/p&gt;
@@ -424,7 +424,7 @@
     <link href="http://ppjys.cn/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/"/>
     <id>http://ppjys.cn/2020/09/13/20200913%E7%BA%BF%E4%B8%8A%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%80%BB%E7%BB%93/</id>
     <published>2020-09-13T02:45:47.000Z</published>
-    <updated>2022-06-15T10:16:58.608Z</updated>
+    <updated>2024-12-07T05:54:41.127Z</updated>
     
     
     <summary type="html">&lt;p&gt;线上故障主要会包括 &lt;strong&gt;cpu&lt;/strong&gt;、&lt;strong&gt;磁盘&lt;/strong&gt;、&lt;strong&gt;内存&lt;/strong&gt;以及 &lt;strong&gt;网络&lt;/strong&gt; 问题，而大多数故障可能会包含不止一个层面的问题，所以进行排查时候尽量四个方面依次排查一遍。同时例如 &lt;strong&gt;jstack&lt;/strong&gt; 、&lt;strong&gt;jmap&lt;/strong&gt; 等工具也是不囿于一个方面的问题的，基本上出问题就是 df、free、top 三连，然后依次 jstack、jmap 伺候，具体问题具体分析即可。&lt;/p&gt;
@@ -463,7 +463,7 @@
     <link href="http://ppjys.cn/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/"/>
     <id>http://ppjys.cn/2020/09/05/20200905Mysql5-7-XA%E4%BA%8B%E7%89%A9%E7%9A%84%E6%94%B9%E8%BF%9B/</id>
     <published>2020-09-05T06:38:45.000Z</published>
-    <updated>2022-06-15T10:16:58.608Z</updated>
+    <updated>2024-12-07T05:54:41.126Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;问题来源&quot;&gt;&lt;a href=&quot;#问题来源&quot; class=&quot;headerlink&quot; title=&quot;问题来源&quot;&gt;&lt;/a&gt;问题来源&lt;/h2&gt;&lt;p&gt;在使用otter数据同步项目的时候，由于业务方使用了XA事物，预发环境又是mysql5.7版本，导致XA命令不支持，当改造完otter支持XA命令解析测试的时候，测试发现XA的Rollback数据居然也同步成功了，最终定位到原来mysql在5.7版本之后，增加了在XA Prepare之后就会将binlog生成，发生XA Rollback只是发送命令，无法得知需要更新的数据信息，这就导致到otter数据不一致问题。以下是整理的关于mysql 5.7关于XA的知识点。&lt;/p&gt;
@@ -486,7 +486,7 @@
     <link href="http://ppjys.cn/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/"/>
     <id>http://ppjys.cn/2020/09/04/20200904Lettuce%E8%B6%85%E6%97%B6%E9%97%AE%E9%A2%98/</id>
     <published>2020-09-04T12:11:45.000Z</published>
-    <updated>2022-06-15T10:16:58.608Z</updated>
+    <updated>2024-12-07T05:54:41.126Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;问题描述&quot;&gt;&lt;a href=&quot;#问题描述&quot; class=&quot;headerlink&quot; title=&quot;问题描述&quot;&gt;&lt;/a&gt;问题描述&lt;/h2&gt;&lt;p&gt;最近业务团队预发使用平台redis框架包(redis客户端使用lettuce，超时时间配置为5s)的时候经常出现命令超时问题。&lt;/p&gt;
@@ -507,7 +507,7 @@
     <link href="http://ppjys.cn/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/"/>
     <id>http://ppjys.cn/2020/09/02/20200902Redis%E8%A7%84%E8%8C%83/</id>
     <published>2020-09-02T14:05:27.000Z</published>
-    <updated>2022-06-15T10:16:58.608Z</updated>
+    <updated>2024-12-07T05:54:41.126Z</updated>
     
     
     <summary type="html">&lt;p&gt;[1] 强制 [2] 推荐 [3] 参考&lt;/p&gt;
@@ -589,7 +589,7 @@
     <link href="http://ppjys.cn/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/"/>
     <id>http://ppjys.cn/2020/09/01/20200901Redis%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</id>
     <published>2020-09-01T06:35:12.000Z</published>
-    <updated>2022-06-15T10:16:58.608Z</updated>
+    <updated>2024-12-07T05:54:41.125Z</updated>
     
     
     <summary type="html">&lt;h2 id=&quot;1-缩短键值对的存储长度&quot;&gt;&lt;a href=&quot;#1-缩短键值对的存储长度&quot; class=&quot;headerlink&quot; title=&quot;1. 缩短键值对的存储长度&quot;&gt;&lt;/a&gt;1. 缩短键值对的存储长度&lt;/h2&gt;&lt;p&gt;键值对的长度是和性能成反比的，比如我们来做一组写入数据的性能测试，执行结果如下：&lt;/p&gt;
@@ -629,7 +629,7 @@
     <link href="http://ppjys.cn/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/"/>
     <id>http://ppjys.cn/2020/08/31/20200831%E7%AE%97%E6%B3%95%E7%9F%A5%E8%AF%86/</id>
     <published>2020-08-31T07:42:04.000Z</published>
-    <updated>2022-06-15T10:16:58.607Z</updated>
+    <updated>2024-12-07T05:54:41.125Z</updated>
     
     
     <summary type="html">&lt;h3 id=&quot;KMP算法&quot;&gt;&lt;a href=&quot;#KMP算法&quot; class=&quot;headerlink&quot; title=&quot;KMP算法&quot;&gt;&lt;/a&gt;KMP算法&lt;/h3&gt;&lt;p&gt;&lt;a href=&quot;http://www.ruanyifeng.com/blog/2013/05/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm.html&quot;&gt;字符串匹配的KMP算法原理&lt;/a&gt;&lt;/p&gt;
@@ -663,7 +663,7 @@
     <link href="http://ppjys.cn/2020/08/30/20200830%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86/"/>
     <id>http://ppjys.cn/2020/08/30/20200830%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E7%9F%A5%E8%AF%86/</id>
     <published>2020-08-30T09:24:43.000Z</published>
-    <updated>2022-06-15T10:16:58.607Z</updated>
+    <updated>2024-12-07T05:54:41.125Z</updated>
     
     
       

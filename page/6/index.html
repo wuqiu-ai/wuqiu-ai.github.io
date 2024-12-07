@@ -237,100 +237,6 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.jpeg">
-      <meta itemprop="name" content="J~杰">
-      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="J~杰's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" class="post-title-link" itemprop="url">Mycat分片规则使用指南</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">Posted on</span>
-
-      <time title="Created: 2018-05-01 12:07:35" itemprop="dateCreated datePublished" datetime="2018-05-01T12:07:35+08:00">2018-05-01</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">In</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/mycat/" itemprop="url" rel="index"><span itemprop="name">mycat</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="枚举法"><a href="#枚举法" class="headerlink" title="枚举法"></a>枚举法</h2><p>通过在配置文件中配置可能的枚举id，自己配置分片，本规则适用于特定的场景，比如有些业务需要按照省 份或区县来做保存，而全国省份区县固定的，这类业务使用本条规则，配置如下</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-intfile&quot;&gt;</span><br><span class="line">    &lt;rule&gt;</span><br><span class="line">      &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">      &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">      &lt;!--分片函数--&gt;</span><br><span class="line">      &lt;algorithm&gt;hash-int&lt;&#x2F;algorithm&gt;</span><br><span class="line">    &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;hash-int&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByFileMap&quot;&gt;</span><br><span class="line">  &lt;!--标识配置文件名称--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;mapFile&quot;&gt;partition-hash-int.txt&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--type默认值为0，0表示Integer，非零表示String--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;type&quot;&gt;0&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--所有的节点配置都是从0开始，及0代表节点1--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;defaultNode&quot;&gt;0&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
-<p>partition-hash-int.txt 配置：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">10000&#x3D;0</span><br><span class="line">10010&#x3D;1</span><br><span class="line">DEFAULT_NODE&#x3D;1</span><br></pre></td></tr></table></figure>
-<p>配置说明:</p>
-<blockquote>
-<p>上面 columns 标识将要分片的表字段，algorithm 分片函数，其中分片函数配置中，mapFile 标识配置文件名称，type为分片字段的类型，默认值为 0，0 表示 Integer，非零表示 String， 所有的节点配置都是从 0 开始，及 0 代表节点 1；defaultNode 默认节点:小于 0 表示不设置默认节点，大于等于 0 表示设置默认节点，默认节点的作用:枚举分片时，如果碰到不识别的枚举值，就让它路由到默认节点；如果不配置默认节点(defaultNode 值小于 0 表示不配置默认节点)，碰到不识别的枚举值就会报错</p>
-</blockquote>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BHaproxy/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -362,7 +268,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -432,6 +338,100 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/" class="post-title-link" itemprop="url">Mycat分片规则使用指南</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-05-01 12:07:35" itemprop="dateCreated datePublished" datetime="2018-05-01T12:07:35+08:00">2018-05-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">Edited on</span>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/mycat/" itemprop="url" rel="index"><span itemprop="name">mycat</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="枚举法"><a href="#枚举法" class="headerlink" title="枚举法"></a>枚举法</h2><p>通过在配置文件中配置可能的枚举id，自己配置分片，本规则适用于特定的场景，比如有些业务需要按照省 份或区县来做保存，而全国省份区县固定的，这类业务使用本条规则，配置如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;tableRule name&#x3D;&quot;sharding-by-intfile&quot;&gt;</span><br><span class="line">    &lt;rule&gt;</span><br><span class="line">      &lt;!--标识将要分片的表字段--&gt;</span><br><span class="line">      &lt;columns&gt;user_id&lt;&#x2F;columns&gt;</span><br><span class="line">      &lt;!--分片函数--&gt;</span><br><span class="line">      &lt;algorithm&gt;hash-int&lt;&#x2F;algorithm&gt;</span><br><span class="line">    &lt;&#x2F;rule&gt;</span><br><span class="line">&lt;&#x2F;tableRule&gt;</span><br><span class="line">&lt;function name&#x3D;&quot;hash-int&quot; class&#x3D;&quot;com.dxy.mycat.route.function.PartitionByFileMap&quot;&gt;</span><br><span class="line">  &lt;!--标识配置文件名称--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;mapFile&quot;&gt;partition-hash-int.txt&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--type默认值为0，0表示Integer，非零表示String--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;type&quot;&gt;0&lt;&#x2F;property&gt;</span><br><span class="line">    &lt;!--所有的节点配置都是从0开始，及0代表节点1--&gt;</span><br><span class="line">    &lt;property name&#x3D;&quot;defaultNode&quot;&gt;0&lt;&#x2F;property&gt;</span><br><span class="line">&lt;&#x2F;function&gt;</span><br></pre></td></tr></table></figure>
+<p>partition-hash-int.txt 配置：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">10000&#x3D;0</span><br><span class="line">10010&#x3D;1</span><br><span class="line">DEFAULT_NODE&#x3D;1</span><br></pre></td></tr></table></figure>
+<p>配置说明:</p>
+<blockquote>
+<p>上面 columns 标识将要分片的表字段，algorithm 分片函数，其中分片函数配置中，mapFile 标识配置文件名称，type为分片字段的类型，默认值为 0，0 表示 Integer，非零表示 String， 所有的节点配置都是从 0 开始，及 0 代表节点 1；defaultNode 默认节点:小于 0 表示不设置默认节点，大于等于 0 表示设置默认节点，默认节点的作用:枚举分片时，如果碰到不识别的枚举值，就让它路由到默认节点；如果不配置默认节点(defaultNode 值小于 0 表示不配置默认节点)，碰到不识别的枚举值就会报错</p>
+</blockquote>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2018/05/01/Mycat%E5%88%86%E7%89%87%E8%A7%84%E5%88%99%E4%BD%BF%E7%94%A8%E6%8C%87%E5%8D%97/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2018/05/01/Mycat%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3%E4%B9%8BKeepalived/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -463,7 +463,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -552,7 +552,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -652,7 +652,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1063,7 +1063,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1173,7 +1173,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1301,7 +1301,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1385,7 +1385,7 @@
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -1487,7 +1487,7 @@ java.lang.OutOfMemoryError: Java heap space
           <i class="far fa-calendar-check"></i>
         </span>
         <span class="post-meta-item-text">Edited on</span>
-        <time title="Modified: 2022-06-15 18:16:58" itemprop="dateModified" datetime="2022-06-15T18:16:58+08:00">2022-06-15</time>
+        <time title="Modified: 2024-12-07 13:54:41" itemprop="dateModified" datetime="2024-12-07T13:54:41+08:00">2024-12-07</time>
       </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
