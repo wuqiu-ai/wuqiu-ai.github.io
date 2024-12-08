@@ -27,6 +27,15 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
      crossorigin="anonymous"></script>
 
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?2785b161c070cb2eefd3378afc7b45f4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
 
 
 <meta name="description" content="Otter 跨机房数据同步方案由于项目需求要把整个线上产品迁移上云，从自建IDC机房的所有服务都迁移至腾讯云。原先考虑采用腾讯云的DTS服务,但是发现他们产品属于公测阶段，在加上腾讯云RDS服务居然没有提供外网访问的tls安全传输保证，这样如果一旦开启外网地址，可能导致数据库被入侵或者攻击。基于以上考虑点，在加上我们同机房数据迁移采用otter的定制版，最终我们决定改造otter，支持跨机房安全传">

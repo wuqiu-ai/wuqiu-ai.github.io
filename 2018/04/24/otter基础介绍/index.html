@@ -27,6 +27,15 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
      crossorigin="anonymous"></script>
 
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?2785b161c070cb2eefd3378afc7b45f4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
 
 
 <meta name="description" content="背景 ***公司系统间的数据同步通过http接口通信，这种方式会导致数据同步高峰期间nginx的负载流量增加，从而影响业务流量。其二就是http方式的不稳定性，会导致一些数据不一致的问题。针对这个现象，目前提出2中解决方式，第一种可以通过高可用消息队列来进行解耦，第二种通过数据库底层binlog来监听数据变化。  otter介绍 otter为阿里的一款增量数据同步工具，基于数据库增量日志解析，准实">

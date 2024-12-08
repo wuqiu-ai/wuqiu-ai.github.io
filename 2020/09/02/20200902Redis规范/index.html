@@ -27,6 +27,15 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
      crossorigin="anonymous"></script>
 
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?2785b161c070cb2eefd3378afc7b45f4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
 
 
 <meta name="description" content="[1] 强制 [2] 推荐 [3] 参考 使用规范 [2] 冷热数据区分  虽然 Redis支持持久化，但将所有数据存储在 Redis 中，成本非常昂贵。建议将热数据 (如 QPS超过 5k) 的数据加载到 Redis 中。低频数据可存储在 Mysql、 ElasticSearch中。   [2] 业务数据分离  不要将不相关的数据业务都放到一个 Redis中。一方面避免业务相互影响，另一方面避免">

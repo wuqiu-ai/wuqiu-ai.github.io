@@ -27,6 +27,15 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
      crossorigin="anonymous"></script>
 
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?2785b161c070cb2eefd3378afc7b45f4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
 
 
 <meta name="description" content="问题来源在使用otter数据同步项目的时候，由于业务方使用了XA事物，预发环境又是mysql5.7版本，导致XA命令不支持，当改造完otter支持XA命令解析测试的时候，测试发现XA的Rollback数据居然也同步成功了，最终定位到原来mysql在5.7版本之后，增加了在XA Prepare之后就会将binlog生成，发生XA Rollback只是发送命令，无法得知需要更新的数据信息，这就导致到o">

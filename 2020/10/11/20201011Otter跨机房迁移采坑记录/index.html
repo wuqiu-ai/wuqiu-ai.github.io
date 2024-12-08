@@ -27,6 +27,15 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
      crossorigin="anonymous"></script>
 
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?2785b161c070cb2eefd3378afc7b45f4";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
 
 
 <meta name="description" content="背景前几周给insgin团队业做跨机房数据迁移过程中，出现了一系列的数据，主要问题如下：  部分表未同步&#x2F;增量丢失问题；   那有些人可能会问为什么不是全量迁移导致数据不一致问题？那是因为我们的数据迁移操作流程，是增量数据和全量数据同时开启更新的，当全量迁移完成时候，我们通过增量通道的偏移量追赶到最新binlog偏移量时候，会触发全量数据校验过程，在校验完成一致后，我们会修复不一致的数据，直到数据">
