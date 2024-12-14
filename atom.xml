@@ -6,7 +6,7 @@
   <link href="http://ppjys.cn/atom.xml" rel="self"/>
   
   <link href="http://ppjys.cn/"/>
-  <updated>2024-12-09T14:46:17.735Z</updated>
+  <updated>2024-12-14T09:30:51.398Z</updated>
   <id>http://ppjys.cn/</id>
   
   <author>
@@ -21,14 +21,20 @@
     <link href="http://ppjys.cn/2024/12/08/%E5%9F%BA%E4%BA%8Esermant%E7%9A%84%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98%E4%B9%8B%E5%85%A8%E9%93%BE%E8%B7%AF%E7%81%B0%E5%BA%A6/"/>
     <id>http://ppjys.cn/2024/12/08/%E5%9F%BA%E4%BA%8Esermant%E7%9A%84%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98%E4%B9%8B%E5%85%A8%E9%93%BE%E8%B7%AF%E7%81%B0%E5%BA%A6/</id>
     <published>2024-12-08T10:27:35.000Z</published>
-    <updated>2024-12-09T14:46:17.735Z</updated>
+    <updated>2024-12-14T09:30:51.398Z</updated>
     
     
-    <summary type="html">&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;在中间件统一监控和微服务治理的推进过程中，我们一直面临着一个显著的挑战：由于历史原因，公司内部应用数量庞大，推动业务侧通过 SDK 改造并发布新版本的成本极高，升级的阻力也较大。为了解决这一痛点，我们开始探索通过 Agent 技术统一实现公共的监控和服务治理。&lt;/p&gt;
+    <summary type="html">&lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;我们是一家致力于提供 &lt;strong&gt;数字零售解决方案&lt;/strong&gt; 的创新型科技公司，聚焦于 &lt;strong&gt;社交电商&lt;/strong&gt; 和 &lt;strong&gt;私域流量运营&lt;/strong&gt; 领域。公司通过构建完善的技术平台和多场景业务模式，帮助商家提升销售效率，实现数字化转型。&lt;/p&gt;
+&lt;p&gt;在中间件统一监控和微服务治理的推进过程中，我们一直面临着一个显著的挑战：由于历史原因，公司内部应用数量庞大，推动业务侧通过 SDK 改造并发布新版本的成本极高，升级的阻力也较大。为了解决这一痛点，我们开始探索通过 Agent 技术统一实现公共的监控和服务治理。&lt;/p&gt;
+&lt;h3 id=&quot;服务化现状&quot;&gt;&lt;a href=&quot;#服务化现状&quot; class=&quot;headerlink&quot; title=&quot;服务化现状&quot;&gt;&lt;/a&gt;服务化现状&lt;/h3&gt;&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;应用规模&lt;/strong&gt;：公司当前拥有 &lt;strong&gt;260个服务&lt;/strong&gt;，支撑近 &lt;strong&gt;1000台服务器&lt;/strong&gt; 的运行；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;多云架构&lt;/strong&gt;：采用 &lt;strong&gt;多云多主体&lt;/strong&gt; 部署模式，涵盖腾讯云、阿里云、火山云、亚马逊等平台，服务链路复杂且分布广泛；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;高并发支持&lt;/strong&gt;：在大促期间，整体 QPS 峰值可达 &lt;strong&gt;10万左右&lt;/strong&gt;，系统具备高负载承载能力；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;技术栈统一&lt;/strong&gt;：服务端技术栈以 &lt;strong&gt;Java&lt;/strong&gt; 为主，保证了系统开发与运维的一致性；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/wuqiu-ai/picgo-images/master/20241214165830.png&quot;&gt;&lt;/p&gt;
 &lt;h3 id=&quot;为什么选择-Sermant&quot;&gt;&lt;a href=&quot;#为什么选择-Sermant&quot; class=&quot;headerlink&quot; title=&quot;为什么选择 Sermant&quot;&gt;&lt;/a&gt;为什么选择 Sermant&lt;/h3&gt;&lt;p&gt;Sermant 是一种基于 Java 字节码增强技术的无代理服务网格。其核心原理是通过 JavaAgent 将 Sermant 挂载至目标进程中，借助插件化机制支持多种扩展功能。这种设计不仅降低了业务接入门槛，还显著减少了改造成本。&lt;/p&gt;
-&lt;p&gt;从 Sermant 1.0 版本发布开始，我们便启动了相关的探索和实践。在多次版本迭代中，我们发现 Sermant 的功能和稳定性持续优化，能够很好地满足我们的业务需求。目前，我们的系统已全面升级至 Sermant 1.3.1 版本。&lt;/p&gt;
-&lt;p&gt;目前在我司(私域电商公司)基本已全量应用接入使用，共200多个服务，1000多台pod。&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;https://raw.githubusercontent.com/wuqiu-ai/picgo-images/master/20241207175419.png&quot;&gt;&lt;/p&gt;</summary>
+&lt;p&gt;从 Sermant 1.0 版本发布开始，我们便启动了相关的探索和实践。在多次版本迭代中，我们发现 Sermant 的功能和稳定性持续优化，能够很好地满足我们的业务需求。目前，我们的系统已全面升级至 Sermant 1.3.1 版本。&lt;/p&gt;</summary>
     
     
     
