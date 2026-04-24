@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="default">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"ppjys.cn","root":"/","images":"/images","scheme":"Pisces","version":"8.2.2","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"}};
+  </script>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1654344003958768"
+     crossorigin="anonymous"></script>
+
+
+
+<meta name="description" content="MCP 解决了一个根本问题：Agent 如何连接真实世界的数据和系统。没有这个连接，Agent 就只是一个沙盒里的玩具。  最近 Anthropic 发布了工程博客《Code execution with MCP: Building more efficient agents》（2025-11-04），系统阐述了 MCP 协议如何让 Agent 更高效地接入生产系统。网上已有不少解读文章，但大多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MCP + Skills 实战：从搭一个 MCP Server 到让 AI Agent 真正干活">
+<meta property="og:url" content="http://ppjys.cn/2026/04/24/20260424MCPSkills/index.html">
+<meta property="og:site_name" content="J~杰&#39;s Blog">
+<meta property="og:description" content="MCP 解决了一个根本问题：Agent 如何连接真实世界的数据和系统。没有这个连接，Agent 就只是一个沙盒里的玩具。  最近 Anthropic 发布了工程博客《Code execution with MCP: Building more efficient agents》（2025-11-04），系统阐述了 MCP 协议如何让 Agent 更高效地接入生产系统。网上已有不少解读文章，但大多">
+<meta property="og:locale">
+<meta property="og:image" content="http://ppjys.cn/2026/04/24/images/mcp.png">
+<meta property="article:published_time" content="2026-04-24T09:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-24T14:12:21.362Z">
+<meta property="article:author" content="J~杰">
+<meta property="article:tag" content="MCP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://ppjys.cn/2026/04/24/images/mcp.png">
+
+
+<link rel="canonical" href="http://ppjys.cn/2026/04/24/20260424MCPSkills/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'default'
+  };
+</script>
+<title>MCP + Skills 实战：从搭一个 MCP Server 到让 AI Agent 真正干活 | J~杰's Blog</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/atom.xml" title="J~杰's Blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">J~杰's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">人生就一条路，走一步有一步的景观</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-首页"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-分类"><a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-标签"><a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-归档"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-关于"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81MCP-30-%E7%A7%92%E7%90%86%E8%A7%A3"><span class="nav-number">1.</span> <span class="nav-text">一、MCP 30 秒理解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E5%8A%A8%E6%89%8B%EF%BC%9A%E6%90%AD%E4%B8%80%E4%B8%AA-MCP-Server"><span class="nav-number">2.</span> <span class="nav-text">二、动手：搭一个 MCP Server</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E4%B8%80%E8%A1%8C%E5%91%BD%E4%BB%A4%E5%AE%89%E8%A3%85"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 一行命令安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E8%BF%9E%E9%80%9A%E6%80%A7%E9%AA%8C%E8%AF%81"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 连通性验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E5%AF%B9%E7%85%A7%E5%AE%98%E6%96%B9%EF%BC%9A%E8%BF%9C%E7%A8%8B%E4%BC%98%E5%85%88"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 对照官方：远程优先</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%8A%A8%E6%89%8B%EF%BC%9A%E8%AE%A9-Agent-%E7%9C%9F%E6%AD%A3%E5%B9%B2%E6%B4%BB"><span class="nav-number">3.</span> <span class="nav-text">三、动手：让 Agent 真正干活</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E6%9C%89%E6%95%B0%E6%8D%AE%E2%89%A0%E4%BC%9A%E8%AF%8A%E6%96%AD"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 有数据≠会诊断</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E5%BC%95%E5%85%A5-Skill%EF%BC%9A%E7%BB%99-Agent-%E4%B8%80%E5%A5%97-SOP"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 引入 Skill：给 Agent 一套 SOP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81MCP-Skills-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-number">4.</span> <span class="nav-text">四、MCP + Skills 最佳实践</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E4%B8%80%EF%BC%9A%E8%BF%9C%E7%A8%8B%E9%83%A8%E7%BD%B2%EF%BC%8C%E4%BB%8E%E4%B8%80%E5%BC%80%E5%A7%8B%E5%B0%B1%E5%81%9A%E5%AF%B9%E7%9A%84%E5%86%B3%E7%AD%96"><span class="nav-number">4.1.</span> <span class="nav-text">实践一：远程部署，从一开始就做对的决策</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E4%BA%8C%EF%BC%9AMCP-%E5%81%9A%E5%8E%9F%E5%AD%90%E8%83%BD%E5%8A%9B%EF%BC%8CSkill-%E5%81%9A%E6%84%8F%E5%9B%BE%E7%BC%96%E6%8E%92"><span class="nav-number">4.2.</span> <span class="nav-text">实践二：MCP 做原子能力，Skill 做意图编排</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E4%B8%89%EF%BC%9A%E5%A4%A7%E9%9D%A2%E7%A7%AF-API-%E7%94%A8%E3%80%8C%E4%BB%A3%E7%A0%81%E7%BC%96%E6%8E%92%E3%80%8D%E6%A8%A1%E5%BC%8F"><span class="nav-number">4.3.</span> <span class="nav-text">实践三：大面积 API 用「代码编排」模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E5%9B%9B%EF%BC%9A%E8%AE%A4%E8%AF%81%E6%A0%87%E5%87%86%E5%8C%96%EF%BC%8C%E8%AE%A9%E4%BA%91%E7%AB%AF-Agent-%E8%83%BD%E6%8C%81%E6%8F%A1%E4%BB%A4%E7%89%8C"><span class="nav-number">4.4.</span> <span class="nav-text">实践四：认证标准化，让云端 Agent 能持握令牌</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E4%BA%94%EF%BC%9A%E8%BF%94%E5%9B%9E%E4%B8%B0%E5%AF%8C%E8%AF%AD%E4%B9%89%EF%BC%8C%E8%80%8C%E9%9D%9E%E7%BA%AF%E6%96%87%E6%9C%AC"><span class="nav-number">4.5.</span> <span class="nav-text">实践五：返回丰富语义，而非纯文本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E6%80%BB%E7%BB%93"><span class="nav-number">4.6.</span> <span class="nav-text">最佳实践总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E8%B8%A9%E5%9D%91%E5%AE%9E%E6%88%98%EF%BC%9AToken-%E6%B6%88%E8%80%97%E4%B8%8E%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BC%98%E5%8C%96"><span class="nav-number">5.</span> <span class="nav-text">五、踩坑实战：Token 消耗与客户端优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E9%97%AE%E9%A2%98%EF%BC%9A13-%E4%B8%AA%E5%B7%A5%E5%85%B7%E5%AE%9A%E4%B9%89%E5%90%83%E6%8E%89%E5%A4%9A%E5%B0%91-Token%EF%BC%9F"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 问题：13 个工具定义吃掉多少 Token？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-Anthropic-%E7%9A%84%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 Anthropic 的优化方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E6%88%91%E4%BB%AC%E7%9A%84%E5%AE%9E%E8%B7%B5%EF%BC%9ASkill-%E5%B0%B1%E6%98%AF%E5%A4%A9%E7%84%B6%E7%9A%84%E2%80%9DTool-Search%E2%80%9D"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 我们的实践：Skill 就是天然的”Tool Search”</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81MCP-%E6%98%AF%E3%80%8C%E4%BC%9A%E5%A4%8D%E5%88%A9%E3%80%8D%E7%9A%84%E5%B1%82"><span class="nav-number">6.</span> <span class="nav-text">六、MCP 是「会复利」的层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E8%A1%8C%E5%8A%A8%E6%B8%85%E5%8D%95"><span class="nav-number">7.</span> <span class="nav-text">七、行动清单</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%99%E5%88%9A%E6%8E%A5%E8%A7%A6-MCP-%E7%9A%84%E8%AF%BB%E8%80%85"><span class="nav-number">7.1.</span> <span class="nav-text">给刚接触 MCP 的读者</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%99%E6%AD%A3%E5%9C%A8%E6%9E%84%E5%BB%BA-MCP-Server-%E7%9A%84%E5%BC%80%E5%8F%91%E8%80%85"><span class="nav-number">7.2.</span> <span class="nav-text">给正在构建 MCP Server 的开发者</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%99%E6%83%B3%E8%AE%A9-Agent-%E7%9C%9F%E6%AD%A3%E5%B9%B2%E6%B4%BB%E7%9A%84%E5%AE%9E%E8%B7%B5%E8%80%85"><span class="nav-number">7.3.</span> <span class="nav-text">给想让 Agent 真正干活的实践者</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%99%E6%83%B3%E6%B7%B1%E5%85%A5-MCP-%E7%94%9F%E6%80%81%E7%9A%84%E5%BB%BA%E8%AE%BE%E8%80%85"><span class="nav-number">7.4.</span> <span class="nav-text">给想深入 MCP 生态的建设者</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="J~杰"
+      src="/images/avatar.jpeg">
+  <p class="site-author-name" itemprop="name">J~杰</p>
+  <div class="site-description" itemprop="description">人生就一条路，走一步有一步的景观</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">63</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">25</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+        <span class="site-state-item-count">47</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ppj19891020" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ppj19891020" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ppj19891020@163.com" title="E-Mail → mailto:ppj19891020@163.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="default">
+    <link itemprop="mainEntityOfPage" href="http://ppjys.cn/2026/04/24/20260424MCPSkills/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpeg">
+      <meta itemprop="name" content="J~杰">
+      <meta itemprop="description" content="人生就一条路，走一步有一步的景观">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="J~杰's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          MCP + Skills 实战：从搭一个 MCP Server 到让 AI Agent 真正干活
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2026-04-24 17:00:00 / Modified: 22:12:21" itemprop="dateCreated datePublished" datetime="2026-04-24T17:00:00+08:00">2026-04-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/AI%E5%B7%A5%E7%A8%8B%E5%8C%96/" itemprop="url" rel="index"><span itemprop="name">AI工程化</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p>MCP 解决了一个根本问题：Agent 如何连接真实世界的数据和系统。没有这个连接，Agent 就只是一个沙盒里的玩具。</p>
+</blockquote>
+<p>最近 Anthropic 发布了工程博客《Code execution with MCP: Building more efficient agents》（2025-11-04），系统阐述了 MCP 协议如何让 Agent 更高效地接入生产系统。网上已有不少解读文章，但大多是”官方说了什么”的搬运。</p>
+<p>这篇文章不一样。我用一个<strong>真实的公司内部运维诊断系统</strong>作为案例，手把手展示 MCP 和 Skills 怎么配合——将官方思路落地到我们的实践中，看看每一步到底对不对。</p>
+<h2 id="一、MCP-30-秒理解"><a href="#一、MCP-30-秒理解" class="headerlink" title="一、MCP 30 秒理解"></a>一、MCP 30 秒理解</h2><p>先解决一个基本问题：MCP 到底是什么？</p>
+<p><strong>一句话</strong>：MCP 是一个标准协议，让任何 AI Agent 都能用同一套接口连接任何外部系统。</p>
+<p><strong>一张图</strong>：</p>
+<p><img src="../images/mcp.png" alt="697"></p>
+<p>根据 Anthropic 官方博客和 MCP 协议的设计意图，Agent 连接外部系统有三条路径：</p>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>特点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>直接 API 调用</td>
+<td>最简单，但每个 Agent × 每个系统 = 独立集成</td>
+<td>1:1 简单场景</td>
+</tr>
+<tr>
+<td>CLI 命令行</td>
+<td>轻量快速，但无法穿透到移动端和云端</td>
+<td>本地调试</td>
+</tr>
+<tr>
+<td><strong>MCP</strong></td>
+<td>标准化协议，一次实现处处可用</td>
+<td>生产环境，规模化</td>
+</tr>
+</tbody></table>
+<p><strong>我们的实践验证</strong>：在公司内部，我们选择了 MCP 路径来构建运维诊断系统——Agent 通过 MCP 协议连接监控数据平台，而不是为每个 Agent 写一套独立的 API 集成代码。</p>
+<hr>
+<h2 id="二、动手：搭一个-MCP-Server"><a href="#二、动手：搭一个-MCP-Server" class="headerlink" title="二、动手：搭一个 MCP Server"></a>二、动手：搭一个 MCP Server</h2><p>理解了 MCP 是什么，接下来动手。以我们内部的运维诊断 MCP Server 为例。</p>
+<h3 id="2-1-一行命令安装"><a href="#2-1-一行命令安装" class="headerlink" title="2.1 一行命令安装"></a>2.1 一行命令安装</h3><p>在 Claude Code 中，安装一个远程 MCP Server 只需要一行命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">claude mcp add --transport http ai-ops-mcp https://内部域名/ai-ops/streamablehttp</span><br></pre></td></tr></table></figure>
+
+<p>关键参数说明：</p>
+<ul>
+<li><code>--transport http</code>：使用 HTTP 传输协议（远程服务器必须用 HTTP 或 SSE，不能用 stdio）</li>
+<li><code>--header &quot;apikey:xxxx&quot;</code>：自定义请求头，用于内部网关鉴权</li>
+</ul>
+<h3 id="2-2-连通性验证"><a href="#2-2-连通性验证" class="headerlink" title="2.2 连通性验证"></a>2.2 连通性验证</h3><p>安装后，Claude Code 自动检测 MCP 工具。在对话中直接问 Claude：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;帮我看看有哪些 ai-ops 相关的工具&quot;</span><br></pre></td></tr></table></figure>
+
+<p>Claude 会列出所有 <code>mcp__ai-ops-mcp__</code> 开头的工具：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">mcp__ai-ops-mcp__getAppCpuUsageLastHour   → Pod 级别 CPU 使用率</span><br><span class="line">mcp__ai-ops-mcp__getAppQps                 → 按接口/Pod 请求率</span><br><span class="line">mcp__ai-ops-mcp__getAppResponseTime        → 按接口平均响应时间</span><br><span class="line">mcp__ai-ops-mcp__getAppDruidActiveCount    → 活跃数据库连接数</span><br><span class="line">mcp__ai-ops-mcp__getAppDruidPoolingCount   → 连接池大小</span><br><span class="line">mcp__ai-ops-mcp__getAppJvmGcCms            → CMS GC 耗时/次数</span><br><span class="line">mcp__ai-ops-mcp__getAppJvmGcG1Old          → G1 Old GC 耗时/次数</span><br><span class="line">mcp__ai-ops-mcp__getAppJvmGcG1Young        → G1 Young GC 耗时/次数</span><br><span class="line">mcp__ai-ops-mcp__getAppJvmGcParNew         → ParNew GC 耗时/次数</span><br><span class="line">mcp__ai-ops-mcp__getAppJvmThreadCount      → 线程数变化量</span><br><span class="line">mcp__ai-ops-mcp__getAppElasticJobFail      → 定时任务失败数</span><br><span class="line">mcp__ai-ops-mcp__getAppElasticJobSuccess   → 定时任务成功数</span><br><span class="line">mcp__ai-ops-mcp__getAppErrorLog            → 最近 100 条错误日志</span><br></pre></td></tr></table></figure>
+
+<p>13 个工具，覆盖了运维诊断的全部核心指标。</p>
+<span id="more"></span>
+
+<h3 id="2-3-对照官方：远程优先"><a href="#2-3-对照官方：远程优先" class="headerlink" title="2.3 对照官方：远程优先"></a>2.3 对照官方：远程优先</h3><p><strong>官方核心思路</strong>：构建远程 MCP Server，让 Agent 通过标准化协议连接，而非直连每个系统的 API。</p>
+<p>我们的实践完全吻合：<code>ai-ops-mcp</code> 就是纯远程服务器，使用 HTTP Streamable HTTP 传输协议，部署在内网网关上。所有 Agent（Claude Code、QoderCLI 等）通过 HTTP 连接，不需要本地安装任何额外依赖。</p>
+<blockquote>
+<p>验证结论：我们的 MCP Server 是远程部署的，与官方核心思路一致。</p>
+</blockquote>
+<hr>
+<h2 id="三、动手：让-Agent-真正干活"><a href="#三、动手：让-Agent-真正干活" class="headerlink" title="三、动手：让 Agent 真正干活"></a>三、动手：让 Agent 真正干活</h2><p>装好 MCP Server 后，Agent 已经能拿到数据了。但问题来了——</p>
+<h3 id="3-1-有数据≠会诊断"><a href="#3-1-有数据≠会诊断" class="headerlink" title="3.1 有数据≠会诊断"></a>3.1 有数据≠会诊断</h3><p>试试直接让 Claude 诊断一个问题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;帮我诊断 trade 应用，最近响应很慢&quot;</span><br></pre></td></tr></table></figure>
+
+<p>没有 Skill 的情况下，Claude 会怎么做？</p>
+<ol>
+<li>先调用 <code>getAppQps</code> 看请求量</li>
+<li>再调用 <code>getAppResponseTime</code> 看响应时间</li>
+<li>再调用 <code>getAppCpuUsageLastHour</code> 看 CPU</li>
+<li>再调用 <code>getAppDruidActiveCount</code> 看连接池</li>
+<li>再调用 <code>getAppDruidPoolingCount</code> 看池大小</li>
+<li>… 还要调 GC、线程、日志？</li>
+</ol>
+<p>Agent 有数据，但它不知道<strong>什么时候该看什么指标、怎么看、怎么关联分析、什么值算正常什么值算异常</strong>。就像一个新手医生——有血压计、心电图、血检报告，但不知道该先测什么、哪些指标相关、什么数值意味着什么。</p>
+<h3 id="3-2-引入-Skill：给-Agent-一套-SOP"><a href="#3-2-引入-Skill：给-Agent-一套-SOP" class="headerlink" title="3.2 引入 Skill：给 Agent 一套 SOP"></a>3.2 引入 Skill：给 Agent 一套 SOP</h3><p>我们开发了 <code>ai-ops-troubleshoot</code> Skill，它提供了一套完整的诊断流程知识：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│                     Claude Code                              │</span><br><span class="line">│                                                              │</span><br><span class="line">│  ┌───────────────────────────────────────────────────────┐  │</span><br><span class="line">│  │         ai-ops-troubleshoot Skill (知识层)            │  │</span><br><span class="line">│  │  • 症状识别：&quot;慢&quot;→性能问题，&quot;CPU高&quot;→CPU问题            │  │</span><br><span class="line">│  │  • 工具选择：性能问题→并行调 QPS+响应时间+CPU           │  │</span><br><span class="line">│  │  • 阈值判定：CPU&gt;85%严重，响应时间&gt;500ms严重            │  │</span><br><span class="line">│  │  • 跨维度关联：CPU高→检查GC，响应慢→检查DB连接          │  │</span><br><span class="line">│  │  • 报告生成：概要+异常指标+根因+建议                    │  │</span><br><span class="line">│  └───────────────────────────────────────────────────────┘  │</span><br><span class="line">│                         │                                    │</span><br><span class="line">│                    MCP Protocol                              │</span><br><span class="line">│                         │                                    │</span><br><span class="line">│  ┌───────────────────────────────────────────────────────┐  │</span><br><span class="line">│  │          ai-ops-mcp Server (能力层)                    │  │</span><br><span class="line">│  │  • getAppCpuUsageLastHour → CPU 数据                  │  │</span><br><span class="line">│  │  • getAppQps → QPS 数据                               │  │</span><br><span class="line">│  │  • getAppResponseTime → 响应时间数据                   │  │</span><br><span class="line">│  │  • getAppJvmGc* → GC 数据                              │  │</span><br><span class="line">│  │  • getAppDruid* → 连接池数据                           │  │</span><br><span class="line">│  │  • getAppErrorLog → 错误日志                           │  │</span><br><span class="line">│  └───────────────────────────────────────────────────────┘  │</span><br><span class="line">│                         │                                    │</span><br><span class="line">│                    HTTP Transport                            │</span><br><span class="line">│                         │                                    │</span><br><span class="line">│  ┌───────────────────────────────────────────────────────┐  │</span><br><span class="line">│  │              监控数据源                                 │  │</span><br><span class="line">│  │  Prometheus &#x2F; Druid &#x2F; ElasticJob &#x2F; Redis               │  │</span><br><span class="line">│  └───────────────────────────────────────────────────────┘  │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>现在再试一次：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;帮我诊断 trade 应用，最近响应很慢&quot;</span><br></pre></td></tr></table></figure>
+
+<p>有了 Skill 后，Claude 的行为变了：</p>
+<ol>
+<li><strong>症状识别</strong>：”响应很慢” → 性能问题类别</li>
+<li><strong>精准调用</strong>：并行调用 <code>getAppQps</code> + <code>getAppResponseTime</code> + <code>getAppCpuUsageLastHour</code>（只调 3 个，不再盲调 13 个）</li>
+<li><strong>阈值判定</strong>：响应时间 &gt; 500ms → 严重，CPU 70-85% → 警告</li>
+<li><strong>跨维度关联</strong>：发现 CPU 高 → 自动调用 GC 工具检查是否 GC 导致</li>
+<li><strong>生成报告</strong>：概要 + 异常指标 + 根因分析 + 建议措施</li>
+</ol>
+<p><strong>这就是 Anthropic 说的：MCP 给 Agent「能力」，Skills 给 Agent「知识」。</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>只有 MCP</th>
+<th>MCP + Skills</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>类比</td>
+<td>有血压计但不会诊断的新手</td>
+<td>有血压计且有诊断 SOP 的医生</td>
+</tr>
+<tr>
+<td>行为</td>
+<td>盲调所有工具，逐一猜测</td>
+<td>精准调用，阈值判定，关联分析</td>
+</tr>
+<tr>
+<td>结果</td>
+<td>可能找到答案，但效率低</td>
+<td>快速定位根因，结构化输出</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、MCP-Skills-最佳实践"><a href="#四、MCP-Skills-最佳实践" class="headerlink" title="四、MCP + Skills 最佳实践"></a>四、MCP + Skills 最佳实践</h2><p>通过这次实战，我们提炼出 MCP 和 Skills 配合的几条最佳实践。</p>
+<h3 id="实践一：远程部署，从一开始就做对的决策"><a href="#实践一：远程部署，从一开始就做对的决策" class="headerlink" title="实践一：远程部署，从一开始就做对的决策"></a>实践一：远程部署，从一开始就做对的决策</h3><p>很多人用 stdio 传输跑本地 MCP Server，开发调试很方便：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">claude mcp add my-server node ./my-server.js</span><br></pre></td></tr></table></figure>
+
+<p>但一旦 Agent 跑在云端（Claude Managed Agents、Claude Cowork），本地 MCP Server 就完全不可用。正确的做法是从第一天就构建远程 MCP Server。</p>
+<p>我们的 <code>ai-ops-mcp</code> 就是纯远程部署——HTTP Streamable HTTP 传输协议，部署在内部网关上。所有 Agent（Claude Code、QoderCLI）通过一行 <code>claude mcp add</code> 连接，无需本地安装任何依赖。</p>
+<p><strong>为什么远程优先？</strong> 因为生产环境的 Agent 跑在云端，你的服务器也必须能跑在云端。只有远程服务器才能覆盖 Web、移动端和云端 Agent 的所有场景。本地服务器只能给本地开发环境用，无法触达真正的生产用户。</p>
+<h3 id="实践二：MCP-做原子能力，Skill-做意图编排"><a href="#实践二：MCP-做原子能力，Skill-做意图编排" class="headerlink" title="实践二：MCP 做原子能力，Skill 做意图编排"></a>实践二：MCP 做原子能力，Skill 做意图编排</h3><p>很多人在构建 MCP Server 时会犯一个错误：<strong>围绕 API 端点一对一翻译工具</strong>。结果是 Agent 要调几十次才能完成一个任务，每次都要从上下文里重新理解”现在在哪一步”。</p>
+<p>更好的做法是分两层思考：</p>
+<ul>
+<li><strong>MCP 层</strong>：围绕「指标意图」设计原子工具——<code>getAppCpuUsageLastHour</code> 获取一类指标数据，而非直译 Prometheus 的查询 API</li>
+<li><strong>Skill 层</strong>：围绕「业务意图」编排组合——用户说”诊断响应慢”，Skill 知道该并行调用 QPS + 响应时间 + CPU，而非让 Agent 自行猜测</li>
+</ul>
+<p>以我们的运维诊断系统为例：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">用户意图：&quot;诊断响应慢&quot;</span><br><span class="line">    ↓ Skill 编排（知识层）</span><br><span class="line">    → 并行调用 3 个 MCP 工具：getAppQps + getAppResponseTime + getAppCpuUsageLastHour</span><br><span class="line">    ↓ MCP 执行（能力层）</span><br><span class="line">    → 返回各指标原始数据</span><br><span class="line">    ↓ Skill 分析（知识层）</span><br><span class="line">    → 阈值判定 + 跨维度关联 + 报告生成</span><br></pre></td></tr></table></figure>
+
+<p>如果把”诊断响应慢”做成一个 MCP 工具 <code>diagnoseSlowResponse</code>，也能解决问题，但会失去灵活性——当诊断逻辑变化时，需要重新发布 MCP Server。而 Skill 只是一个 Markdown 文件，修改后即时生效。</p>
+<p><strong>最佳实践</strong>：MCP 提供原子能力（稳定、可复用），Skill 承担意图编排（灵活、易迭代）。两者配合覆盖从原子到意图的完整链路。</p>
+<h3 id="实践三：大面积-API-用「代码编排」模式"><a href="#实践三：大面积-API-用「代码编排」模式" class="headerlink" title="实践三：大面积 API 用「代码编排」模式"></a>实践三：大面积 API 用「代码编排」模式</h3><p>如果你的 MCP Server 要对接一个拥有几千个端点的超级平台（AWS、Cloudflare、Kubernetes），光工具定义本身就会吃掉大量上下文 Token，Agent 的推理能力会被严重稀释。</p>
+<p>最佳做法：只暴露两个薄工具：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. search（搜索）→ 让 Agent 发现它需要的操作</span><br><span class="line">2. execute（执行）→ 让 Agent 写一个短脚本，你的服务器在沙盒里运行</span><br></pre></td></tr></table></figure>
+
+<p>Cloudflare 的 MCP 服务器就是标杆案例：通过 code execution 模式，**2 个工具覆盖大量 API 端点，工具定义的 Token 消耗从约 150,000 降至约 2,000，节省 98.7%**（Anthropic 官方工程博客数据）。极简的表面，强大的内核。</p>
+<p>我们的运维监控 API 只有 13 个端点，暂时不需要代码编排模式。但这个设计思路值得记住——如果未来监控平台扩展到几百个端点，暴露 <code>searchMetrics</code> + <code>executeQuery</code> 两个工具就能覆盖全部能力。</p>
+<h3 id="实践四：认证标准化，让云端-Agent-能持握令牌"><a href="#实践四：认证标准化，让云端-Agent-能持握令牌" class="headerlink" title="实践四：认证标准化，让云端 Agent 能持握令牌"></a>实践四：认证标准化，让云端 Agent 能持握令牌</h3><p>当 MCP Server 需要连接有 OAuth 认证的外部系统时，一个核心问题是：云端运行的 Agent 怎么持有和复用用户的认证令牌？</p>
+<p><strong>传统痛点</strong>：</p>
+<ul>
+<li>Agent 每次连接都要重新授权 → 用户体验差</li>
+<li>OAuth 令牌存储在本地 → 云端 Agent 无法复用</li>
+<li>令牌过期后需要手动刷新 → 维护成本高</li>
+</ul>
+<p><strong>标准方案</strong>（MCP 规范方向）：</p>
+<ol>
+<li><strong>CIMD（Client ID Metadata Documents）</strong>：MCP 规范正在推进的快速首次认证流程，用户体验更顺滑，避免反复弹窗</li>
+<li><strong>Vaults（令牌保险库）</strong>：Claude Managed Agents 的能力——注册一次 OAuth 令牌，运行时自动注入到每个 MCP 连接，并自动刷新</li>
+</ol>
+<p>我们的内部场景暂未涉及 OAuth，用 <code>--header &quot;noSign:true&quot;</code> 的网关鉴权方式简化了认证。但接入外部系统时，CIMD + Vaults 是标准路径——你不需要自己搭密钥存储系统。</p>
+<h3 id="实践五：返回丰富语义，而非纯文本"><a href="#实践五：返回丰富语义，而非纯文本" class="headerlink" title="实践五：返回丰富语义，而非纯文本"></a>实践五：返回丰富语义，而非纯文本</h3><p>MCP 社区正在推进一个协议扩展方向——让工具返回<strong>可交互界面</strong>而非纯文本：</p>
+<ul>
+<li>返回一个图表而不是一串数字</li>
+<li>返回一个表单让用户填写而不是让 Agent 猜参数</li>
+<li>返回一个内嵌仪表盘而不是一行状态文字</li>
+</ul>
+<p>直观来看，当用户能看到清晰的可视化结果时，他们更信任这个工具，也更愿意继续用它。这是 MCP 协议演进的自然方向——从”返回数据”到”返回体验”。</p>
+<p>我们的 <code>ai-ops-mcp</code> 目前返回 JSON 格式的指标数据，纯文本呈现。这是下一步的改进方向——诊断报告可以返回可视化仪表盘而非纯文字。</p>
+<h3 id="最佳实践总结"><a href="#最佳实践总结" class="headerlink" title="最佳实践总结"></a>最佳实践总结</h3><table>
+<thead>
+<tr>
+<th>#</th>
+<th>最佳实践</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>远程部署优先</td>
+<td>从第一天就构建远程 MCP Server，不要走 stdio 本地捷径</td>
+</tr>
+<tr>
+<td>2</td>
+<td>MCP 做原子能力，Skill 做意图编排</td>
+<td>MCP 提供稳定可复用的原子工具，Skill 提供灵活易迭代的编排逻辑</td>
+</tr>
+<tr>
+<td>3</td>
+<td>大面积 API 用代码编排</td>
+<td>只暴露 search + execute，极简表面覆盖全部能力</td>
+</tr>
+<tr>
+<td>4</td>
+<td>认证标准化</td>
+<td>内部场景可简化鉴权，外部系统走 CIMD + Vaults</td>
+</tr>
+<tr>
+<td>5</td>
+<td>返回丰富语义</td>
+<td>让工具返回可交互界面而非纯文本，从”返回数据”到”返回体验”</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、踩坑实战：Token-消耗与客户端优化"><a href="#五、踩坑实战：Token-消耗与客户端优化" class="headerlink" title="五、踩坑实战：Token 消耗与客户端优化"></a>五、踩坑实战：Token 消耗与客户端优化</h2><h3 id="5-1-问题：13-个工具定义吃掉多少-Token？"><a href="#5-1-问题：13-个工具定义吃掉多少-Token？" class="headerlink" title="5.1 问题：13 个工具定义吃掉多少 Token？"></a>5.1 问题：13 个工具定义吃掉多少 Token？</h3><p>当 MCP Server 提供了 13 个工具时，Claude Code 在初始化时会把所有工具定义加载到上下文中。每个工具定义包含工具名、参数说明、返回值描述——13 个工具的定义本身就占了不少 Token。</p>
+<p>如果做全面健康检查（并行调用 13 个工具），加上每次调用的参数和返回结果，一次完整诊断的 Token 消耗量可能达到数万级别。</p>
+<h3 id="5-2-Anthropic-的优化方案"><a href="#5-2-Anthropic-的优化方案" class="headerlink" title="5.2 Anthropic 的优化方案"></a>5.2 Anthropic 的优化方案</h3><p>官方工程博客给出了一个核心优化方向：<strong>Code execution with MCP</strong>。</p>
+<p><strong>核心思路：Tool Search — 按需加载</strong></p>
+<p>不预先加载所有工具定义，而是运行时动态搜索工具目录，只在需要时拉入上下文。Anthropic 给出了数据：将工具作为代码文件组织在文件系统中，Agent 通过浏览目录发现需要的工具，工具定义的 Token 消耗从 **150,000 降至 2,000，节省 98.7%**。</p>
+<p><strong>延伸思路：Programmatic Tool Calling — 代码沙盒处理结果</strong></p>
+<p>把工具调用结果交给代码执行沙盒处理（循环、过滤、聚合），只把最终总结传入上下文，而非把每个原始结果都塞进对话。例如获取 10,000 行数据后，在沙盒中过滤为 5 行再返回给模型——Agent 只看 5 行而非 10,000 行。</p>
+<h3 id="5-3-我们的实践：Skill-就是天然的”Tool-Search”"><a href="#5-3-我们的实践：Skill-就是天然的”Tool-Search”" class="headerlink" title="5.3 我们的实践：Skill 就是天然的”Tool Search”"></a>5.3 我们的实践：Skill 就是天然的”Tool Search”</h3><p>回看我们的 <code>ai-ops-troubleshoot</code> Skill，它的诊断流程天然实现了”按需加载”的逻辑：</p>
+<ul>
+<li>用户说”响应慢” → Skill 只选择 QPS + 响应时间 + CPU 三个工具</li>
+<li>用户说”CPU 高” → Skill 只选择 CPU + 线程 + GC 工具</li>
+<li>用户说”定时任务失败” → Skill 只选择 ElasticJob 工具</li>
+</ul>
+<p>不是盲调 13 个工具，而是根据症状精准选择 3-6 个。这和官方 Tool Search 的理念一致——<strong>只在需要时才加载和使用相关工具</strong>。</p>
+<blockquote>
+<p>验证结论：Skill 的症状→工具选择映射，自然实现了 Tool Search 的理念。</p>
+</blockquote>
+<hr>
+<h2 id="六、MCP-是「会复利」的层"><a href="#六、MCP-是「会复利」的层" class="headerlink" title="六、MCP 是「会复利」的层"></a>六、MCP 是「会复利」的层</h2><p>前面讲的都是技术和实操。最后想分享一个更深层的认知。</p>
+<p>MCP 是一个「会复利」的层。什么叫”复利”？今天你写了一个远程 MCP Server，它可以被所有兼容客户端在任何部署环境下使用——认证、交互性和丰富语义都由协议本身处理。随着更多客户端采用规范、更多扩展进入协议，<strong>同一个服务器不需要你重新发布任何东西，就能变得越来越强</strong>。</p>
+<p>你写的每一个 MCP Server，都在为整个生态系统贡献力量。边缘情况变少了，定制化集成变少了，整个行业的基础设施变强了。这是一种典型的网络效应——用得越多，价值越大。</p>
+<p>在我们的实践中也感受到了这一点：<code>ai-ops-mcp</code> 最初只为 Claude Code 设计，但 MCP 协议的标准化让它天然兼容 QoderCLI 和未来的更多 Agent 平台——<strong>一次构建，多处受益</strong>。</p>
+<hr>
+<h2 id="七、行动清单"><a href="#七、行动清单" class="headerlink" title="七、行动清单"></a>七、行动清单</h2><p>根据这次实战经验，给不同阶段的读者一个清晰的下一步建议：</p>
+<h3 id="给刚接触-MCP-的读者"><a href="#给刚接触-MCP-的读者" class="headerlink" title="给刚接触 MCP 的读者"></a>给刚接触 MCP 的读者</h3><ol>
+<li><strong>先理解核心</strong>：MCP 不是又一个 API 协议，它是消除 Agent×系统 M×N 问题的标准化层</li>
+<li><strong>一行命令开始</strong>：用 <code>claude mcp add</code> 安装一个远程 MCP Server，感受连通性</li>
+<li><strong>验证连通</strong>：让 Claude 列出已安装的 MCP 工具，确认数据可达</li>
+</ol>
+<h3 id="给正在构建-MCP-Server-的开发者"><a href="#给正在构建-MCP-Server-的开发者" class="headerlink" title="给正在构建 MCP Server 的开发者"></a>给正在构建 MCP Server 的开发者</h3><ol start="4">
+<li><strong>远程优先</strong>：从第一天就构建远程 MCP Server，不要走 stdio 本地捷径</li>
+<li><strong>MCP 做原子，Skill 做编排</strong>：MCP 提供稳定可复用的原子工具，Skill 提供灵活易迭代的编排逻辑</li>
+<li><strong>大面积 API 用代码编排</strong>：只暴露 search + execute，极简表面覆盖全部能力</li>
+</ol>
+<h3 id="给想让-Agent-真正干活的实践者"><a href="#给想让-Agent-真正干活的实践者" class="headerlink" title="给想让 Agent 真正干活的实践者"></a>给想让 Agent 真正干活的实践者</h3><ol start="7">
+<li><strong>MCP + Skills 组合</strong>：MCP 给能力，Skills 给知识。只装 MCP 不够——Agent 需要一套 SOP 才能高效使用工具</li>
+<li><strong>Token 优化</strong>：Skill 的精准工具选择天然实现 Tool Search 理念，减少无谓调用</li>
+<li><strong>认证标准化</strong>：内部场景可简化鉴权，外部系统走 CIMD + Vaults</li>
+</ol>
+<h3 id="给想深入-MCP-生态的建设者"><a href="#给想深入-MCP-生态的建设者" class="headerlink" title="给想深入 MCP 生态的建设者"></a>给想深入 MCP 生态的建设者</h3><ol start="10">
+<li><strong>丰富语义返回</strong>：返回图表和表单而非纯文本，从”返回数据”到”返回体验”</li>
+<li><strong>Skill 从 MCP Server 分发</strong>：社区正在推进标准扩展，让 Skills 和 MCP Server 版本同步</li>
+<li><strong>你的每个 MCP Server 都在贡献复利</strong>：网络效应——用得越多，价值越大</li>
+</ol>
+<hr>
+<blockquote>
+<p>本文参考 Anthropic 官方工程博客：<a target="_blank" rel="noopener" href="https://www.anthropic.com/engineering/code-execution-with-mcp">Code execution with MCP: Building more efficient agents</a></p>
+<p>中文解读参考：<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/VnJUhwSYBXznjy5poNI35w">Anthropic官方指南：用MCP协议构建能接入生产系统的AI Agent</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/MCP/" rel="tag"># MCP</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/12/08/%E5%9F%BA%E4%BA%8Esermant%E7%9A%84%E5%BA%94%E7%94%A8%E5%AE%9E%E6%88%98%E4%B9%8B%E5%85%A8%E9%93%BE%E8%B7%AF%E7%81%B0%E5%BA%A6/" rel="prev" title="基于sermant的应用实战之全链路灰度">
+                  <i class="fa fa-chevron-left"></i> 基于sermant的应用实战之全链路灰度
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">浙ICP备19013166号-1 </a>
+  </div>
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">J~杰</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"model":"wanko","bottom":-30,"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>
