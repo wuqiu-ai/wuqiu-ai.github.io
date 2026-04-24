@@ -6,7 +6,7 @@
   <link href="http://ppjys.cn/atom.xml" rel="self"/>
   
   <link href="http://ppjys.cn/"/>
-  <updated>2026-04-24T14:32:51.002Z</updated>
+  <updated>2026-04-24T14:34:54.509Z</updated>
   <id>http://ppjys.cn/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="http://ppjys.cn/2026/04/24/20260424MCPSkills/"/>
     <id>http://ppjys.cn/2026/04/24/20260424MCPSkills/</id>
     <published>2026-04-24T09:00:00.000Z</published>
-    <updated>2026-04-24T14:32:51.002Z</updated>
+    <updated>2026-04-24T14:34:54.509Z</updated>
     
     
     <summary type="html">&lt;blockquote&gt;
@@ -32,7 +32,7 @@
 &lt;h2 id=&quot;一、MCP-30-秒理解&quot;&gt;&lt;a href=&quot;#一、MCP-30-秒理解&quot; class=&quot;headerlink&quot; title=&quot;一、MCP 30 秒理解&quot;&gt;&lt;/a&gt;一、MCP 30 秒理解&lt;/h2&gt;&lt;p&gt;先解决一个基本问题：MCP 到底是什么？&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;一句话&lt;/strong&gt;：MCP 是一个标准协议，让任何 AI Agent 都能用同一套接口连接任何外部系统。&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;一张图&lt;/strong&gt;：&lt;/p&gt;
-&lt;p&gt;&lt;img src=&quot;/images/mcp.png&quot; alt=&quot;697&quot;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;/images/mcp.png&quot; alt=&quot;mcp&quot;&gt;&lt;/p&gt;
 &lt;p&gt;根据 Anthropic 官方博客和 MCP 协议的设计意图，Agent 连接外部系统有三条路径：&lt;/p&gt;
 &lt;table&gt;
 &lt;thead&gt;
